@@ -40,8 +40,9 @@ public class MqttMessageHandler {
     // private final EmailService emailService; // <<<< Thêm vào
     // private final FarmRepository farmRepository; // <<<< Thêm vào
     private final NotificationService notificationService; // <<<< THÊM DÒNG NÀY
-    private final SettingService settingService; // Service để lấy ngưỡng cài đặt
+    // private final SettingService settingService; // Service để lấy ngưỡng cài đặt
     private final StringRedisTemplate redisTemplate; // Redis để quản lý cooldown
+    private final FarmSettingService farmSettingService;
 
     private static final int SENSOR_NOTIFICATION_COOLDOWN_HOURS = 4;
 
@@ -179,7 +180,7 @@ public class MqttMessageHandler {
             return;
 
         // 1. Kiểm tra nhiệt độ cao
-        double highTempThreshold = settingService.getDouble("SENSOR_HIGH_TEMP_THRESHOLD", 38.0);
+        double highTempThreshold = farmSettingService.getDouble(farm.getId(), "SENSOR_HIGH_TEMP_THRESHOLD", 38.0);
         if (data.getTemperature() != null && data.getTemperature() > highTempThreshold) {
             String alertType = "SENSOR_HIGH_TEMP";
             if (canSendNotification(farm.getId(), alertType, device.getDeviceId())) {
@@ -195,7 +196,8 @@ public class MqttMessageHandler {
         }
 
         // 2. Kiểm tra độ ẩm đất thấp
-        double lowSoilThreshold = settingService.getDouble("SENSOR_LOW_SOIL_MOISTURE_THRESHOLD", 20.0);
+        double lowSoilThreshold = farmSettingService.getDouble(farm.getId(), "SENSOR_LOW_SOIL_MOISTURE_THRESHOLD",
+                20.0);
         if (data.getSoilMoisture() != null && data.getSoilMoisture() < lowSoilThreshold) {
             String alertType = "SENSOR_LOW_SOIL";
             if (canSendNotification(farm.getId(), alertType, device.getDeviceId())) {
@@ -210,7 +212,8 @@ public class MqttMessageHandler {
         }
 
         // 3. Kiểm tra độ ẩm không khí cao
-        double highHumidityThreshold = settingService.getDouble("SENSOR_HIGH_HUMIDITY_THRESHOLD", 90.0);
+        double highHumidityThreshold = farmSettingService.getDouble(farm.getId(), "SENSOR_HIGH_HUMIDITY_THRESHOLD",
+                90.0);
         if (data.getHumidity() != null && data.getHumidity() > highHumidityThreshold) {
             String alertType = "SENSOR_HIGH_HUMIDITY";
             if (canSendNotification(farm.getId(), alertType, device.getDeviceId())) {

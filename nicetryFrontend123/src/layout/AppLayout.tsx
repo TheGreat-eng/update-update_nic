@@ -18,6 +18,11 @@ import type { IMessage as StompMessage } from '@stomp/stompjs'; // Đặt tên m
 import { CalendarClock } from 'lucide-react'; // Thêm icon
 
 
+import { History } from 'lucide-react'; // Thêm icon
+
+
+
+
 const { Content, Sider } = Layout;
 
 type MenuItem = Required<MenuProps>['items'][number];
@@ -88,6 +93,7 @@ const AppLayout: React.FC<PropsWithChildren> = ({ children }) => {
         getItem('Quản lý Nông trại', '/farms', <Trees size={16} />),
         getItem('Quản lý Thiết bị', '/devices', <HardDrive size={16} />),
         getItem('Phân tích Dữ liệu', '/analytics', <Settings size={16} />),
+        getItem('Nhật ký Vận hành', '/logs', <History size={16} />), // Thêm dòng này vào sau
         // <<<< THÊM MENU ITEM MỚI CHO TRANG NOTIFICATIONS >>>>
         getItem('Thông báo', '/notifications', <BellOutlined style={{ fontSize: '16px' }} />),
         // <<<<----------------------------------------->>>>

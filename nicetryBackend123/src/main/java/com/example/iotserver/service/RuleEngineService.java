@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.iotserver.entity.ActivityLog;
 import com.example.iotserver.entity.Device; // THÊM IMPORT
 import com.example.iotserver.repository.DeviceRepository; // THÊM IMPORT
 
@@ -41,6 +42,7 @@ public class RuleEngineService {
     // private final EmailService emailService;
     private final NotificationService notificationService; // <<<< THÊM DÒNG NÀY
     private final DeviceRepository deviceRepository; // VVVV--- THÊM DEPENDENCY NÀY ---VVVV
+    private final ActivityLogService activityLogService; // <<< THÊM
 
     /**
      * Chạy tất cả quy tắc đang kích hoạt
@@ -240,7 +242,9 @@ public class RuleEngineService {
             log.info("🔍 [Rule Check] Sensor data từ InfluxDB: {}", sensorData != null ? "CÓ DỮ LIỆU" : "NULL");
 
             if (sensorData == null) {
-                log.warn("❌ [Rule Check] Không có dữ liệu cảm biến cho thiết bị: {}", deviceId);
+                // Thêm log chi tiết hơn
+                log.warn("Rule [{}]: Bỏ qua điều kiện vì không có dữ liệu cảm biến gần đây cho thiết bị [{}].",
+                        condition.getRule().getName(), deviceId);
                 return false;
             }
 
@@ -249,7 +253,8 @@ public class RuleEngineService {
             log.info("🔍 [Rule Check] actualValue: {}, expectedValue: {}", actualValue, condition.getValue());
 
             if (actualValue == null) {
-                log.warn("❌ [Rule Check] Không tìm thấy giá trị cho trường: {}", condition.getField());
+                log.warn("Rule [{}]: Không tìm thấy giá trị cho trường [{}] trên thiết bị [{}].",
+                        condition.getRule().getName(), condition.getField(), deviceId);
                 return false;
             }
 
@@ -259,8 +264,15 @@ public class RuleEngineService {
 
             boolean result = compareValues(actualValue, condition.getOperator(), expectedValue);
 
-            log.info("🔍 [Rule Check] So sánh: {} {} {} = {}",
-                    actualValue, condition.getOperator(), expectedValue, result);
+            // <<< DÒNG LOG QUAN TRỌNG ĐƯỢC THÊM VÀO >>>
+            log.info("[Rule Check] Quy tắc [{}]: Điều kiện [{} {} {}] -> {}. (Thực tế: {})",
+                    condition.getRule().getName(),
+                    condition.getField(),
+                    condition.getOperator(),
+                    expectedValue,
+                    result ? "ĐÚNG" : "SAI",
+                    actualValue);
+            // <<< KẾT THÚC PHẦN THÊM MỚI >>>
 
             return result;
 
@@ -398,6 +410,12 @@ public class RuleEngineService {
         for (Rule.RuleAction action : rule.getActions()) {
             try {
                 String result = performSingleAction(rule, action);
+
+                // <<< GHI LOG Ở ĐÂY >>>
+                String description = String.format("Quy tắc '%s' đã thực thi hành động: %s", rule.getName(), result);
+                activityLogService.logSystemActivity(rule.getFarm().getId(), "RULE_EXECUTION", "RULE",
+                        rule.getId().toString(), description, ActivityLog.LogStatus.SUCCESS, null);
+
                 performedActions.add(result);
                 log.info("  ✓ Đã thực hiện: {}", result);
             } catch (Exception e) {

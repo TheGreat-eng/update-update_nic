@@ -1,0 +1,21 @@
+package com.example.iotserver.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class ActivityLogDTO {
+    private Long id;
+    private String actorName;
+    private String actionType;
+    private String description;
+    private String status;
+    private LocalDateTime createdAt;
+}

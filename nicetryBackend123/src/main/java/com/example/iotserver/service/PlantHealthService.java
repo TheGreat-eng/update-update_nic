@@ -37,7 +37,8 @@ public class PlantHealthService {
     // private final EmailService emailService; // <<<< 2. INJECT EMAILSERVICE
     private final NotificationService notificationService; // <<<< THAY BẰNG DÒNG NÀY
     private final FarmRepository farmRepository; // <<<< 2. INJECT FARMREPOSITORY
-    private final SettingService settingService; // <<<< THÊM VÀO
+    // private final SettingService settingService; // <<<< THÊM VÀO
+    private final FarmSettingService farmSettingService; // <<<< THÊM VÀO
 
     /**
      * Phân tích sức khỏe tổng thể của nông trại
@@ -170,9 +171,16 @@ public class PlantHealthService {
      */
     private Optional<PlantHealthAlert> checkFungusRisk(Long farmId, SensorDataDTO data) {
         if (data.getHumidity() != null && data.getTemperature() != null) {
-            double fungusHumidityThreshold = settingService.getDouble("PLANT_HEALTH_FUNGUS_HUMIDITY_THRESHOLD", 85.0);
-            double fungusTempMin = settingService.getDouble("PLANT_HEALTH_FUNGUS_TEMP_MIN", 20.0);
-            double fungusTempMax = settingService.getDouble("PLANT_HEALTH_FUNGUS_TEMP_MAX", 28.0);
+            double fungusHumidityThreshold = farmSettingService.getDouble(farmId,
+                    "PLANT_HEALTH_FUNGUS_HUMIDITY_THRESHOLD", 85.0);
+
+            // <<< THÊM LOG CHI TIẾT >>>
+            log.info(
+                    "[Health Check] Farm ID [{}]: Kiểm tra Nguy cơ Nấm. Độ ẩm: [{}%], Nhiệt độ: [{}°C], Ngưỡng Độ ẩm: [{}%]",
+                    farmId, data.getHumidity(), data.getTemperature(), fungusHumidityThreshold);
+
+            double fungusTempMin = farmSettingService.getDouble(farmId, "PLANT_HEALTH_FUNGUS_TEMP_MIN", 20.0);
+            double fungusTempMax = farmSettingService.getDouble(farmId, "PLANT_HEALTH_FUNGUS_TEMP_MAX", 28.0);
 
             boolean highHumidity = data.getHumidity() > fungusHumidityThreshold;
             boolean optimalTemp = data.getTemperature() >= fungusTempMin && data.getTemperature() <= fungusTempMax;
@@ -199,7 +207,14 @@ public class PlantHealthService {
      */
     private Optional<PlantHealthAlert> checkHeatStress(Long farmId, SensorDataDTO data) {
         if (data.getTemperature() != null) {
-            double heatStressThreshold = settingService.getDouble("PLANT_HEALTH_HEAT_STRESS_THRESHOLD", 38.0);
+            double heatStressThreshold = farmSettingService.getDouble(farmId, "PLANT_HEALTH_HEAT_STRESS_THRESHOLD",
+                    38.0);
+
+            // <<< DÒNG LOG QUAN TRỌNG ĐƯỢC THÊM VÀO >>>
+            log.info("[Health Check] Farm ID [{}]: Kiểm tra Stress Nhiệt. Nhiệt độ hiện tại: [{}°C], Ngưỡng: [{}°C]",
+                    farmId, data.getTemperature(), heatStressThreshold);
+            // <<< KẾT THÚC PHẦN THÊM MỚI >>>
+
             if (data.getTemperature() > heatStressThreshold) {
                 log.warn("🔥 Phát hiện stress nhiệt! Nhiệt độ: {}°C", data.getTemperature());
                 return Optional.of(PlantHealthAlert.builder()
@@ -220,7 +235,12 @@ public class PlantHealthService {
      */
     private Optional<PlantHealthAlert> checkDrought(Long farmId, SensorDataDTO data) {
         if (data.getSoilMoisture() != null) {
-            double droughtThreshold = settingService.getDouble("PLANT_HEALTH_DROUGHT_THRESHOLD", 30.0);
+            double droughtThreshold = farmSettingService.getDouble(farmId, "PLANT_HEALTH_DROUGHT_THRESHOLD", 30.0);
+
+            // <<< THÊM LOG CHI TIẾT >>>
+            log.info("[Health Check] Farm ID [{}]: Kiểm tra Thiếu Nước. Độ ẩm đất: [{}%], Ngưỡng: [{}%]",
+                    farmId, data.getSoilMoisture(), droughtThreshold);
+
             if (data.getSoilMoisture() < droughtThreshold) {
                 log.warn("💧 Phát hiện thiếu nước! Độ ẩm đất: {}%", data.getSoilMoisture());
                 return Optional.of(PlantHealthAlert.builder()
@@ -241,7 +261,12 @@ public class PlantHealthService {
      */
     private Optional<PlantHealthAlert> checkColdRisk(Long farmId, SensorDataDTO data) {
         if (data.getTemperature() != null) {
-            double coldThreshold = settingService.getDouble("PLANT_HEALTH_COLD_THRESHOLD", 12.0);
+            double coldThreshold = farmSettingService.getDouble(farmId, "PLANT_HEALTH_COLD_THRESHOLD", 12.0);
+
+            // <<< THÊM LOG CHI TIẾT >>>
+            log.info("[Health Check] Farm ID [{}]: Kiểm tra Nguy cơ Lạnh. Nhiệt độ: [{}°C], Ngưỡng: [{}°C]",
+                    farmId, data.getTemperature(), coldThreshold);
+
             if (data.getTemperature() < coldThreshold) {
                 LocalTime now = LocalTime.now();
                 if (now.isAfter(LocalTime.of(22, 0)) || now.isBefore(LocalTime.of(6, 0))) {
@@ -268,7 +293,8 @@ public class PlantHealthService {
             SensorDataDTO oldData = sensorDataService.getSensorDataAt(farmId, LocalDateTime.now().minusHours(6));
             if (oldData != null && oldData.getSoilMoisture() != null) {
                 double change = Math.abs(data.getSoilMoisture() - oldData.getSoilMoisture());
-                double moistureChangeThreshold = settingService.getDouble("PLANT_HEALTH_MOISTURE_CHANGE_THRESHOLD",
+                double moistureChangeThreshold = farmSettingService.getDouble(farmId,
+                        "PLANT_HEALTH_MOISTURE_CHANGE_THRESHOLD",
                         30.0);
                 if (change > moistureChangeThreshold) {
                     log.warn("⚡ Phát hiện độ ẩm dao động mạnh! Thay đổi: {}%", change);
@@ -291,7 +317,7 @@ public class PlantHealthService {
      */
     private Optional<PlantHealthAlert> checkLowLight(Long farmId, SensorDataDTO data) {
         if (data.getLightIntensity() != null) {
-            double lightThreshold = settingService.getDouble("PLANT_HEALTH_LIGHT_THRESHOLD", 1000.0);
+            double lightThreshold = farmSettingService.getDouble(farmId, "PLANT_HEALTH_LIGHT_THRESHOLD", 1000.0);
             if (data.getLightIntensity() < lightThreshold) {
                 LocalTime now = LocalTime.now();
                 if (now.isAfter(LocalTime.of(8, 0)) && now.isBefore(LocalTime.of(18, 0))) {
@@ -314,8 +340,8 @@ public class PlantHealthService {
      */
     private Optional<PlantHealthAlert> checkPHAbnormal(Long farmId, SensorDataDTO data) {
         if (data.getSoilPH() != null) {
-            double phMin = settingService.getDouble("PLANT_HEALTH_PH_MIN", 5.0);
-            double phMax = settingService.getDouble("PLANT_HEALTH_PH_MAX", 7.5);
+            double phMin = farmSettingService.getDouble(farmId, "PLANT_HEALTH_PH_MIN", 5.0);
+            double phMax = farmSettingService.getDouble(farmId, "PLANT_HEALTH_PH_MAX", 7.5);
             if (data.getSoilPH() < phMin || data.getSoilPH() > phMax) {
                 log.warn("⚗️ Phát hiện pH bất thường! pH: {}", data.getSoilPH());
                 String description = data.getSoilPH() < phMin

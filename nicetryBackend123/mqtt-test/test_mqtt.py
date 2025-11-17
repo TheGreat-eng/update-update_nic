@@ -42,27 +42,27 @@ PORT = 1883
 # }
 
 # --- Kịch bản 4: Test Email Cảnh báo Tức thời (Nhiệt độ cao) ---
-# SCENARIO = {
-#     "name": "Kịch bản 4: Test Email Cảnh báo Tức thời từ Cảm biến",
-#     "device_id": "DHT-REALTIME-TEST",
-#     "payload": {
-#         "deviceId": "DHT-REALTIME-TEST",
-#         "sensorType": "DHT22",
-#         "temperature": 41.0, # > 38 -> Kích hoạt cảnh báo
-#         "humidity": 35.0
-#     }
-# }
-
-# --- Kịch bản 5: Test Email Cảnh báo Tức thời (ph cao) ---
 SCENARIO = {
     "name": "Kịch bản 4: Test Email Cảnh báo Tức thời từ Cảm biến",
-    "device_id": "PH-7699867",
+    "device_id": "DHT-REALTIME-TEST",
     "payload": {
-        "deviceId": "PH-7699867",
-        "sensorType": "PH",
-        "soilPH": 20, # > 38 -> Kích hoạt cảnh báo
+        "deviceId": "DHT-REALTIME-TEST",
+        "sensorType": "DHT22",
+        "temperature": 41.0, # > 38 -> Kích hoạt cảnh báo
+        "humidity": 35.0
     }
 }
+
+# --- Kịch bản 5: Test Email Cảnh báo Tức thời (ph cao) ---
+# SCENARIO = {
+#     "name": "Kịch bản 4: Test Email Cảnh báo Tức thời từ Cảm biến",
+#     "device_id": "PH-7699867",
+#     "payload": {
+#         "deviceId": "PH-7699867",
+#         "sensorType": "PH",
+#         "soilPH": 20, # > 38 -> Kích hoạt cảnh báo
+#     }
+# }
 
 # ==================== LOGIC GỬI TIN ====================
 def run_test(scenario):

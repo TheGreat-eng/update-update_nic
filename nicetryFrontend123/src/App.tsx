@@ -31,7 +31,7 @@ const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 const SystemSettingsPage = lazy(() => import('./pages/admin/SystemSettingsPage')); // <<<< THÊM IMPORT
 const NotificationsPage = lazy(() => import('./pages/NotificationsPage')); // VVVV--- THÊM IMPORT NÀY ---VVVV
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage')); // THÊM IMPORT NÀY
-
+const ActivityLogPage = lazy(() => import('./pages/ActivityLogPage')); // Thêm import
 
 const LoadingFallback = () => (
   <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
@@ -100,6 +100,7 @@ function App() {
           <Route path="/plant-health" element={<PrivateRoute><AppLayout><PlantHealthPage /></AppLayout></PrivateRoute>} />
           <Route path="/schedules" element={<PrivateRoute><AppLayout><SchedulesPage /></AppLayout></PrivateRoute>} />
           <Route path="/analytics" element={<PrivateRoute><AppLayout><AnalyticsPage /></AppLayout></PrivateRoute>} />
+          <Route path="/logs" element={<PrivateRoute><AppLayout><ActivityLogPage /></AppLayout></PrivateRoute>} />
           <Route path="/settings" element={<PrivateRoute><AppLayout><SettingsPage /></AppLayout></PrivateRoute>} />
           <Route path="/admin/dashboard" element={<PrivateRoute><AppLayout><AdminDashboardPage /></AppLayout></PrivateRoute>} />
           <Route path="/admin/users" element={<PrivateRoute><AppLayout><UserManagementPage /></AppLayout></PrivateRoute>} />

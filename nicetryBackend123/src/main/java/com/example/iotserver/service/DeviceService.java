@@ -42,6 +42,8 @@ public class DeviceService {
     private final WebSocketService webSocketService; // Thêm dependency này
     // private final EmailService emailService; // <<<< 2. INJECT EMAILSERVICE
     private final NotificationService notificationService; // <<<< THAY BẰNG DÒNG NÀY
+    private final ActivityLogService activityLogService; // <<< THÊM
+    private final ObjectMapper objectMapper; // <<< 1. Inject ObjectMapper thay vì tạo mới
 
     // VVVV--- THÊM DÒNG NÀY ---VVVV
     private final ZoneRepository zoneRepository;
@@ -269,26 +271,33 @@ public class DeviceService {
         User currentUser = authenticationService.getCurrentAuthenticatedUser();
         farmService.checkUserPermissionForFarm(currentUser.getId(), device.getFarm().getId(), FarmRole.OPERATOR);
 
-        if (!isActuator(device.getType())) {
-            throw new RuntimeException("Device is not controllable");
-        }
+        // Ghi log trước khi thực hiện
+        String description = String.format("Điều khiển thiết bị '%s' (%s): %s.", device.getName(), deviceId, action);
+        activityLogService.logUserActivity(device.getFarm().getId(), "DEVICE_CONTROL", "DEVICE", deviceId, description);
 
-        // ✅ GỬI LỆNH QUA MQTT
-        String topic = String.format("device/%s/control", deviceId);
+        // if (!isActuator(device.getType())) {
+        // throw new RuntimeException("Device is not controllable");
+        // }
 
-        Map<String, Object> command = new HashMap<>();
-        command.put("deviceId", deviceId);
-        command.put("action", action);
-        command.putAll(params);
-        command.put("timestamp", LocalDateTime.now().toString());
+        // // ✅ GỬI LỆNH QUA MQTT
+        // String topic = String.format("device/%s/control", deviceId);
 
-        try {
-            mqttGateway.sendToMqtt(new ObjectMapper().writeValueAsString(command), topic);
-            log.info("✅ Đã gửi lệnh MQTT tới device {}: {} with params: {}", deviceId, action, params);
-        } catch (Exception e) {
-            log.error("❌ Lỗi khi gửi lệnh MQTT: {}", e.getMessage());
-            throw new RuntimeException("Failed to send control command", e);
-        }
+        // Map<String, Object> command = new HashMap<>();
+        // command.put("deviceId", deviceId);
+        // command.put("action", action);
+        // command.putAll(params);
+        // command.put("timestamp", LocalDateTime.now().toString());
+
+        // try {
+        // mqttGateway.sendToMqtt(new ObjectMapper().writeValueAsString(command),
+        // topic);
+        // log.info("✅ Đã gửi lệnh MQTT tới device {}: {} with params: {}", deviceId,
+        // action, params);
+        // } catch (Exception e) {
+        // log.error("❌ Lỗi khi gửi lệnh MQTT: {}", e.getMessage());
+        // throw new RuntimeException("Failed to send control command", e);
+        // }
+        internalControlDevice(device, action, params);
     }
 
     // --- Phương thức NỘI BỘ, dành cho hệ thống, KHÔNG kiểm tra quyền ---
@@ -320,10 +329,18 @@ public class DeviceService {
     }
 
     // <<< SỬA LẠI: internalControlDevice overload để nhận deviceId >>>
+    // Sửa phương thức nội bộ
     @Transactional
     public void internalControlDevice(String deviceId, String action, Map<String, Object> params) {
         Device device = deviceRepository.findByDeviceId(deviceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Device", "id", deviceId));
+
+        // Ghi log cho hệ thống
+        String description = String.format("Hệ thống điều khiển thiết bị '%s' (%s): %s.", device.getName(), deviceId,
+                action);
+        activityLogService.logSystemActivity(device.getFarm().getId(), "SYSTEM_DEVICE_CONTROL", "DEVICE", deviceId,
+                description, ActivityLog.LogStatus.SUCCESS, null);
+
         internalControlDevice(device, action, params);
     }
 

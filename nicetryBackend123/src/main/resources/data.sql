@@ -26,3 +26,29 @@ CREATE TABLE IF NOT EXISTS schedules (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (farm_id) REFERENCES farms(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS activity_logs (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    farm_id BIGINT NOT NULL,
+    user_id BIGINT, -- Có thể NULL nếu là hành động của hệ thống
+    actor_name VARCHAR(255) NOT NULL, -- Tên người dùng hoặc "Hệ thống"
+    action_type VARCHAR(50) NOT NULL, -- Ví dụ: DEVICE_CONTROL, RULE_UPDATE
+    target_type VARCHAR(50), -- Ví dụ: DEVICE, RULE
+    target_id VARCHAR(255), -- ID của đối tượng bị tác động
+    description TEXT NOT NULL, -- Mô tả chi tiết hành động
+    status VARCHAR(20) NOT NULL, -- SUCCESS, FAILED
+    details TEXT, -- Chi tiết thêm dạng JSON (nếu cần)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (farm_id) REFERENCES farms(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+
+CREATE TABLE IF NOT EXISTS farm_settings (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    farm_id BIGINT NOT NULL,
+    setting_key VARCHAR(100) NOT NULL,
+    setting_value TEXT NOT NULL,
+    UNIQUE KEY uk_farm_setting (farm_id, setting_key),
+    FOREIGN KEY (farm_id) REFERENCES farms(id) ON DELETE CASCADE
+);

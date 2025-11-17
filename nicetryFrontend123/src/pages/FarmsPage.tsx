@@ -7,13 +7,15 @@ import {
 import {
     PlusOutlined, EditOutlined, DeleteOutlined, CheckCircleOutlined,
     TeamOutlined, InfoCircleOutlined,
-    AppstoreOutlined
+    AppstoreOutlined, SettingOutlined
 } from '@ant-design/icons';
 import { MapPin } from 'lucide-react';
 
 // API services and types
 import { getFarms, createFarm, updateFarm, deleteFarm } from '../api/farmService';
 import type { Farm, FarmFormData } from '../types/farm';
+import { FarmSettings } from '../components/FarmSettings'; // Thêm component
+
 
 // Custom components and hooks
 import FarmFormModal from '../components/FarmFormModal';
@@ -247,6 +249,18 @@ const FarmsPage: React.FC = () => {
                                 isOwner={currentUser?.userId === selectedFarmDetail.ownerId}
                             />
                         </TabPane>
+
+                        {/* <<< THÊM TAB MỚI Ở ĐÂY >>> */}
+                        {currentUser?.userId === selectedFarmDetail.ownerId && (
+                            <TabPane tab={<span><SettingOutlined />Cài đặt Nâng cao</span>} key="4">
+                                <FarmSettings farmId={selectedFarmDetail.id} />
+                            </TabPane>
+                        )}
+
+
+
+
+
                     </Tabs>
                 )}
             </Modal>
