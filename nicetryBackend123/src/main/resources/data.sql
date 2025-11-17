@@ -11,3 +11,18 @@ INSERT INTO system_settings (setting_key, setting_value, description) VALUES
 ('PLANT_HEALTH_PH_MIN', '5.0', 'Ngưỡng pH đất tối thiểu.'),
 ('PLANT_HEALTH_PH_MAX', '7.5', 'Ngưỡng pH đất tối đa.')
 ON DUPLICATE KEY UPDATE setting_key=setting_key;
+
+CREATE TABLE IF NOT EXISTS schedules (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    farm_id BIGINT NOT NULL,
+    device_id VARCHAR(255) NOT NULL,
+    action ENUM('TURN_ON', 'TURN_OFF') NOT NULL,
+    cron_expression VARCHAR(255) NOT NULL,
+    duration_seconds INT,
+    enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (farm_id) REFERENCES farms(id) ON DELETE CASCADE
+);

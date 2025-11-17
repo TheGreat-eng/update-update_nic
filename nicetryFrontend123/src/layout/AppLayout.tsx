@@ -15,6 +15,7 @@ import { BellOutlined } from '@ant-design/icons';
 import { useStomp } from '../hooks/useStomp';
 import { useQueryClient } from '@tanstack/react-query'; // THÊM
 import type { IMessage as StompMessage } from '@stomp/stompjs'; // Đặt tên mới để tránh trùng lặp
+import { CalendarClock } from 'lucide-react'; // Thêm icon
 
 
 const { Content, Sider } = Layout;
@@ -82,6 +83,7 @@ const AppLayout: React.FC<PropsWithChildren> = ({ children }) => {
         getItem('Dashboard', '/dashboard', <LayoutDashboard size={16} />),
         getItem('Dự đoán AI', '/ai', <BrainCircuit size={16} />),
         getItem('Quy tắc Tự động', '/rules', <Bot size={16} />),
+        getItem('Lịch trình', '/schedules', <CalendarClock size={16} />), // <<< THÊM DÒNG NÀY
         getItem('Sức khỏe Cây trồng', '/plant-health', <HeartPulse size={16} />),
         getItem('Quản lý Nông trại', '/farms', <Trees size={16} />),
         getItem('Quản lý Thiết bị', '/devices', <HardDrive size={16} />),

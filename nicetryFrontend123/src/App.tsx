@@ -6,6 +6,9 @@ import AppLayout from './layout/AppLayout';
 import NotFoundPage from './pages/NotFoundPage';
 import PrivateRoute from './components/PrivateRoute';
 import NetworkStatus from './components/NetworkStatus';
+//import { CalendarClock } from 'lucide-react'; // Thêm icon
+import SchedulesPage from './pages/SchedulesPage';
+
 
 
 // ✅ Lazy load các trang
@@ -95,6 +98,7 @@ function App() {
           <Route path="/notifications" element={<PrivateRoute><AppLayout><NotificationsPage /></AppLayout></PrivateRoute>} />
           {/* ^^^^---------------------------------------------^^^^ */}
           <Route path="/plant-health" element={<PrivateRoute><AppLayout><PlantHealthPage /></AppLayout></PrivateRoute>} />
+          <Route path="/schedules" element={<PrivateRoute><AppLayout><SchedulesPage /></AppLayout></PrivateRoute>} />
           <Route path="/analytics" element={<PrivateRoute><AppLayout><AnalyticsPage /></AppLayout></PrivateRoute>} />
           <Route path="/settings" element={<PrivateRoute><AppLayout><SettingsPage /></AppLayout></PrivateRoute>} />
           <Route path="/admin/dashboard" element={<PrivateRoute><AppLayout><AdminDashboardPage /></AppLayout></PrivateRoute>} />
