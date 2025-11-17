@@ -259,6 +259,7 @@ public class DeviceService {
                 .collect(Collectors.toList());
     }
 
+    // --- Phương thức CÔNG KHAI, dành cho người dùng, có kiểm tra quyền ---
     @Transactional
     public void controlDevice(String deviceId, String action, Map<String, Object> params) {
         Device device = deviceRepository.findByDeviceId(deviceId)
@@ -288,6 +289,42 @@ public class DeviceService {
             log.error("❌ Lỗi khi gửi lệnh MQTT: {}", e.getMessage());
             throw new RuntimeException("Failed to send control command", e);
         }
+    }
+
+    // --- Phương thức NỘI BỘ, dành cho hệ thống, KHÔNG kiểm tra quyền ---
+    @Transactional
+    public void internalControlDevice(Device device, String action, Map<String, Object> params) {
+        if (!isActuator(device.getType())) {
+            log.warn("Attempted to control a non-actuator device: {}", device.getDeviceId());
+            throw new IllegalArgumentException("Device is not a controllable actuator.");
+        }
+
+        // Gửi lệnh qua MQTT
+        String topic = String.format("device/%s/control", device.getDeviceId());
+
+        Map<String, Object> command = new HashMap<>();
+        command.put("deviceId", device.getDeviceId());
+        command.put("action", action);
+        command.putAll(params);
+        command.put("timestamp", LocalDateTime.now().toString());
+
+        try {
+            // ObjectMapper có thể không được inject, cần chắc chắn nó có sẵn
+            ObjectMapper objectMapper = new ObjectMapper();
+            mqttGateway.sendToMqtt(objectMapper.writeValueAsString(command), topic);
+            log.info("✅ Đã gửi lệnh MQTT tới device {}: {} with params: {}", device.getDeviceId(), action, params);
+        } catch (Exception e) {
+            log.error("❌ Lỗi khi gửi lệnh MQTT: {}", e.getMessage());
+            throw new RuntimeException("Failed to send control command", e);
+        }
+    }
+
+    // <<< SỬA LẠI: internalControlDevice overload để nhận deviceId >>>
+    @Transactional
+    public void internalControlDevice(String deviceId, String action, Map<String, Object> params) {
+        Device device = deviceRepository.findByDeviceId(deviceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Device", "id", deviceId));
+        internalControlDevice(device, action, params);
     }
 
     // SỬA LẠI HÀM NÀY

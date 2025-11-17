@@ -34,7 +34,11 @@ public class DeviceControlJob implements Job {
 
             String serviceAction = "TURN_ON".equalsIgnoreCase(action) ? "turn_on" : "turn_off";
 
-            deviceService.controlDevice(deviceId, serviceAction, params);
+            // <<< THAY ĐỔI QUAN TRỌNG Ở ĐÂY >>>
+            // Gọi hàm nội bộ, không cần kiểm tra quyền người dùng
+            deviceService.internalControlDevice(deviceId, serviceAction, params);
+            // <<< KẾT THÚC THAY ĐỔI >>>
+
             log.info("Successfully executed scheduled job for device {}", deviceId);
         } catch (Exception e) {
             log.error("Failed to execute scheduled job for device {}: {}", deviceId, e.getMessage());

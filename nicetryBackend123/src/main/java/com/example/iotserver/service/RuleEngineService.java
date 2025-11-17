@@ -442,7 +442,11 @@ public class RuleEngineService {
             command.put("duration", action.getDurationSeconds());
         }
 
-        deviceService.controlDevice(action.getDeviceId(), "turn_on", command);
+        // <<< THAY ĐỔI QUAN TRỌNG Ở ĐÂY >>>
+        // deviceService.controlDevice(action.getDeviceId(), "turn_on", command); //
+        // Dòng cũ
+        deviceService.internalControlDevice(action.getDeviceId(), "turn_on", command); // Dòng mới
+        // <<< KẾT THÚC THAY ĐỔI >>>
 
         return String.format("Đã bật thiết bị %s trong %d giây",
                 action.getDeviceId(),
@@ -456,7 +460,11 @@ public class RuleEngineService {
         Map<String, Object> command = new HashMap<>();
         command.put("action", "turn_off");
 
-        deviceService.controlDevice(action.getDeviceId(), "turn_off", command);
+        // <<< THAY ĐỔI QUAN TRỌNG Ở ĐÂY >>>
+        // deviceService.controlDevice(action.getDeviceId(), "turn_off", command); //
+        // Dòng cũ
+        deviceService.internalControlDevice(action.getDeviceId(), "turn_off", command); // Dòng mới
+        // <<< KẾT THÚC THAY ĐỔI >>>
 
         return String.format("Đã tắt thiết bị %s", action.getDeviceId());
     }
