@@ -1,0 +1,79 @@
+package com.example.iotserver.service;
+
+import com.example.iotserver.dto.SensorDataDTO;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Service;
+import com.example.iotserver.dto.NotificationDTO; // THÊM IMPORT
+
+import java.util.Map;
+
+@Service
+@Slf4j
+@RequiredArgsConstructor
+public class WebSocketService {
+
+    private final SimpMessagingTemplate messagingTemplate;
+
+    /**
+     * Send sensor data to specific farm subscribers
+     */
+    public void sendSensorData(Long farmId, SensorDataDTO data) {
+        String destination = "/topic/farm/" + farmId + "/sensor-data";
+        messagingTemplate.convertAndSend(destination, data);
+        log.debug("Sent sensor data to {}", destination);
+    }
+
+    /**
+     * Send alert to farm subscribers
+     */
+    public void sendAlert(Long farmId, Map<String, Object> alert) {
+        String destination = "/topic/farm/" + farmId + "/alerts";
+        messagingTemplate.convertAndSend(destination, alert);
+        log.info("Sent alert to {}", destination);
+    }
+
+    /**
+     * Send device status update
+     */
+    public void sendDeviceStatus(Long farmId, String deviceId, String status) {
+        String destination = "/topic/farm/" + farmId + "/device-status";
+        Map<String, String> message = Map.of(
+                "deviceId", deviceId,
+                "status", status,
+                "timestamp", String.valueOf(System.currentTimeMillis()));
+        messagingTemplate.convertAndSend(destination, message);
+        log.debug("Sent device status update to {}", destination);
+    }
+
+    public void sendDeviceStatus(Long farmId, Map<String, Object> statusPayload) {
+        String destination = "/topic/farm/" + farmId + "/device-status";
+        messagingTemplate.convertAndSend(destination, statusPayload);
+        log.debug("Sent device status update to {}: {}", destination, statusPayload);
+    }
+
+    /**
+     * Broadcast system notification
+     */
+    public void broadcastNotification(String message) {
+        messagingTemplate.convertAndSend("/topic/notifications", Map.of(
+                "message", message,
+                "timestamp", System.currentTimeMillis()));
+    }
+
+    // VVVV--- THÊM PHƯƠNG THỨC NÀY ---VVVV
+    /**
+     * Gửi thông báo tới một user cụ thể qua WebSocket.
+     * 
+     * @param userId       ID của người dùng nhận.
+     * @param notification DTO của thông báo.
+     */
+    public void sendNotificationToUser(Long userId, NotificationDTO notification) {
+        String destination = "/topic/user/" + userId + "/notifications";
+        messagingTemplate.convertAndSend(destination, notification);
+        log.info("Sent WebSocket notification to user {}: '{}'", userId, notification.getTitle());
+    }
+    // ^^^^-----------------------------^^^^
+
+}

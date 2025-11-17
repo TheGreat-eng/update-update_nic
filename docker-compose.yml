@@ -1,0 +1,191 @@
+# /your-project-root/docker-compose.yml
+
+
+
+services:
+  # ==================== Frontend (React + Nginx) ====================
+  frontend:
+    build:
+      context: ./nicetryFrontend12
+    container_name: smartfarm-frontend123
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    networks:
+      - smartfarm-net
+    restart: unless-stopped
+
+  # ==================== Backend (Spring Boot) ====================
+  backend:
+    build:
+      context: ./nicetryBackend12
+    container_name: smartfarm-backend123
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=${TZ}&useUnicode=true&characterEncoding=UTF-8
+       # <<<< THÊM DÒNG NÀY VÀO >>>>
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update # <<<< GIỮ NGUYÊN
+      SPRING_SQL_INIT_MODE: always
+      SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION: true # <<<< THÊM DÒNG NÀY
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+      INFLUXDB_URL: http://influxdb:8086
+      INFLUXDB_TOKEN: ${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN}
+      INFLUXDB_ORG: ${DOCKER_INFLUXDB_INIT_ORG}
+      INFLUXDB_BUCKET: ${DOCKER_INFLUXDB_INIT_BUCKET}
+
+      MQTT_BROKER_URL: tcp://mosquitto:1883
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
+      OPENWEATHER_API_KEY: ${OPENWEATHER_API_KEY}
+      OPENWEATHER_API_URL: ${OPENWEATHER_API_URL}
+
+      AI_SERVICE_URL: ${AI_SERVICE_URL}
+      
+      SPRING_MAIL_HOST: ${SPRING_MAIL_HOST}
+      SPRING_MAIL_PORT: ${SPRING_MAIL_PORT}
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE}
+      SERVER_PORT: 8080
+      TZ: ${TZ}
+      LOGGING_LEVEL_ROOT: ${LOGGING_LEVEL_ROOT}
+      LOGGING_LEVEL_COM_EXAMPLE_IOTSERVER: ${LOGGING_LEVEL_APP}
+      SPRINGDOC_API_DOCS_ENABLED: ${SWAGGER_ENABLED}
+      SPRINGDOC_SWAGGER_UI_ENABLED: ${SWAGGER_ENABLED}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      influxdb:
+        condition: service_healthy
+      mosquitto:
+        condition: service_started
+      redis:
+        condition: service_started
+      ai-service:
+        condition: service_healthy
+
+    networks:
+      - smartfarm-net
+    restart: unless-stopped
+
+  # ==================== MySQL (Database) ====================
+  mysql:
+    image: mysql:8.0
+    container_name: smartfarm-mysql123
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      TZ: ${TZ}
+    ports:
+      - "${MYSQL_HOST_PORT:-3307}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - smartfarm-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u${MYSQL_USER}", "-p${MYSQL_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    restart: unless-stopped
+
+  # ==================== InfluxDB (Time-series DB) ====================
+  influxdb:
+    image: influxdb:2.7
+    container_name: smartfarm-influxdb1234
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=${DOCKER_INFLUXDB_INIT_USERNAME}
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${DOCKER_INFLUXDB_INIT_PASSWORD}
+      - DOCKER_INFLUXDB_INIT_ORG=${DOCKER_INFLUXDB_INIT_ORG}
+      - DOCKER_INFLUXDB_INIT_BUCKET=${DOCKER_INFLUXDB_INIT_BUCKET}
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN}
+      - TZ=${TZ}
+    ports:
+      - "${INFLUXDB_HOST_PORT:-8086}:8086"
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+    networks:
+      - smartfarm-net
+    healthcheck:
+      test: ["CMD", "influx", "ping", "--host", "http://localhost:8086"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ==================== MQTT Broker (Mosquitto) ====================
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: smartfarm-mosquitto123
+    ports:
+      - "${MQTT_HOST_PORT:-1883}:1883"
+      - "${MQTT_WS_HOST_PORT:-9001}:9001"
+  # ✅ SỬA LẠI VOLUMES: Chỉ mount file cấu hình, không mount cả thư mục
+    volumes:
+      - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - mosquitto-data:/mosquitto/data
+      - mosquitto-log:/mosquitto/log
+    networks:
+      - smartfarm-net
+    restart: unless-stopped
+
+  # ==================== Redis (Caching) ====================
+  redis:
+    image: redis:7-alpine
+    container_name: smartfarm-redis123
+    ports:
+      - "${REDIS_HOST_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - smartfarm-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+
+  ai-service:
+    build:
+      context: ./AppAI
+    container_name: smartfarm-ai-service123
+    ports:
+      - "${AI_SERVICE_HOST_PORT:-5001}:5001"
+    networks:
+      - smartfarm-net
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ}
+      WEATHER_API_KEY: ${OPENWEATHER_API_KEY}
+    # VVVV--- THÊM PHẦN NÀY ---VVVV
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"] # Test xem có nhận được response từ trang chủ không
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s # Thời gian chờ trước khi bắt đầu kiểm tra sức khỏe
+    # ^^^^--- THÊM PHẦN NÀY ---^^^^
+  
+
+
+# ==================== Networks & Volumes ====================
+networks:
+  smartfarm-net:
+    driver: bridge
+
+volumes:
+  mysql-data:
+  influxdb-data:
+  redis-data:
+  mosquitto-data:
+  mosquitto-log:
