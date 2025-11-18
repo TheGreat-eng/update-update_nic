@@ -14,3 +14,14 @@ export interface PlantHealthDTO {
     activeAlerts: HealthAlert[];
     overallSuggestion: string;
 }
+
+// Thêm Type mới
+export interface ZoneHealth {
+    zoneId: number;
+    zoneName: string;
+    plantProfileName: string;
+    healthScore: number;
+    status: 'EXCELLENT' | 'GOOD' | 'WARNING' | 'CRITICAL';
+    activeAlertCount: number;
+    criticalAlerts: HealthAlert[]; // Tái sử dụng HealthAlert cũ
+}

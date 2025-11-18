@@ -113,3 +113,14 @@ INSERT INTO plant_profile_settings (profile_id, setting_key, setting_value) VALU
 (2, 'PLANT_HEALTH_PH_MIN', '6.0'),
 (2, 'PLANT_HEALTH_PH_MAX', '7.0')
 ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value);
+
+
+
+
+
+
+
+-- Chạy lệnh này trong MySQL Workbench hoặc Terminal
+-- ALTER TABLE plant_health_alerts ADD COLUMN zone_id BIGINT NULL;
+-- ALTER TABLE plant_health_alerts ADD COLUMN device_id VARCHAR(255) NULL;
+-- ALTER TABLE plant_health_alerts ADD CONSTRAINT fk_alert_zone FOREIGN KEY (zone_id) REFERENCES zones(id);

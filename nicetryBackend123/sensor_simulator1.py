@@ -135,19 +135,43 @@ class SensorSimulator:
         hour_of_day = (elapsed / 60) % 24
         return hour_of_day
 
+    # def simulate_dht22(self, device_id: str) -> Dict[str, Any]:
+    #     hour = self.get_time_factor()
+    #     temp_variation = 5 * math.sin((hour - 6) * math.pi / 12)
+    #     temperature = self.base_temperature + temp_variation + random.uniform(-1, 1)
+    #     humidity = self.base_humidity - (temp_variation * 2) + random.uniform(-3, 3)
+    #     humidity = max(30, min(95, humidity))
+    #     return {
+    #         "deviceId": device_id,
+    #         "sensorType": "DHT22",
+    #         "temperature": round(temperature, 2),
+    #         "humidity": round(humidity, 2),
+    #         "timestamp": datetime.now().isoformat()
+    #     }
+
     def simulate_dht22(self, device_id: str) -> Dict[str, Any]:
-        hour = self.get_time_factor()
-        temp_variation = 5 * math.sin((hour - 6) * math.pi / 12)
-        temperature = self.base_temperature + temp_variation + random.uniform(-1, 1)
-        humidity = self.base_humidity - (temp_variation * 2) + random.uniform(-3, 3)
-        humidity = max(30, min(95, humidity))
+        # ... (giữ code cũ)
+    
+        # --- HARD-CODE ĐỂ TEST DASHBOARD ---
+        if device_id == "DHT22-123": # Thiết bị ở Vùng Nóng
+            temperature = 42.0  # Rất nóng
+            humidity = 30.0
+        elif device_id == "DHT22-1234": # Thiết bị ở Vùng Lạnh
+            temperature = 25.0  # Mát mẻ
+            humidity = 80.0
+        else:
+            # Các thiết bị khác
+            temperature = 25.0
+            humidity = 50.0
+        # -----------------------------------
+    
         return {
             "deviceId": device_id,
             "sensorType": "DHT22",
-            "temperature": round(temperature, 2),
-            "humidity": round(humidity, 2),
+            "temperature": temperature,
+            "humidity": humidity,
             "timestamp": datetime.now().isoformat()
-        }
+    }
 
     def simulate_soil_moisture(self, device_id: str) -> Dict[str, Any]:
         self.soil_moisture -= random.uniform(0.05, 0.15)
@@ -217,8 +241,8 @@ def main():
     INTERVAL    = int(os.getenv("SIM_INTERVAL", "10"))
 
     devices = [
-        {"id": "DHT22-000100", "type": "DHT22"},
-        {"id": "DHT22-000101", "type": "DHT22"},
+        {"id": "DHT22-123", "type": "DHT22"},
+        {"id": "DHT22-1234", "type": "DHT22"},
         {"id": "SOIL-123",  "type": "SOIL_MOISTURE"},
         {"id": "SOIL-1234",  "type": "SOIL_MOISTURE"},
         {"id": "LIGHT-123", "type": "LIGHT"},

@@ -1,6 +1,7 @@
 package com.example.iotserver.controller;
 
 import com.example.iotserver.dto.PlantHealthDTO;
+import com.example.iotserver.dto.ZoneHealthDTO;
 import com.example.iotserver.entity.PlantHealthAlert;
 import com.example.iotserver.service.PlantHealthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -196,6 +197,14 @@ public class PlantHealthController {
             return "stable"; // Ổn định
         }
     }
+
+    // VVVV--- THÊM ENDPOINT MỚI ---VVVV
+    @GetMapping("/by-zone")
+    @Operation(summary = "Lấy báo cáo sức khỏe theo từng vùng")
+    public ResponseEntity<ApiResponse<List<ZoneHealthDTO>>> getHealthByZone(@RequestParam Long farmId) {
+        return ResponseEntity.ok(ApiResponse.success(plantHealthService.getHealthByZone(farmId)));
+    }
+    // ^^^^--------------------------^^^^
 
     /**
      * Tạo khuyến nghị dựa trên báo cáo

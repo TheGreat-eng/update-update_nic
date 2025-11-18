@@ -29,6 +29,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,78 +47,94 @@ public class ReportService {
     private final RuleExecutionLogRepository logRepository;
     private final SensorDataService sensorDataService;
 
-    public Map<String, Object> getDashboardSummary(Long farmId) {
+    // SỬA CHỮ KÝ HÀM NÀY
+    public Map<String, Object> getDashboardSummary(Long farmId, Long zoneId) {
         Map<String, Object> summary = new HashMap<>();
 
-        // Thống kê thiết bị
-        long totalDevices = deviceRepository.countByFarmId(farmId);
-        long onlineDevices = deviceRepository.countByFarmIdAndStatus(farmId,
-                DeviceStatus.ONLINE);
+        // 1. Lấy danh sách thiết bị cần tính toán
+        List<Device> devices;
+        if (zoneId != null) {
+            // Nếu có zoneId, lọc thiết bị theo farm và zone
+            // Lưu ý: Cần đảm bảo deviceRepository có phương thức findByFarmId này,
+            // sau đó ta lọc bằng stream (hoặc tạo query findByFarmIdAndZoneId trong repo sẽ
+            // tốt hơn)
+            devices = deviceRepository.findByFarmId(farmId).stream()
+                    .filter(d -> d.getZone() != null && d.getZone().getId().equals(zoneId))
+                    .collect(Collectors.toList());
+        } else {
+            // Nếu không có zoneId, lấy tất cả thiết bị của farm
+            devices = deviceRepository.findByFarmId(farmId);
+        }
+
+        // 2. Tính toán thống kê thiết bị
+        long totalDevices = devices.size();
+        long onlineDevices = devices.stream()
+                .filter(d -> d.getStatus() == DeviceStatus.ONLINE)
+                .count();
+
         summary.put("totalDevices", totalDevices);
         summary.put("onlineDevices", onlineDevices);
 
-        // Thống kê quy tắc
+        // 3. Thống kê quy tắc (Chỉ tính cho toàn farm vì rule gắn với farm)
+        // Nếu muốn nâng cao, có thể lọc rule theo device thuộc zone, nhưng tạm thời giữ
+        // nguyên
         long totalRules = ruleRepository.countByFarmId(farmId);
         long enabledRules = ruleRepository.countByFarmIdAndEnabled(farmId, true);
         summary.put("totalRules", totalRules);
         summary.put("enabledRules", enabledRules);
 
-        // Lấy dữ liệu môi trường trung bình (từ service đã có)
+        // 4. Tính toán dữ liệu môi trường trung bình
         Map<String, Object> avgData = new HashMap<>();
         try {
-            // Lấy dữ liệu mới nhất của TẤT CẢ thiết bị trong farm
+            // Lấy dữ liệu mới nhất từ InfluxDB cho toàn bộ farm
             Map<String, Map<String, Object>> latestFarmData = sensorDataService.getFarmLatestData(farmId);
 
-            // Lọc ra các giá trị khác null để tính trung bình
-            double avgTemperature = latestFarmData.values().stream()
-                    .filter(data -> data.containsKey("temperature") && data.get("temperature") != null)
-                    .mapToDouble(data -> ((Number) data.get("temperature")).doubleValue())
-                    .average()
-                    .orElse(Double.NaN); // Dùng NaN nếu không có dữ liệu
+            // Lọc dữ liệu: Chỉ giữ lại data của các device nằm trong danh sách `devices` đã
+            // lọc ở trên
+            List<Map<String, Object>> filteredData = new ArrayList<>();
 
-            double avgHumidity = latestFarmData.values().stream()
-                    .filter(data -> data.containsKey("humidity") && data.get("humidity") != null)
-                    .mapToDouble(data -> ((Number) data.get("humidity")).doubleValue())
-                    .average()
-                    .orElse(Double.NaN);
+            // Tạo một Set chứa các deviceId hợp lệ để tra cứu nhanh O(1)
+            Set<String> validDeviceIds = devices.stream()
+                    .map(Device::getDeviceId)
+                    .collect(Collectors.toSet());
 
-            double avgLightIntensity = latestFarmData.values().stream()
-                    .filter(data -> data.containsKey("light_intensity") && data.get("light_intensity") != null)
-                    .mapToDouble(data -> ((Number) data.get("light_intensity")).doubleValue())
-                    .average()
-                    .orElse(Double.NaN);
-            double avgSoilMoisture = latestFarmData.values().stream()
-                    .filter(data -> data.containsKey("soil_moisture") && data.get("soil_moisture") != null)
-                    .mapToDouble(data -> ((Number) data.get("soil_moisture")).doubleValue())
-                    .average()
-                    .orElse(Double.NaN);
-            double avgSoilPH = latestFarmData.values().stream()
-                    .filter(data -> data.containsKey("soilPH") && data.get("soilPH") != null)
-                    .mapToDouble(data -> ((Number) data.get("soilPH")).doubleValue())
-                    .average()
-                    .orElse(Double.NaN);
+            for (Map.Entry<String, Map<String, Object>> entry : latestFarmData.entrySet()) {
+                String deviceId = entry.getKey();
+                if (validDeviceIds.contains(deviceId)) {
+                    filteredData.add(entry.getValue());
+                }
+            }
 
-            // Đưa giá trị vào map avgData (chỉ đưa vào nếu nó là số)
-            if (!Double.isNaN(avgTemperature))
-                avgData.put("avgTemperature", Math.round(avgTemperature * 10) / 10.0);
-            if (!Double.isNaN(avgHumidity))
-                avgData.put("avgHumidity", Math.round(avgHumidity * 10) / 10.0);
-            if (!Double.isNaN(avgLightIntensity))
-                avgData.put("avgLightIntensity", Math.round(avgLightIntensity));
-            if (!Double.isNaN(avgSoilMoisture))
-                avgData.put("avgSoilMoisture", Math.round(avgSoilMoisture * 10) / 10.0);
-            if (!Double.isNaN(avgSoilPH))
-                avgData.put("avgSoilPH", Math.round(avgSoilPH * 100) / 100.0); // pH lấy 2 chữ số thập phân
+            // Hàm helper để tính trung bình an toàn
+            calculateAndPutAverage(avgData, filteredData, "temperature", "avgTemperature", 1);
+            calculateAndPutAverage(avgData, filteredData, "humidity", "avgHumidity", 1);
+            calculateAndPutAverage(avgData, filteredData, "light_intensity", "avgLightIntensity", 0); // Lux thường là
+                                                                                                      // số nguyên
+            calculateAndPutAverage(avgData, filteredData, "soil_moisture", "avgSoilMoisture", 1);
+            calculateAndPutAverage(avgData, filteredData, "soilPH", "avgSoilPH", 2);
 
         } catch (Exception e) {
-            // Ghi log lỗi nhưng không làm crash ứng dụng
-            // logger.error("Không thể tính dữ liệu môi trường trung bình", e);
+            log.error("Không thể tính dữ liệu môi trường trung bình cho farm {} zone {}", farmId, zoneId, e);
         }
 
         summary.put("averageEnvironment", avgData);
-        // ===================================
 
         return summary;
+    }
+
+    // Helper method để tính trung bình và format số thập phân
+    private void calculateAndPutAverage(Map<String, Object> resultMap, List<Map<String, Object>> dataList,
+            String fieldKey, String resultKey, int decimalPlaces) {
+        double average = dataList.stream()
+                .filter(data -> data.containsKey(fieldKey) && data.get(fieldKey) != null)
+                .mapToDouble(data -> ((Number) data.get(fieldKey)).doubleValue())
+                .average()
+                .orElse(Double.NaN);
+
+        if (!Double.isNaN(average)) {
+            double factor = Math.pow(10, decimalPlaces);
+            resultMap.put(resultKey, Math.round(average * factor) / factor);
+        }
     }
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter

@@ -3,22 +3,18 @@ import api from '../api/axiosConfig';
 import type { FarmSummary } from '../types/dashboard';
 
 // ✅ SỬA LẠI HOOK NÀY
-export const useDashboardSummary = (farmId: number | null) => { // Chấp nhận farmId có thể là null
+export const useDashboardSummary = (farmId: number | null, zoneId?: number | null) => { // Thêm zoneId
     return useQuery({
-        queryKey: ['dashboard-summary', farmId],
+        queryKey: ['dashboard-summary', farmId, zoneId], // Thêm zoneId vào key
         queryFn: async () => {
-            // Thêm một lần kiểm tra nữa để TypeScript hài lòng
-            if (!farmId) {
-                return null;
-            }
-            const res = await api.get<{ data: FarmSummary }>(`/reports/summary?farmId=${farmId}`);
+            if (!farmId) return null;
+            // Thêm param zoneId vào URL
+            const url = `/reports/summary?farmId=${farmId}${zoneId ? `&zoneId=${zoneId}` : ''}`;
+            const res = await api.get<{ data: FarmSummary }>(url);
             return res.data.data;
         },
-        // VVVV--- DÒNG QUAN TRỌNG NHẤT ---VVVV
-        enabled: !!farmId, // Chỉ kích hoạt query này khi farmId không phải là null/undefined/0
-        // ^^^^-----------------------------^^^^
+        enabled: !!farmId,
         refetchInterval: 30000,
-        staleTime: 10000,
     });
 };
 

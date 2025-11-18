@@ -31,10 +31,12 @@ public class ReportController {
      * GET /api/reports/summary?farmId=1
      */
     @GetMapping("/summary")
-    @Operation(summary = "Lấy báo cáo tổng hợp")
+    @Operation(summary = "Lấy báo cáo tổng hợp (có thể lọc theo zone)")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getSummary(
-            @Parameter(description = "ID nông trại") @RequestParam Long farmId) {
-        Map<String, Object> summary = reportService.getDashboardSummary(farmId);
+            @RequestParam Long farmId,
+            @RequestParam(required = false) Long zoneId) { // Thêm tham số tùy chọn
+
+        Map<String, Object> summary = reportService.getDashboardSummary(farmId, zoneId);
         return ResponseEntity.ok(ApiResponse.success(summary));
     }
 

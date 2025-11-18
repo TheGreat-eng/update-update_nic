@@ -1,6 +1,6 @@
 // src/api/plantHealthService.ts
 import api from './axiosConfig';
-import type { PlantHealthDTO } from '../types/plantHealth';
+import type { PlantHealthDTO, ZoneHealth } from '../types/plantHealth';
 import type { ApiResponse } from '../types/api'; // ✅ Import kiểu dữ liệu chung
 
 export const getCurrentHealth = (farmId: number) => {
@@ -10,4 +10,11 @@ export const getCurrentHealth = (farmId: number) => {
 
 export const resolveAlert = (alertId: number) => {
     return api.post(`/plant-health/resolve/${alertId}`);
+};
+
+
+// Thêm hàm mới
+export const getHealthByZone = (farmId: number) => {
+    return api.get<ApiResponse<ZoneHealth[]>>(`/plant-health/by-zone?farmId=${farmId}`)
+        .then(res => res.data.data);
 };

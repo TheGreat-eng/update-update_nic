@@ -4,12 +4,14 @@ package com.example.iotserver.service;
 
 import com.example.iotserver.dto.PlantHealthDTO;
 import com.example.iotserver.dto.SensorDataDTO;
+import com.example.iotserver.dto.ZoneHealthDTO;
 import com.example.iotserver.entity.*;
 import com.example.iotserver.entity.PlantHealthAlert.AlertType;
 import com.example.iotserver.entity.PlantHealthAlert.Severity;
 import com.example.iotserver.repository.DeviceRepository;
 import com.example.iotserver.repository.FarmRepository;
 import com.example.iotserver.repository.PlantHealthAlertRepository;
+import com.example.iotserver.repository.ZoneRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +36,7 @@ public class PlantHealthService {
     private final FarmRepository farmRepository;
     private final DeviceRepository deviceRepository;
     private final ConfigService configService;
+    private final ZoneRepository zoneRepository; // Thêm cái này
 
     /**
      * Phân tích sức khỏe dựa trên dữ liệu mới nhất từ MỘT thiết bị cụ thể.
@@ -153,7 +156,10 @@ public class PlantHealthService {
             if (data.getTemperature() > heatStressThreshold) {
                 log.warn("🔥 Phát hiện stress nhiệt! Nhiệt độ: {}°C", data.getTemperature());
                 return Optional.of(PlantHealthAlert.builder()
-                        .farmId(farm.getId()).alertType(AlertType.HEAT_STRESS)
+                        .farmId(farm.getId())
+                        .zone(zone) // <--- THÊM DÒNG NÀY
+                        .deviceId(data.getDeviceId()) // <--- THÊM DÒNG NÀY
+                        .alertType(AlertType.HEAT_STRESS)
                         .severity(data.getTemperature() > heatStressThreshold + 4 ? Severity.CRITICAL : Severity.HIGH)
                         .description(
                                 String.format("Cây đang bị stress nhiệt - Nhiệt độ %.1f°C vượt ngưỡng an toàn (%.1f°C)",
@@ -174,7 +180,10 @@ public class PlantHealthService {
             if (data.getSoilMoisture() < droughtThreshold) {
                 log.warn("💧 Phát hiện thiếu nước! Độ ẩm đất: {}%", data.getSoilMoisture());
                 return Optional.of(PlantHealthAlert.builder()
-                        .farmId(farm.getId()).alertType(AlertType.DROUGHT)
+                        .farmId(farm.getId())
+                        .zone(zone) // <--- THÊM DÒNG NÀY
+                        .deviceId(data.getDeviceId()) // <--- THÊM DÒNG NÀY
+                        .alertType(AlertType.DROUGHT)
                         .severity(data.getSoilMoisture() < droughtThreshold - 10 ? Severity.CRITICAL : Severity.HIGH)
                         .description(String.format(
                                 "Cây thiếu nước nghiêm trọng - Độ ẩm đất chỉ còn %.1f%% (dưới ngưỡng %.1f%%)",
@@ -197,7 +206,11 @@ public class PlantHealthService {
                 if (now.isAfter(LocalTime.of(22, 0)) || now.isBefore(LocalTime.of(6, 0))) {
                     log.warn("❄️ Phát hiện nguy cơ lạnh! Nhiệt độ đêm: {}°C", data.getTemperature());
                     return Optional.of(PlantHealthAlert.builder()
-                            .farmId(farm.getId()).alertType(AlertType.COLD)
+                            .farmId(farm.getId())
+                            .zone(zone) // <--- THÊM DÒNG NÀY
+                            .deviceId(data.getDeviceId()) // <--- THÊM DÒNG NÀY
+
+                            .alertType(AlertType.COLD)
                             .severity(data.getTemperature() < coldThreshold - 4 ? Severity.HIGH : Severity.MEDIUM)
                             .description(
                                     String.format("Nguy cơ cây bị lạnh - Nhiệt độ đêm %.1f°C thấp hơn ngưỡng (%.1f°C)",
@@ -224,7 +237,11 @@ public class PlantHealthService {
                 if (change > moistureChangeThreshold) {
                     log.warn("⚡ Phát hiện độ ẩm dao động mạnh! Thay đổi: {}%", change);
                     return Optional.of(PlantHealthAlert.builder()
-                            .farmId(farm.getId()).alertType(AlertType.UNSTABLE_MOISTURE).severity(Severity.MEDIUM)
+                            .farmId(farm.getId())
+                            .zone(zone) // <--- THÊM DÒNG NÀY
+                            .deviceId(data.getDeviceId()) // <--- THÊM DÒNG NÀY
+
+                            .alertType(AlertType.UNSTABLE_MOISTURE).severity(Severity.MEDIUM)
                             .description(String.format(
                                     "Độ ẩm đất dao động mạnh - Thay đổi %.1f%% trong 6 giờ (từ %.1f%% -> %.1f%%), vượt ngưỡng %.1f%%",
                                     change, oldData.getSoilMoisture(), data.getSoilMoisture(), moistureChangeThreshold))
@@ -247,7 +264,11 @@ public class PlantHealthService {
                 if (now.isAfter(LocalTime.of(8, 0)) && now.isBefore(LocalTime.of(18, 0))) {
                     log.warn("🌥️ Phát hiện thiếu ánh sáng! Cường độ: {} lux", data.getLightIntensity());
                     return Optional.of(PlantHealthAlert.builder()
-                            .farmId(farm.getId()).alertType(AlertType.LOW_LIGHT).severity(Severity.MEDIUM)
+                            .farmId(farm.getId())
+                            .zone(zone) // <--- THÊM DÒNG NÀY
+                            .deviceId(data.getDeviceId()) // <--- THÊM DÒNG NÀY
+
+                            .alertType(AlertType.LOW_LIGHT).severity(Severity.MEDIUM)
                             .description(String.format(
                                     "Cây thiếu ánh sáng - Cường độ chỉ %.0f lux (dưới ngưỡng %.0f lux) vào ban ngày",
                                     data.getLightIntensity(), lightThreshold))
@@ -275,12 +296,46 @@ public class PlantHealthService {
                         ? "Bón vôi để tăng pH, sử dụng phân hữu cơ, tránh phân hóa học"
                         : "Bón lưu huỳnh hoặc phân chua để giảm pH, tránh dùng vôi";
                 return Optional.of(PlantHealthAlert.builder()
-                        .farmId(farm.getId()).alertType(AlertType.PH_ABNORMAL).severity(Severity.MEDIUM)
+                        .farmId(farm.getId())
+                        .zone(zone) // <--- THÊM DÒNG NÀY
+                        .deviceId(data.getDeviceId()) // <--- THÊM DÒNG NÀY
+
+                        .alertType(AlertType.PH_ABNORMAL).severity(Severity.MEDIUM)
                         .description(description).suggestion(suggestion).conditions(createConditionsJson(data))
                         .build());
             }
         }
         return Optional.empty();
+    }
+
+    // 2. THÊM HÀM MỚI: LẤY BÁO CÁO THEO TỪNG ZONE
+    public List<ZoneHealthDTO> getHealthByZone(Long farmId) {
+        List<Zone> zones = zoneRepository.findByFarmId(farmId);
+        List<PlantHealthAlert> allAlerts = alertRepository.findByFarmIdAndResolvedFalseOrderByDetectedAtDesc(farmId);
+
+        return zones.stream().map(zone -> {
+            // Lọc cảnh báo thuộc zone này
+            List<PlantHealthAlert> zoneAlerts = allAlerts.stream()
+                    .filter(a -> a.getZone() != null && a.getZone().getId().equals(zone.getId()))
+                    .collect(Collectors.toList());
+
+            Integer score = calculateHealthScore(zoneAlerts);
+            String status = PlantHealthDTO.HealthStatus.fromScore(score).name();
+
+            String profileName = zone.getPlantProfile() != null ? zone.getPlantProfile().getName() : "Mặc định";
+
+            return ZoneHealthDTO.builder()
+                    .zoneId(zone.getId())
+                    .zoneName(zone.getName())
+                    .plantProfileName(profileName)
+                    .healthScore(score)
+                    .status(status)
+                    .activeAlertCount(zoneAlerts.size())
+                    // Chỉ lấy 3 cảnh báo mới nhất để hiển thị tóm tắt
+                    .criticalAlerts(
+                            zoneAlerts.stream().limit(3).map(this::convertToAlertDTO).collect(Collectors.toList()))
+                    .build();
+        }).collect(Collectors.toList());
     }
 
     // --- Các hàm helper còn lại (không cần sửa) ---

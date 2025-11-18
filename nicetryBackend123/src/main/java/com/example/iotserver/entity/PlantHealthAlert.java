@@ -95,6 +95,15 @@ public class PlantHealthAlert {
     @Column(name = "conditions", columnDefinition = "json")
     private JsonNode conditions;
 
+    // VVVV--- THÊM 2 TRƯỜNG MỚI ---VVVV
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "zone_id")
+    private Zone zone;
+
+    @Column(name = "device_id")
+    private String deviceId; // Lưu deviceId string cho tiện truy vấn
+    // ^^^^--------------------------^^^^
+
     /**
      * Thời điểm phát hiện
      */
