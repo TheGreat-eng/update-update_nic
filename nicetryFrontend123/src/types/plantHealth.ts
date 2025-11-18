@@ -6,6 +6,7 @@ export interface HealthAlert {
     description: string;
     suggestion: string;
     detectedAt: string;
+    deviceId?: string; // <--- THÊM TRƯỜNG NÀY
 }
 
 export interface PlantHealthDTO {

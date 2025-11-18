@@ -424,11 +424,21 @@ public class PlantHealthService {
         if (alert.getConditions() != null) {
             alert.getConditions().fields().forEachRemaining(entry -> conditions.put(entry.getKey(), entry.getValue()));
         }
+
         return PlantHealthDTO.AlertDTO.builder()
-                .id(alert.getId()).type(alert.getAlertType()).typeName(alert.getAlertType().getDisplayName())
-                .severity(alert.getSeverity()).severityName(alert.getSeverity().getDisplayName())
-                .description(alert.getDescription()).suggestion(alert.getSuggestion())
-                .detectedAt(alert.getDetectedAt()).conditions(conditions).build();
+                .id(alert.getId())
+                .type(alert.getAlertType())
+                .typeName(alert.getAlertType().getDisplayName())
+                .severity(alert.getSeverity())
+                .severityName(alert.getSeverity().getDisplayName())
+                .description(alert.getDescription())
+                .suggestion(alert.getSuggestion())
+                .detectedAt(alert.getDetectedAt())
+                .conditions(conditions)
+                // VVVV--- QUAN TRỌNG: THÊM DÒNG NÀY ---VVVV
+                .deviceId(alert.getDeviceId())
+                // ^^^^-----------------------------------^^^^
+                .build();
     }
 
     private ObjectNode createConditionsJson(SensorDataDTO data) {

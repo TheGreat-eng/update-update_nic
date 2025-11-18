@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.cache.annotation.Cacheable; // <-- THÊM IMPORT
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.cache.annotation.CacheEvict; // <-- THÊM IMPORT
 import java.time.temporal.ChronoUnit; // <<<< 1. THÊM IMPORT
 import java.util.UUID; // Thêm import này
@@ -44,6 +45,7 @@ public class DeviceService {
     private final NotificationService notificationService; // <<<< THAY BẰNG DÒNG NÀY
     private final ActivityLogService activityLogService; // <<< THÊM
     private final ObjectMapper objectMapper; // <<< 1. Inject ObjectMapper thay vì tạo mới
+    private final StringRedisTemplate redisTemplate; // Đảm bảo đã inject cái này
 
     // VVVV--- THÊM DÒNG NÀY ---VVVV
     private final ZoneRepository zoneRepository;
@@ -351,48 +353,25 @@ public class DeviceService {
         List<Device> staleDevices = deviceRepository.findStaleDevices(threshold);
 
         for (Device device : staleDevices) {
-            boolean statusChanged = false;
-            // Bước 1: Cập nhật trạng thái nếu cần
             if (device.getStatus() == DeviceStatus.ONLINE) {
                 device.setStatus(DeviceStatus.OFFLINE);
-                statusChanged = true;
-                log.warn("Device {} marked as offline due to inactivity", device.getDeviceId());
                 webSocketService.sendDeviceStatus(device.getFarm().getId(), device.getDeviceId(), "OFFLINE");
-            }
 
-            // Bước 2: Logic quyết định có gửi thông báo hay không (COOLDOWN)
-            // Gửi thông báo nếu:
-            // 1. Chưa từng gửi (lastOfflineNotificationAt is null)
-            // 2. Lần gửi cuối đã cách đây hơn 6 tiếng (tránh spam)
-            boolean shouldNotify = device.getLastOfflineNotificationAt() == null ||
-                    ChronoUnit.HOURS.between(device.getLastOfflineNotificationAt(), LocalDateTime.now()) >= 6;
+                // VVVV--- THAY ĐỔI LOGIC GỬI THÔNG BÁO ---VVVV
+                // Thay vì gọi notificationService ngay, ta lưu vào Redis để xử lý sau
+                // Key: offline_pending:farmId
+                String redisKey = "offline_pending:" + device.getFarm().getId();
+                redisTemplate.opsForSet().add(redisKey, device.getName() + " (" + device.getDeviceId() + ")");
 
-            if (shouldNotify) {
-                User owner = device.getFarm().getOwner();
-                String title = String.format("Thiết bị '%s' đã offline", device.getName());
-                String message = String.format("Thiết bị '%s' (ID: %s) tại nông trại '%s' đã mất kết nối quá 5 phút.",
-                        device.getName(), device.getDeviceId(), device.getFarm().getName());
-                String link = "/devices";
+                // Lưu thêm set các farm đang có vấn đề để scheduler dễ quét
+                redisTemplate.opsForSet().add("farms_with_offline_devices", device.getFarm().getId().toString());
 
-                notificationService.createAndSendNotification(
-                        owner,
-                        title,
-                        message,
-                        Notification.NotificationType.DEVICE_STATUS,
-                        link,
-                        true // Gửi email
-                );
+                log.info("Device {} offline, added to pending notification queue.", device.getDeviceId());
+                // ^^^^-------------------------------------^^^^
 
-                // Bước 3: Cập nhật thời gian đã gửi thông báo
-                device.setLastOfflineNotificationAt(LocalDateTime.now());
-                log.info("Đã gửi thông báo offline cho thiết bị {} và cập nhật cooldown.", device.getDeviceId());
-
-                // Lưu lại thay đổi (bao gồm cả status nếu có và thời gian thông báo)
-                deviceRepository.save(device);
-            } else if (statusChanged) {
-                // Nếu chỉ có status thay đổi mà không gửi thông báo, vẫn cần lưu lại
                 deviceRepository.save(device);
             }
+            // Bỏ phần logic cooldown cũ trong hàm này đi, vì Scheduler sẽ lo việc gom nhóm
         }
     }
 

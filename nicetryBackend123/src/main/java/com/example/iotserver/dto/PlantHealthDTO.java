@@ -76,6 +76,9 @@ public class PlantHealthDTO {
         private String severityName;
         private String description;
         private String suggestion;
+        // VVVV--- THÊM TRƯỜNG NÀY ---VVVV
+        private String deviceId;
+        // ^^^^------------------------^^^^
 
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime detectedAt;

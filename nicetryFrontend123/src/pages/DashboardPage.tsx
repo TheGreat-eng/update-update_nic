@@ -105,6 +105,9 @@ const DashboardPage: React.FC = () => {
     // 4. State cho Biểu đồ
     const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
     const [activeChart, setActiveChart] = useState<'env' | 'soil'>('env');
+    // VVVV--- THÊM STATE NÀY ---VVVV
+    const [timeRange, setTimeRange] = useState<'1h' | '24h' | '7d'>('24h'); // Mặc định xem 24h
+    // ^^^^-----------------------^^^^
     const [chartLoading, setChartLoading] = useState(false);
     const [allDevices, setAllDevices] = useState<Device[]>([]); // Lưu tất cả devices
 
@@ -200,29 +203,39 @@ const DashboardPage: React.FC = () => {
     };
 
     // 11. Hàm lấy dữ liệu biểu đồ
+    // SỬA HÀM fetchChartData
     const fetchChartData = useCallback(async () => {
-        setChartLoading(true); setChartData([]);
+        setChartLoading(true);
+        setChartData([]);
+
+        // Tính toán window dựa trên timeRange
+        let window = '1h';
+        switch (timeRange) {
+            case '1h': window = '5m'; break;
+            case '24h': window = '1h'; break;
+            case '7d': window = '4h'; break;
+        }
+
         try {
             if (activeChart === 'env' && selectedEnvDevice) {
                 const [tempRes, humidityRes] = await Promise.all([
-                    api.get<{ data: AggregatedDataPoint[] }>(`/devices/${selectedEnvDevice}/data/aggregated?field=temperature&window=10m`),
-                    api.get<{ data: AggregatedDataPoint[] }>(`/devices/${selectedEnvDevice}/data/aggregated?field=humidity&window=10m`),
+                    api.get<{ data: AggregatedDataPoint[] }>(`/devices/${selectedEnvDevice}/data/aggregated?field=temperature&window=${window}`),
+                    api.get<{ data: AggregatedDataPoint[] }>(`/devices/${selectedEnvDevice}/data/aggregated?field=humidity&window=${window}`),
                 ]);
                 setChartData(mergeChartData(tempRes.data.data, humidityRes.data.data, 'temperature', 'humidity'));
             } else if (activeChart === 'soil' && selectedSoilDevice && selectedPHDevice) {
                 const [soilMoistureRes, soilPHRes] = await Promise.all([
-                    api.get<{ data: AggregatedDataPoint[] }>(`/devices/${selectedSoilDevice}/data/aggregated?field=soil_moisture&window=10m`),
-                    api.get<{ data: AggregatedDataPoint[] }>(`/devices/${selectedPHDevice}/data/aggregated?field=soilPH&window=10m`),
+                    api.get<{ data: AggregatedDataPoint[] }>(`/devices/${selectedSoilDevice}/data/aggregated?field=soil_moisture&window=${window}`),
+                    api.get<{ data: AggregatedDataPoint[] }>(`/devices/${selectedPHDevice}/data/aggregated?field=soilPH&window=${window}`),
                 ]);
                 setChartData(mergeChartData(soilMoistureRes.data.data, soilPHRes.data.data, 'soilMoisture', 'soilPH'));
             }
         } catch (err) {
             console.error('Failed to fetch chart data:', err);
-            // Không hiện lỗi nếu do chưa chọn thiết bị
         } finally {
             setChartLoading(false);
         }
-    }, [activeChart, selectedEnvDevice, selectedSoilDevice, selectedPHDevice]);
+    }, [activeChart, selectedEnvDevice, selectedSoilDevice, selectedPHDevice, timeRange]); // Nhớ thêm timeRange vào dependency
 
     useEffect(() => { fetchChartData(); }, [fetchChartData]);
 
@@ -337,6 +350,29 @@ const DashboardPage: React.FC = () => {
                                     { key: 'soil', label: 'Dữ liệu Đất' },
                                 ]}
                             />
+
+                            {/* VVVV--- THÊM BỘ CHỌN THỜI GIAN Ở ĐÂY ---VVVV */}
+                            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                <Select
+                                    value={timeRange}
+                                    onChange={(val) => setTimeRange(val)}
+                                    style={{ width: 100 }}
+                                    size="small"
+                                >
+                                    <Option value="1h">1 Giờ</Option>
+                                    <Option value="24h">24 Giờ</Option>
+                                    <Option value="7d">7 Ngày</Option>
+                                </Select>
+                            </div>
+                            {/* ^^^^-------------------------------------^^^^ */}
+
+
+
+
+
+
+
+
                             <Space wrap>
                                 {activeChart === 'env' && (
                                     <Select

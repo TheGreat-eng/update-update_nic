@@ -1,16 +1,25 @@
 // THAY THẾ FILE: src/pages/PlantHealthPage.tsx
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Card, Typography, Row, Col, Progress, Tag, List, Spin, Alert, Empty, Collapse } from 'antd';
+import {
+    Card, Typography, Row, Col, Progress, Tag,
+    List, Spin, Alert, Empty, Collapse,
+    Button, Tooltip
+} from 'antd';
 import { useFarm } from '../context/FarmContext';
 import { getHealthByZone } from '../api/plantHealthService';
 import type { ZoneHealth } from '../types/plantHealth';
-import { WarningOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import {
+    WarningOutlined, CheckCircleOutlined
+    , LineChartOutlined
+} from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom'; // Import
 
 const { Title, Text } = Typography;
 const { Panel } = Collapse;
 
 const PlantHealthPage: React.FC = () => {
+    const navigate = useNavigate(); // Hook điều hướng
     const { farmId } = useFarm();
 
     const { data: zoneHealths, isLoading } = useQuery({
@@ -65,7 +74,31 @@ const PlantHealthPage: React.FC = () => {
                                         <List
                                             dataSource={zone.criticalAlerts}
                                             renderItem={(alert) => (
-                                                <List.Item>
+                                                <List.Item
+                                                    // VVVV--- THÊM NÚT HÀNH ĐỘNG ---VVVV
+                                                    actions={[
+                                                        alert.deviceId ? (
+                                                            <Tooltip title="Xem biểu đồ phân tích">
+                                                                <Button
+                                                                    type="link"
+                                                                    icon={<LineChartOutlined />}
+                                                                    onClick={() => {
+                                                                        // Điều hướng sang trang Analytics với tham số
+                                                                        // Tự động đoán field dựa trên loại cảnh báo (ví dụ HEAT_STRESS -> temperature)
+                                                                        let field = 'temperature';
+                                                                        if (alert.typeName.includes('độ ẩm')) field = 'humidity';
+                                                                        if (alert.typeName.includes('đất') || alert.typeName.includes('nước')) field = 'soil_moisture';
+
+                                                                        navigate(`/analytics?deviceId=${alert.deviceId}&field=${field}`);
+                                                                    }}
+                                                                >
+                                                                    Phân tích
+                                                                </Button>
+                                                            </Tooltip>
+                                                        ) : null
+                                                    ]}
+                                                // ^^^^--------------------------^^^^
+                                                >
                                                     <List.Item.Meta
                                                         avatar={<WarningOutlined style={{ color: '#f5222d' }} />}
                                                         title={<Text strong>{alert.typeName}</Text>}

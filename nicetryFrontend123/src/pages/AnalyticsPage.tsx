@@ -1,9 +1,12 @@
 // src/pages/AnalyticsPage.tsx
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Card, DatePicker, Select, Spin, Empty, Row, Col, Typography } from 'antd';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
+import { useSearchParams } from 'react-router-dom'; // Thêm hook này
+
+
 
 // API & Types
 import { useFarm } from '../context/FarmContext';
@@ -20,9 +23,32 @@ const { Text } = Typography;
 
 const AnalyticsPage: React.FC = () => {
     const { farmId } = useFarm();
+    const [searchParams] = useSearchParams(); // Lấy params từ URL
+
+
+
     const [selectedDevices, setSelectedDevices] = useState<string[]>([]);
     const [selectedFields, setSelectedFields] = useState<string[]>([]);
     const [timeRange, setTimeRange] = useState<[dayjs.Dayjs, dayjs.Dayjs]>([dayjs().subtract(7, 'day'), dayjs()]);
+
+    // VVVV--- THÊM EFFECT NÀY ĐỂ ĐỌC URL ---VVVV
+    useEffect(() => {
+        const deviceIdParam = searchParams.get('deviceId');
+        const fieldParam = searchParams.get('field');
+
+        if (deviceIdParam) {
+            setSelectedDevices([deviceIdParam]);
+        }
+        if (fieldParam) {
+            setSelectedFields([fieldParam]);
+        }
+        // Nếu có params, ta có thể rút ngắn thời gian xem xuống 24h cho chi tiết
+        if (deviceIdParam || fieldParam) {
+            setTimeRange([dayjs().subtract(24, 'hour'), dayjs()]);
+        }
+    }, [searchParams]);
+    // ^^^^----------------------------------^^^^
+
 
     // Fetch danh sách thiết bị để chọn
     const { data: devicesResponse } = useQuery({
