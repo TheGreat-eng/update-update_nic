@@ -98,12 +98,25 @@ export const FarmZones: React.FC<FarmZonesProps> = ({ farmId, canManage }) => {
                                 >
                                     <Button type="text" danger icon={<DeleteOutlined />}>Xóa</Button>
                                 </Popconfirm>
+
+
                             ] : []}
                         >
                             <List.Item.Meta
                                 avatar={<AppstoreOutlined style={{ fontSize: 24, color: '#667eea' }} />}
                                 title={item.name}
-                                description={item.description || 'Không có mô tả.'}
+                                // VVVV--- THÊM HIỂN THỊ PROFILE ---VVVV
+                                description={
+                                    <>
+                                        <div>{item.description || 'Không có mô tả.'}</div>
+                                        {item.plantProfileName && (
+                                            <Tag color="green" style={{ marginTop: 4 }}>
+                                                Hồ sơ: {item.plantProfileName}
+                                            </Tag>
+                                        )}
+                                    </>
+                                }
+                            // ^^^^------------------------------^^^^
                             />
                             <Tag>{item.deviceCount || 0} thiết bị</Tag>
                         </List.Item>

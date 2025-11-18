@@ -19,10 +19,20 @@ public interface DeviceRepository extends JpaRepository<Device, Long> {
 
     Optional<Device> findByDeviceId(String deviceId);
 
-    // ✅ THÊM METHOD NÀY
+    // VVVV--- THAY THẾ HOÀN TOÀN PHƯƠNG THỨC NÀY ---VVVV
+    /**
+     * Tìm thiết bị theo deviceId và chủ động tải (EAGERLY FETCH) các mối quan hệ
+     * cần thiết
+     * để tránh lỗi LazyInitializationException.
+     * 
+     * @param deviceId ID của thiết bị
+     * @return Optional<Device>
+     */
     @Query("SELECT d FROM Device d " +
             "LEFT JOIN FETCH d.farm f " +
             "LEFT JOIN FETCH f.owner " +
+            "LEFT JOIN FETCH d.zone z " + // Thêm JOIN FETCH cho Zone
+            "LEFT JOIN FETCH z.plantProfile " + // Thêm JOIN FETCH cho PlantProfile từ Zone
             "WHERE d.deviceId = :deviceId")
     Optional<Device> findByDeviceIdWithFarmAndOwner(@Param("deviceId") String deviceId);
 

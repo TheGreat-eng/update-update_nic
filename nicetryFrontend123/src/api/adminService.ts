@@ -7,6 +7,9 @@ import type { Page } from '../types/common'; // Sẽ tạo type này
 
 
 
+import type { PlantProfileDTO } from '../types/admin'; // Chúng ta sẽ tạo type này
+
+
 import type { SystemSetting } from '../types/admin'; // Sẽ tạo type này
 import type { ApiResponse } from '../types/api';
 
@@ -53,4 +56,24 @@ export const updateUserAsAdmin = (userId: number, data: { fullName: string; phon
 
 export const setPasswordAsAdmin = (userId: number, newPassword: string) => {
     return api.post(`/admin/users/${userId}/set-password`, { newPassword });
+};
+
+
+
+// <<<< BỔ SUNG CÁC HÀM QUẢN LÝ PLANT PROFILE DƯỚI ĐÂY >>>>
+export const getAllProfilesAsAdmin = () => {
+    return api.get<ApiResponse<PlantProfileDTO[]>>('/admin/plant-profiles/all')
+        .then(res => res.data.data);
+};
+
+export const createProfileAsAdmin = (data: PlantProfileDTO) => {
+    return api.post<ApiResponse<PlantProfileDTO>>('/admin/plant-profiles', data);
+};
+
+export const updateProfileAsAdmin = (id: number, data: PlantProfileDTO) => {
+    return api.put<ApiResponse<PlantProfileDTO>>(`/admin/plant-profiles/${id}`, data);
+};
+
+export const deleteProfileAsAdmin = (id: number) => {
+    return api.delete<ApiResponse<string>>(`/admin/plant-profiles/${id}`);
 };

@@ -13,6 +13,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.iotserver.entity.PlantProfile;
+import com.example.iotserver.repository.PlantProfileRepository;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,6 +26,7 @@ public class ZoneService {
     private final FarmRepository farmRepository;
     private final FarmService farmService;
     private final AuthenticationService authenticationService;
+    private final PlantProfileRepository plantProfileRepository; // Thêm repo này
 
     // CRUD operations...
     @Transactional
@@ -36,6 +40,15 @@ public class ZoneService {
         zone.setName(zoneDTO.getName());
         zone.setDescription(zoneDTO.getDescription());
         zone.setFarm(farm);
+
+        // VVVV--- THÊM LOGIC GÁN PROFILE ---VVVV
+        if (zoneDTO.getPlantProfileId() != null) {
+            PlantProfile profile = plantProfileRepository.findById(zoneDTO.getPlantProfileId())
+                    .orElseThrow(
+                            () -> new ResourceNotFoundException("PlantProfile", "id", zoneDTO.getPlantProfileId()));
+            zone.setPlantProfile(profile);
+        }
+        // ^^^^-------------------------------^^^^
 
         return mapToDTO(zoneRepository.save(zone));
     }
@@ -69,6 +82,15 @@ public class ZoneService {
         zone.setName(zoneDTO.getName());
         zone.setDescription(zoneDTO.getDescription());
 
+        // VVVV--- THÊM LOGIC GÁN PROFILE ---VVVV
+        if (zoneDTO.getPlantProfileId() != null) {
+            PlantProfile profile = plantProfileRepository.findById(zoneDTO.getPlantProfileId())
+                    .orElseThrow(
+                            () -> new ResourceNotFoundException("PlantProfile", "id", zoneDTO.getPlantProfileId()));
+            zone.setPlantProfile(profile);
+        }
+        // ^^^^-------------------------------^^^^
+
         return mapToDTO(zoneRepository.save(zone));
     }
 
@@ -93,6 +115,10 @@ public class ZoneService {
                 .description(zone.getDescription())
                 .farmId(zone.getFarm().getId())
                 .deviceCount((long) zone.getDevices().size())
+                // VVVV--- THÊM LOGIC MAP PROFILE ---VVVV
+                .plantProfileId(zone.getPlantProfile() != null ? zone.getPlantProfile().getId() : null)
+                .plantProfileName(zone.getPlantProfile() != null ? zone.getPlantProfile().getName() : null)
+                // ^^^^-----------------------------^^^^
                 .build();
     }
 }

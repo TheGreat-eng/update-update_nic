@@ -26,3 +26,13 @@ export interface SystemSetting {
     value: string;
     description: string;
 }
+
+
+// <<<< BỔ SUNG TYPE MỚI DƯỚI ĐÂY >>>>
+export interface PlantProfileDTO {
+    id?: number;
+    name: string;
+    scientificName?: string;
+    description?: string;
+    settings: Record<string, string>; // Dùng Record<string, string> cho linh hoạt
+}

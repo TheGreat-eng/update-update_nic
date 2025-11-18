@@ -21,6 +21,7 @@ import { CalendarClock } from 'lucide-react'; // Thêm icon
 import { History } from 'lucide-react'; // Thêm icon
 
 
+import { Leaf } from 'lucide-react'; // Thêm icon
 
 
 const { Content, Sider } = Layout;
@@ -103,6 +104,9 @@ const AppLayout: React.FC<PropsWithChildren> = ({ children }) => {
             getItem('Dashboard', '/admin/dashboard'),
             getItem('Quản lý Người dùng', '/admin/users'),
             // <<<< THÊM MENU ITEM MỚI >>>>
+            // VVVV--- THÊM DÒNG NÀY ---VVVV
+            getItem('Hồ sơ Cây trồng', '/admin/plant-profiles', <Leaf size={16} />),
+            // ^^^^----------------------^^^^
             getItem('Cài đặt Hệ thống', '/admin/settings'),
         ]),
         getItem('Tài khoản', 'sub_user', <User size={16} />, [

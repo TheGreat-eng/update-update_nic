@@ -1,5 +1,5 @@
 # File: simulator/sensor_simulator1.py
-# (Upgraded for paho-mqtt v2.x with fixes and improvements)
+# (Hard-coded version for easy manual configuration)
 
 import json
 import time
@@ -8,13 +8,10 @@ import math
 from datetime import datetime
 from typing import Dict, Any
 import paho.mqtt.client as mqtt
-import os
-
-FARM_ID = 1
 
 class SensorSimulator:
     def __init__(self, broker_host="localhost", broker_port=1883, username=None, password=None):
-        # ✅ SỬA 1: Khởi tạo client với API phiên bản 2
+        # ✅ Initialize client with version 2 API
         self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
         
         if username:
@@ -24,22 +21,35 @@ class SensorSimulator:
         self.broker_port = broker_port
         self.connected = False
 
-        # Trạng thái mô phỏng
-        self.base_temperature = 28.0
-        self.base_humidity = 65.0
-        self.soil_moisture = 50.0
-        self.light_intensity = 10000.0
-        self.ph_level = 6.5
+        # ⚠️ HARD-CODED CONFIGURATION - CHANGE THESE VALUES AS NEEDED ⚠️
+        self.BASE_TEMPERATURE = 28.0      # Change this base temperature
+        self.BASE_HUMIDITY = 65.0         # Change this base humidity
+        self.START_SOIL_MOISTURE = 50.0   # Change initial soil moisture
+        self.BASE_LIGHT_INTENSITY = 10000.0  # Change base light intensity
+        self.BASE_PH_LEVEL = 6.5          # Change base pH level
+        
+        # Simulation parameters - adjust these for different behavior
+        self.TEMP_VARIATION_RANGE = 5.0   # Temperature variation amplitude
+        self.MOISTURE_DECAY_RATE = (0.05, 0.15)  # Soil moisture decay range
+        self.IRRIGATION_CHANCE = 0.02     # Chance of automatic irrigation
+        self.IRRIGATION_AMOUNT = (15, 25) # Irrigation moisture increase range
+        self.PH_VARIATION_RANGE = (-0.02, 0.02)  # pH variation range
+        
+        # Simulation state
+        self.base_temperature = self.BASE_TEMPERATURE
+        self.base_humidity = self.BASE_HUMIDITY
+        self.soil_moisture = self.START_SOIL_MOISTURE
+        self.light_intensity = self.BASE_LIGHT_INTENSITY
+        self.ph_level = self.BASE_PH_LEVEL
 
         self.start_time = time.time()
 
-        # ✅ SỬA 2: Gán các hàm callback
+        # ✅ Assign callback functions
         self.client.on_connect = self.on_connect
         self.client.on_disconnect = self.on_disconnect
 
-    # ================= MQTT Callbacks (Cú pháp mới) =================
+    # ================= MQTT Callbacks =================
     
-    # ✅ SỬA 3: Cập nhật chữ ký (tham số) của hàm on_connect
     def on_connect(self, client, userdata, flags, reason_code, properties):
         if reason_code == 0:
             print("✅ Connected to MQTT Broker!")
@@ -48,18 +58,17 @@ class SensorSimulator:
             print(f"❌ Failed to connect, reason code {reason_code}")
             self.connected = False
 
-    # ✅ SỬA 4: Cập nhật chữ ký của hàm on_disconnect
     def on_disconnect(self, client, userdata, flags, reason_code, properties):
         print(f"⚠️  Disconnected from MQTT Broker with reason code: {reason_code}")
         self.connected = False
 
-    # =============== Logic Kết nối & Chạy =================
+    # =============== Connection & Run Logic =================
     
     def connect(self):
         try:
             print(f"🔗 Connecting to {self.broker_host}:{self.broker_port}...")
             self.client.connect(self.broker_host, self.broker_port, 60)
-            self.client.loop_start() # Bắt đầu vòng lặp network ngay sau khi gọi connect
+            self.client.loop_start()
             return True
         except Exception as e:
             print(f"❌ Connection error: {e}")
@@ -67,14 +76,20 @@ class SensorSimulator:
 
     def run_simulation(self, devices: list, interval: int = 10):
         print("\n" + "="*64)
-        print("🌾 Smart Farm IoT Simulator (UI-matched device IDs)")
+        print("🌾 Smart Farm IoT Simulator (Hard-coded Configuration)")
         print("="*64)
-        print(f"Devices: {len(devices)} | Interval: {interval}s | Broker: {self.broker_host}:{self.broker_port}\n")
+        print(f"📊 Configuration:")
+        print(f"   Temperature: {self.BASE_TEMPERATURE}°C base")
+        print(f"   Humidity: {self.BASE_HUMIDITY}% base") 
+        print(f"   Soil Moisture: {self.START_SOIL_MOISTURE}% start")
+        print(f"   Light: {self.BASE_LIGHT_INTENSITY} lux base")
+        print(f"   pH: {self.BASE_PH_LEVEL} base")
+        print(f"📡 Devices: {len(devices)} | Interval: {interval}s | Broker: {self.broker_host}:{self.broker_port}\n")
 
         if not self.connect():
             return
 
-        # Đợi kết nối thành công (tối đa 10s)
+        # Wait for successful connection (max 10s)
         connect_timeout = time.time() + 10
         while not self.connected and time.time() < connect_timeout:
             time.sleep(0.5)
@@ -84,7 +99,7 @@ class SensorSimulator:
             self.client.loop_stop()
             return
 
-        # Gửi trạng thái ONLINE ban đầu
+        # Send initial ONLINE status
         for d in devices:
             self.publish_device_status(d["id"], "ONLINE")
 
@@ -97,7 +112,6 @@ class SensorSimulator:
 
                 if not self.connected:
                     print("Connection lost, will try to reconnect automatically...")
-                    # Thư viện sẽ tự động kết nối lại, chỉ cần chờ
                     time.sleep(5)
                     continue
 
@@ -123,12 +137,12 @@ class SensorSimulator:
             print("\n🛑 Stopping simulator…")
             for d in devices:
                 self.publish_device_status(d["id"], "OFFLINE")
-                time.sleep(0.1) # Đợi một chút để gửi hết message
+                time.sleep(0.1)
             self.client.loop_stop()
             self.client.disconnect()
             print("✅ Stopped.")
 
-    # =============== Các hàm mô phỏng (Giữ nguyên, đã thống nhất camelCase) ===============
+    # =============== Simulation Functions ===============
     
     def get_time_factor(self) -> float:
         elapsed = time.time() - self.start_time
@@ -137,7 +151,7 @@ class SensorSimulator:
 
     def simulate_dht22(self, device_id: str) -> Dict[str, Any]:
         hour = self.get_time_factor()
-        temp_variation = 5 * math.sin((hour - 6) * math.pi / 12)
+        temp_variation = self.TEMP_VARIATION_RANGE * math.sin((hour - 6) * math.pi / 12)
         temperature = self.base_temperature + temp_variation + random.uniform(-1, 1)
         humidity = self.base_humidity - (temp_variation * 2) + random.uniform(-3, 3)
         humidity = max(30, min(95, humidity))
@@ -150,9 +164,9 @@ class SensorSimulator:
         }
 
     def simulate_soil_moisture(self, device_id: str) -> Dict[str, Any]:
-        self.soil_moisture -= random.uniform(0.05, 0.15)
-        if random.random() < 0.02:
-            self.soil_moisture += random.uniform(15, 25)
+        self.soil_moisture -= random.uniform(*self.MOISTURE_DECAY_RATE)
+        if random.random() < self.IRRIGATION_CHANCE:
+            self.soil_moisture += random.uniform(*self.IRRIGATION_AMOUNT)
             print(f"💧 Irrigation event! Moisture -> {self.soil_moisture:.1f}%")
         self.soil_moisture = max(20, min(70, self.soil_moisture))
         return {
@@ -178,7 +192,7 @@ class SensorSimulator:
         }
 
     def simulate_ph_sensor(self, device_id: str) -> Dict[str, Any]:
-        self.ph_level += random.uniform(-0.02, 0.02)
+        self.ph_level += random.uniform(*self.PH_VARIATION_RANGE)
         self.ph_level = max(5.5, min(7.5, self.ph_level))
         return {
             "deviceId": device_id,
@@ -187,7 +201,7 @@ class SensorSimulator:
             "timestamp": datetime.now().isoformat()
         }
 
-    # =============== Các hàm Publish (Giữ nguyên) ===============
+    # =============== Publish Functions ===============
     
     def publish_sensor_data(self, device_id: str, data: Dict[str, Any]):
         topic = f"sensor/{device_id}/data"
@@ -210,22 +224,32 @@ class SensorSimulator:
 
 
 def main():
-    BROKER_HOST = os.getenv("MQTT_HOST", "localhost")
-    BROKER_PORT = int(os.getenv("MQTT_PORT", "1883"))
-    MQTT_USER   = os.getenv("MQTT_USER")
-    MQTT_PASS   = os.getenv("MQTT_PASS")
-    INTERVAL    = int(os.getenv("SIM_INTERVAL", "10"))
+    # ⚠️ HARD-CODED BROKER SETTINGS - CHANGE THESE AS NEEDED ⚠️
+    BROKER_HOST = "localhost"      # Change MQTT broker host
+    BROKER_PORT = 1883             # Change MQTT broker port
+    MQTT_USER = None               # Change MQTT username if needed
+    MQTT_PASS = None               # Change MQTT password if needed
+    INTERVAL = 10                  # Change simulation interval in seconds
 
+    # ⚠️ HARD-CODED DEVICES - CHANGE THESE AS NEEDED ⚠️
     devices = [
-        {"id": "DHT22-000100", "type": "DHT22"},
+        {"id": "DHT22-0001", "type": "DHT22"},
         {"id": "DHT22-000101", "type": "DHT22"},
-        {"id": "SOIL-123",  "type": "SOIL_MOISTURE"},
-        {"id": "SOIL-1234",  "type": "SOIL_MOISTURE"},
-        {"id": "LIGHT-123", "type": "LIGHT"},
-        {"id": "PH-123",    "type": "PH"},
+        # {"id": "SOIL-123",     "type": "SOIL_MOISTURE"},
+        # {"id": "SOIL-1234",    "type": "SOIL_MOISTURE"},
+        # {"id": "LIGHT-123",    "type": "LIGHT"},
+        # {"id": "PH-123",       "type": "PH"},
+        # Add more devices here if needed:
+        # {"id": "DHT22-000102", "type": "DHT22"},
+        # {"id": "SOIL-567",     "type": "SOIL_MOISTURE"},
     ]
 
-    sim = SensorSimulator(BROKER_HOST, BROKER_PORT, username=MQTT_USER, password=MQTT_PASS)
+    sim = SensorSimulator(
+        broker_host=BROKER_HOST, 
+        broker_port=BROKER_PORT, 
+        username=MQTT_USER, 
+        password=MQTT_PASS
+    )
     sim.run_simulation(devices, INTERVAL)
 
 if __name__ == "__main__":

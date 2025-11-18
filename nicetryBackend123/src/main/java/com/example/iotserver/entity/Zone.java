@@ -40,6 +40,12 @@ public class Zone {
     // @ToString.Exclude
     private Farm farm;
 
+    // VVVV--- THÊM MỐI QUAN HỆ NÀY ---VVVV
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "plant_profile_id")
+    private PlantProfile plantProfile;
+    // ^^^^-----------------------------^^^^
+
     @OneToMany(mappedBy = "zone", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference("zone-devices") // Tránh lặp vô hạn
     private List<Device> devices = new ArrayList<>();

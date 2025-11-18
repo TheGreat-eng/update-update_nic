@@ -1,9 +1,10 @@
 import api from './axiosConfig';
-import type { Setting } from '../types/setting';
+import type { SettingDTO } from '../types/setting'; // Sửa lại type
 import type { ApiResponse } from '../types/api';
 
 export const getFarmSettings = (farmId: number) => {
-    return api.get<ApiResponse<Setting[]>>(`/farms/${farmId}/settings`).then(res => res.data.data);
+    // API backend cần trả về cấu trúc SettingDTO mới
+    return api.get<ApiResponse<SettingDTO[]>>(`/farms/${farmId}/settings`).then(res => res.data.data);
 };
 
 export const updateFarmSettings = (farmId: number, settings: Record<string, string>) => {

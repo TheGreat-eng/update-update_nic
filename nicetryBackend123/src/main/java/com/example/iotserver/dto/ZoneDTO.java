@@ -16,4 +16,9 @@ public class ZoneDTO {
     private String description;
     private Long farmId;
     private Long deviceCount;
+
+    // VVVV--- THÊM 2 TRƯỜNG NÀY ---VVVV
+    private Long plantProfileId;
+    private String plantProfileName;
+    // ^^^^--------------------------^^^^
 }

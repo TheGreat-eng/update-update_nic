@@ -3,7 +3,7 @@ import { Form, Input, Button, message, Spin, Alert, Typography, Tooltip, Space }
 import { SaveOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getFarmSettings, updateFarmSettings } from '../api/farmSettingService';
-import type { Setting } from '../types/setting';
+import type { SettingDTO } from '../types/setting';
 
 const { Text } = Typography;
 
@@ -23,13 +23,14 @@ export const FarmSettings: React.FC<Props> = ({ farmId }) => {
 
     useEffect(() => {
         if (settings) {
-            const formValues = settings.reduce((acc: Record<string, string>, setting: Setting) => {
-                acc[setting.key] = setting.value;
+            const formValues = settings.reduce((acc: Record<string, string | null>, setting: SettingDTO) => {
+                acc[setting.key] = setting.value; // `value` có thể là null
                 return acc;
             }, {});
             form.setFieldsValue(formValues);
         }
     }, [settings, form]);
+
 
     const updateMutation = useMutation({
         mutationFn: (values: Record<string, string>) => updateFarmSettings(farmId, values),
@@ -57,9 +58,11 @@ export const FarmSettings: React.FC<Props> = ({ farmId }) => {
                             </Tooltip>
                         </Space>
                     }
-                    rules={[{ required: true }]}
+                    //rules={[{ required: true }]}
+                    // VVVV--- THÊM HELP TEXT ĐỘNG ---VVVV
+                    help={`Mặc định (${setting.source}): ${setting.defaultValue}. Bỏ trống để dùng mặc định.`}
                 >
-                    <Input />
+                    <Input placeholder={setting.defaultValue} />
                 </Form.Item>
             ))}
             <Form.Item>

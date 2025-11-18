@@ -107,7 +107,10 @@ public class MqttMessageHandler {
             deviceRepository.save(device);
 
             webSocketService.sendSensorData(farmId, sensorData);
-            plantHealthService.analyzeHealth(farmId);
+            // VVVV--- THAY THẾ LỆNH GỌI CŨ ---VVVV
+            // plantHealthService.analyzeHealth(farmId); // Dòng cũ
+            plantHealthService.analyzeHealthForDevice(device, sensorData); // Dòng mới
+            // ^^^^-----------------------------^^^^
 
             checkForSensorAnomaliesAndNotify(device.getFarm(), device, sensorData);
 

@@ -18,13 +18,13 @@ public class FarmSettingController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<SettingDTO>>> getSettings(@PathVariable Long farmId) {
+        // Hàm này giờ trả về DTO đã được xử lý
         return ResponseEntity.ok(ApiResponse.success(farmSettingService.getFarmConfigurableSettings(farmId)));
     }
 
     @PutMapping
     public ResponseEntity<ApiResponse<String>> updateSettings(@PathVariable Long farmId,
             @RequestBody Map<String, String> settings) {
-        // TODO: Thêm logic kiểm tra quyền (chỉ OWNER mới được sửa)
         farmSettingService.updateFarmSettings(farmId, settings);
         return ResponseEntity.ok(ApiResponse.success("Cập nhật thành công"));
     }

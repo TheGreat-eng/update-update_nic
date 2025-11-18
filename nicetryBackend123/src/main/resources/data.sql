@@ -52,3 +52,64 @@ CREATE TABLE IF NOT EXISTS farm_settings (
     UNIQUE KEY uk_farm_setting (farm_id, setting_key),
     FOREIGN KEY (farm_id) REFERENCES farms(id) ON DELETE CASCADE
 );
+
+
+
+-- FILE: src/main/resources/data.sql (Thêm vào cuối)
+
+-- ===============================================================
+-- Bảng 1: PLANT PROFILES - Lưu danh sách các hồ sơ cây trồng
+-- ===============================================================
+CREATE TABLE IF NOT EXISTS plant_profiles (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    scientific_name VARCHAR(255),
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- ===============================================================
+-- Bảng 2: PLANT PROFILE SETTINGS - Lưu các ngưỡng riêng của từng hồ sơ
+-- ===============================================================
+CREATE TABLE IF NOT EXISTS plant_profile_settings (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    profile_id BIGINT NOT NULL,
+    setting_key VARCHAR(100) NOT NULL,
+    setting_value VARCHAR(255) NOT NULL,
+    UNIQUE KEY uk_profile_setting (profile_id, setting_key),
+    FOREIGN KEY (profile_id) REFERENCES plant_profiles(id) ON DELETE CASCADE
+);
+
+-- ===============================================================
+-- Cập nhật bảng `zones` để thêm liên kết tới hồ sơ cây trồng
+-- ===============================================================
+-- Lệnh này chỉ chạy nếu cột chưa tồn tại, an toàn để chạy lại
+-- Lệnh này có thể gây lỗi nếu constraint đã tồn tại, có thể bỏ qua nếu đã có
+-- ALTER TABLE zones ADD CONSTRAINT IF NOT EXISTS fk_zone_plant_profile FOREIGN KEY (plant_profile_id) REFERENCES plant_profiles(id);
+
+
+-- ===============================================================
+-- DỮ LIỆU MẪU (Rất quan trọng để test)
+-- ===============================================================
+-- Tạo hồ sơ mẫu
+INSERT INTO plant_profiles (id, name, description) VALUES
+(1, 'Cà chua', 'Hồ sơ chăm sóc tiêu chuẩn cho cây cà chua.'),
+(2, 'Xà lách', 'Hồ sơ cho các loại rau ăn lá ưa mát, nhạy cảm với nhiệt.')
+ON DUPLICATE KEY UPDATE name=VALUES(name);
+
+-- Cài đặt ngưỡng cho "Cà chua" (id=1)
+INSERT INTO plant_profile_settings (profile_id, setting_key, setting_value) VALUES
+(1, 'PLANT_HEALTH_HEAT_STRESS_THRESHOLD', '35.0'),
+(1, 'PLANT_HEALTH_DROUGHT_THRESHOLD', '40.0'),
+(1, 'PLANT_HEALTH_PH_MIN', '6.0'),
+(1, 'PLANT_HEALTH_PH_MAX', '6.8')
+ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value);
+
+-- Cài đặt ngưỡng cho "Xà lách" (id=2)
+INSERT INTO plant_profile_settings (profile_id, setting_key, setting_value) VALUES
+(2, 'PLANT_HEALTH_HEAT_STRESS_THRESHOLD', '30.0'),
+(2, 'PLANT_HEALTH_DROUGHT_THRESHOLD', '50.0'),
+(2, 'PLANT_HEALTH_PH_MIN', '6.0'),
+(2, 'PLANT_HEALTH_PH_MAX', '7.0')
+ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value);

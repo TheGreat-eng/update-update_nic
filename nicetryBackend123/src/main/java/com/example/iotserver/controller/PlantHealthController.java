@@ -41,8 +41,7 @@ public class PlantHealthController {
         log.info("🌿 [API] Lấy sức khỏe hiện tại cho nông trại: {}", farmId);
 
         try {
-            PlantHealthDTO healthReport = plantHealthService.analyzeHealth(farmId);
-
+            PlantHealthDTO healthReport = plantHealthService.getHealthStatus(farmId);
             log.info("✅ [API] Điểm sức khỏe: {}, Trạng thái: {}, Số cảnh báo: {}",
                     healthReport.getHealthScore(),
                     healthReport.getStatus(),
@@ -105,7 +104,7 @@ public class PlantHealthController {
 
         try {
             // Chạy phân tích
-            PlantHealthDTO healthReport = plantHealthService.analyzeHealth(farmId);
+            PlantHealthDTO healthReport = plantHealthService.getHealthStatus(farmId);
 
             // Lấy lịch sử 7 ngày để so sánh xu hướng
             List<PlantHealthAlert> recentHistory = plantHealthService.getAlertHistory(farmId, 7);

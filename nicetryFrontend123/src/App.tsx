@@ -33,6 +33,11 @@ const NotificationsPage = lazy(() => import('./pages/NotificationsPage')); // VV
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage')); // THÊM IMPORT NÀY
 const ActivityLogPage = lazy(() => import('./pages/ActivityLogPage')); // Thêm import
 
+
+const PlantProfileManagementPage = lazy(() => import('./pages/admin/PlantProfileManagementPage')); // Thêm import
+
+
+
 const LoadingFallback = () => (
   <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
     <Spin size="large" />
@@ -105,6 +110,7 @@ function App() {
           <Route path="/admin/dashboard" element={<PrivateRoute><AppLayout><AdminDashboardPage /></AppLayout></PrivateRoute>} />
           <Route path="/admin/users" element={<PrivateRoute><AppLayout><UserManagementPage /></AppLayout></PrivateRoute>} />
           {/* <<<< THÊM ROUTE MỚI >>>> */}
+          <Route path="/admin/plant-profiles" element={<PrivateRoute><AppLayout><PlantProfileManagementPage /></AppLayout></PrivateRoute>} />
           <Route path="/admin/settings" element={<PrivateRoute><AppLayout><SystemSettingsPage /></AppLayout></PrivateRoute>} />
           {/* ✅ 404 Page */}
           <Route path="*" element={<NotFoundPage />} />
