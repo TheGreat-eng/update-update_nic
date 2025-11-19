@@ -17,14 +17,9 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http:/
 <name>iotserver</name>
 <description>IOT project for Spring Boot</description>
 
-code
-Code
-download
-content_copy
-expand_less
 <properties>
 	<java.version>17</java.version>		<!-- ✅ Java 17+ -->
-	<lombok.version>1.18.30</lombok.version>		<!-- ✅ THÊM VERSION -->
+	<lombok.version>1.18.38</lombok.version>		<!-- ✅ THÊM VERSION -->
 </properties>
 <dependencies>
 	<dependency>
@@ -207,5 +202,3 @@ expand_less
 	</plugins>
 </build>
 </project>
-
-
