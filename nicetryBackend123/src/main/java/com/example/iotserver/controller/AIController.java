@@ -25,8 +25,9 @@ public class AIController {
     @GetMapping("/predictions")
     @Operation(summary = "Lấy dự đoán từ AI/ML model")
     public ResponseEntity<ApiResponse<AIPredictionResponse>> getAIPredictions(
-            @Parameter(description = "ID nông trại") @RequestParam Long farmId) {
-        AIPredictionResponse predictions = aiService.getPredictions(farmId);
+            @RequestParam Long farmId,
+            @RequestParam(required = false) Long zoneId) {
+        AIPredictionResponse predictions = aiService.getPredictions(farmId, zoneId);
         if (predictions == null) {
             return ResponseEntity.status(503).body(ApiResponse.error("AI Service không khả dụng"));
         }

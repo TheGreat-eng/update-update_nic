@@ -1,4 +1,3 @@
-// nicetryBackend123/src/main/java/com/example/iotserver/config/WebSocketConfig.java
 package com.example.iotserver.config;
 
 import com.example.iotserver.security.JwtUtil;
@@ -22,6 +21,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.messaging.MessagingException; // 👈 Quan trọng: Import Exception để chặn kết nối
 
 @Configuration
 @EnableWebSocketMessageBroker
@@ -53,8 +53,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             public Message<?> preSend(Message<?> message, MessageChannel channel) {
                 StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
-                if (StompCommand.CONNECT.equals(accessor.getCommand())) {
+                // Kiểm tra cả lệnh CONNECT và STOMP (một số client dùng STOMP thay vì CONNECT)
+                if (StompCommand.CONNECT.equals(accessor.getCommand()) || 
+                    StompCommand.STOMP.equals(accessor.getCommand())) {
+
                     String authorizationHeader = accessor.getFirstNativeHeader("Authorization");
+                    log.info("🔒 [WS Security] Kiểm tra kết nối mới...");
+
+                    boolean isAuthenticated = false;
 
                     if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
                         String token = authorizationHeader.substring(7);
@@ -67,19 +73,25 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                                             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                                     accessor.setUser(authentication);
                                     SecurityContextHolder.getContext().setAuthentication(authentication);
-                                    log.info("✅ WebSocket Authenticated user: {}", email);
-                                } else {
-                                    log.warn("❌ WebSocket Token Invalid");
+                                    
+                                    isAuthenticated = true;
+                                    log.info("✅ [WS Security] Xác thực thành công cho user: {}", email);
                                 }
                             }
                         } catch (Exception e) {
-                            log.error("❌ WebSocket Authentication Error: {}", e.getMessage());
-                            // Tùy chọn: throw new MessagingException("Authentication failed"); để ngắt kết nối
+                            log.error("❌ [WS Security] Token lỗi: {}", e.getMessage());
                         }
                     } else {
-                        log.warn("⚠️ WebSocket connection attempt without Authorization header");
+                        log.warn("⚠️ [WS Security] Không tìm thấy Header Authorization");
+                    }
+
+                    // ⛔ QUAN TRỌNG NHẤT: NẾU KHÔNG HỢP LỆ -> NÉM RA EXCEPTION ĐỂ CHẶN NGAY
+                    if (!isAuthenticated) {
+                        log.error("⛔ [WS Security] TỪ CHỐI KẾT NỐI: Token không hợp lệ hoặc thiếu!");
+                        throw new MessagingException("Access Denied: Invalid or missing Token");
                     }
                 }
+                
                 return message;
             }
         });

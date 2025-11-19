@@ -1,14 +1,15 @@
-# a/thegreat-eng-backend123/Dockerfile
-
-# Stage 1: Build
+# ---- Stage 1: Build ----
 FROM maven:3.9-eclipse-temurin-17 AS builder
 WORKDIR /app
-COPY pom.xml .
-RUN mvn dependency:go-offline -B
-COPY src ./src
+
+# Copy toàn bộ source code vào
+COPY . .
+
+# Chạy lệnh package trực tiếp (bỏ qua test để build nhanh hơn)
+# Maven sẽ tự động tải tất cả dependencies cần thiết bao gồm cả Lombok
 RUN mvn clean package -DskipTests
 
-# Stage 2: Runtime
+# ---- Stage 2: Run ----
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 COPY --from=builder /app/target/*.jar app.jar

@@ -1,4 +1,4 @@
-// File: src/main/java/com/example/iotserver/service/AIService.java
+// SỬA FILE: src/main/java/com/example/iotserver/service/AIService.java
 
 package com.example.iotserver.service;
 
@@ -36,13 +36,17 @@ public class AIService {
     private final FarmRepository farmRepository;
     private final RestTemplate restTemplate = new RestTemplate();
     private final SensorDataService sensorDataService;
-    private final WeatherService weatherService; // <<< THÊM VÀO
+    private final WeatherService weatherService;
 
     @Value("${ai.service.url}")
     private String aiServiceUrl;
 
-    // <<< THAY THẾ TOÀN BỘ PHƯƠNG THỨC getPredictions() BẰNG PHIÊN BẢN NÀY >>>
-    public AIPredictionResponse getPredictions(Long farmId) {
+    /**
+     * Lấy dự đoán từ AI model.
+     * @param farmId ID của nông trại.
+     * @param zoneId ID của vùng (có thể null để lấy toàn bộ farm).
+     */
+    public AIPredictionResponse getPredictions(Long farmId, Long zoneId) {
         try {
             // === Bước 1: Lấy thông tin nông trại và tọa độ ===
             Farm farm = farmRepository.findById(farmId)
@@ -52,37 +56,35 @@ public class AIService {
             double latitude = coordinates.get("latitude");
             double longitude = coordinates.get("longitude");
 
-            // === Bước 2: Lấy dữ liệu cảm biến hiện tại ===
-            SensorDataDTO currentData = sensorDataService.getLatestSensorDataForFarmDevices(farmId);
+            // === Bước 2: Lấy dữ liệu cảm biến hiện tại (THEO ZONE HOẶC FARM) ===
+            // Nếu zoneId null, hàm này sẽ tự xử lý lấy cho toàn farm (như logic cũ nhưng đã được tối ưu trong SensorDataService)
+            SensorDataDTO currentData = sensorDataService.getLatestDataForZone(farmId, zoneId);
+            
             if (currentData == null) {
-                log.warn("Không có dữ liệu cảm biến cho farm {} để gửi tới AI.", farmId);
+                String scope = zoneId != null ? "zone " + zoneId : "farm " + farmId;
+                log.warn("Không có dữ liệu cảm biến cho {} để gửi tới AI.", scope);
                 return null;
             }
 
-            // === Bước 3: Lấy tất cả dữ liệu lịch sử cần thiết ===
+            // === Bước 3: Lấy tất cả dữ liệu lịch sử cần thiết (THEO ZONE HOẶC FARM) ===
             Instant now = Instant.now();
             Instant t10MinsAgo = now.minus(10, ChronoUnit.MINUTES);
             Instant t30MinsAgo = now.minus(30, ChronoUnit.MINUTES);
             Instant t60MinsAgo = now.minus(60, ChronoUnit.MINUTES);
 
-            // Lấy các giá trị tại các mốc thời gian (lag)
-            Double soilMoistureLag10 = sensorDataService.getLatestValueBefore(farmId, "soil_moisture", t10MinsAgo);
-            Double soilMoistureLag30 = sensorDataService.getLatestValueBefore(farmId, "soil_moisture", t30MinsAgo);
-            Double soilMoistureLag60 = sensorDataService.getLatestValueBefore(farmId, "soil_moisture", t60MinsAgo);
+            // Lấy các giá trị tại các mốc thời gian (lag) - Truyền thêm zoneId
+            Double soilMoistureLag10 = sensorDataService.getLatestValueBefore(farmId, zoneId, "soil_moisture", t10MinsAgo);
+            Double soilMoistureLag30 = sensorDataService.getLatestValueBefore(farmId, zoneId, "soil_moisture", t30MinsAgo);
+            Double soilMoistureLag60 = sensorDataService.getLatestValueBefore(farmId, zoneId, "soil_moisture", t60MinsAgo);
 
-            // <<< BỔ SUNG CÁC DÒNG CÒN THIẾU Ở ĐÂY >>>
-            Double temperatureLag10 = sensorDataService.getLatestValueBefore(farmId, "temperature", t10MinsAgo);
-            Double temperatureLag30 = sensorDataService.getLatestValueBefore(farmId, "temperature", t30MinsAgo);
-            Double temperatureLag60 = sensorDataService.getLatestValueBefore(farmId, "temperature", t60MinsAgo);
-            // <<< KẾT THÚC BỔ SUNG >>>
+            Double temperatureLag10 = sensorDataService.getLatestValueBefore(farmId, zoneId, "temperature", t10MinsAgo);
+            Double temperatureLag30 = sensorDataService.getLatestValueBefore(farmId, zoneId, "temperature", t30MinsAgo);
+            Double temperatureLag60 = sensorDataService.getLatestValueBefore(farmId, zoneId, "temperature", t60MinsAgo);
 
-            // Lấy các giá trị trung bình lăn (rolling mean)
-            Double soilMoistureRollingMean = sensorDataService.getAverageValueInRange(farmId, "soil_moisture",
-                    t60MinsAgo, now);
-            Double temperatureRollingMean = sensorDataService.getAverageValueInRange(farmId, "temperature", t60MinsAgo,
-                    now);
-            Double lightIntensityRollingMean = sensorDataService.getAverageValueInRange(farmId, "light_intensity",
-                    t60MinsAgo, now);
+            // Lấy các giá trị trung bình lăn (rolling mean) - Truyền thêm zoneId
+            Double soilMoistureRollingMean = sensorDataService.getAverageValueInRange(farmId, zoneId, "soil_moisture", t60MinsAgo, now);
+            Double temperatureRollingMean = sensorDataService.getAverageValueInRange(farmId, zoneId, "temperature", t60MinsAgo, now);
+            Double lightIntensityRollingMean = sensorDataService.getAverageValueInRange(farmId, zoneId, "light_intensity", t60MinsAgo, now);
 
             // === Bước 4: Xây dựng request body hoàn chỉnh ===
             Map<String, Object> requestBody = new HashMap<>();
@@ -100,6 +102,7 @@ public class AIService {
             Map<String, Object> historicalDataMap = new HashMap<>();
             // Fallback: Nếu không có dữ liệu lịch sử, tạm dùng dữ liệu hiện tại
             historicalDataMap.put("soilMoisture_now", Optional.ofNullable(currentData.getSoilMoisture()).orElse(0.0));
+            
             historicalDataMap.put("soilMoisture_lag_10",
                     Optional.ofNullable(soilMoistureLag10).orElse(currentData.getSoilMoisture()));
             historicalDataMap.put("soilMoisture_lag_30",
@@ -107,14 +110,12 @@ public class AIService {
             historicalDataMap.put("soilMoisture_lag_60",
                     Optional.ofNullable(soilMoistureLag60).orElse(currentData.getSoilMoisture()));
 
-            // <<< BỔ SUNG CÁC DÒNG CÒN THIẾU Ở ĐÂY >>>
             historicalDataMap.put("temperature_lag_10",
                     Optional.ofNullable(temperatureLag10).orElse(currentData.getTemperature()));
             historicalDataMap.put("temperature_lag_30",
                     Optional.ofNullable(temperatureLag30).orElse(currentData.getTemperature()));
             historicalDataMap.put("temperature_lag_60",
                     Optional.ofNullable(temperatureLag60).orElse(currentData.getTemperature()));
-            // <<< KẾT THÚC BỔ SUNG >>>
 
             historicalDataMap.put("soilMoisture_rolling_mean_60m",
                     Optional.ofNullable(soilMoistureRollingMean).orElse(currentData.getSoilMoisture()));
@@ -122,13 +123,13 @@ public class AIService {
                     Optional.ofNullable(temperatureRollingMean).orElse(currentData.getTemperature()));
             historicalDataMap.put("lightIntensity_rolling_mean_60m",
                     Optional.ofNullable(lightIntensityRollingMean).orElse(currentData.getLightIntensity()));
+            
             requestBody.put("historical_data", historicalDataMap);
 
             // === Bước 5: Gọi AI Service ===
             String predictionUrl = aiServiceUrl + "/predict/soil_moisture";
-            log.info("Đang gửi request đầy đủ tới AI Service: {}", predictionUrl);
-            log.debug("Request body: {}", requestBody);
-
+            log.info("Đang gửi request AI cho {} (zone: {}): {}", farmId, zoneId, predictionUrl);
+            
             AIPredictionResponse response = restTemplate.postForObject(
                     predictionUrl, requestBody, AIPredictionResponse.class);
 
@@ -136,15 +137,13 @@ public class AIService {
             return response;
 
         } catch (Exception e) {
-            log.error("❌ Lỗi khi gọi AI Service", e); // Sửa log để in ra cả stack trace
+            log.error("❌ Lỗi khi gọi AI Service", e);
             return null;
         }
     }
 
     public Map<String, Object> diagnosePlantDisease(MultipartFile imageFile) {
         try {
-            // String diagnoseUrl = aiServiceUrl.replace("/predict", "/diagnose");
-
             String diagnoseUrl = aiServiceUrl + "/diagnose";
 
             HttpHeaders headers = new HttpHeaders();

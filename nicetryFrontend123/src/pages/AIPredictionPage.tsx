@@ -1,89 +1,106 @@
 // src/pages/AIPredictionPage.tsx
-
 import React, { useEffect, useState } from 'react';
-import { Row, Col, Card, Spin, Typography, Result, Button, Empty, Alert, Upload, message as antdMessage, Modal, Image } from 'antd';
+import { Row, Col, Card, Spin, Typography, Button, Empty, Alert, Upload, message as antdMessage, Modal, Image, Select, Space } from 'antd';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { BulbOutlined, WarningOutlined, CameraOutlined, CloudUploadOutlined } from '@ant-design/icons';
+import { BulbOutlined, WarningOutlined, CameraOutlined, CloudUploadOutlined, EnvironmentOutlined } from '@ant-design/icons';
 import type { RcFile } from 'antd/es/upload/interface';
-import { getAIPredictions, diagnosePlantDisease } from '../api/aiService';
+import { diagnosePlantDisease } from '../api/aiService';
+import { getZonesByFarm } from '../api/zoneService';
 import type { AIPredictionResponse } from '../types/ai';
 import { useFarm } from '../context/FarmContext';
+import { useQuery } from '@tanstack/react-query';
+import api from '../api/axiosConfig';
 
 const { Title, Paragraph, Text } = Typography;
 const { Dragger } = Upload;
+const { Option } = Select;
 
 const AIPredictionPage: React.FC = () => {
     const { farmId } = useFarm();
+    const [selectedZoneId, setSelectedZoneId] = useState<number | null>(null);
+
+    // State cho dữ liệu AI
     const [predictionData, setPredictionData] = useState<AIPredictionResponse | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // ✅ THÊM: State cho chức năng chẩn đoán bệnh
+    // State cho chẩn đoán bệnh
     const [diagnosing, setDiagnosing] = useState(false);
     const [diagnosisResult, setDiagnosisResult] = useState<any>(null);
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
 
-    useEffect(() => {
-        if (!farmId) {
-            setLoading(false);
-            return;
-        }
+    // 1. Fetch danh sách Zones
+    const { data: zones } = useQuery({
+        queryKey: ['farmZones', farmId],
+        queryFn: () => farmId ? getZonesByFarm(farmId) : Promise.resolve([]),
+        enabled: !!farmId
+    });
 
-        setLoading(true);
-        getAIPredictions(farmId)
-            .then(response => {
+    // 2. Fetch dữ liệu AI khi farmId hoặc selectedZoneId thay đổi
+    useEffect(() => {
+        const fetchPredictions = async () => {
+            if (!farmId) {
+                setLoading(false);
+                return;
+            }
+
+            setLoading(true);
+            setError(null);
+            setPredictionData(null);
+
+            try {
+                // Gọi API với tham số zoneId (nếu có)
+                // Lưu ý: Cần đảm bảo API getAIPredictions trong aiService hỗ trợ tham số thứ 2
+                // Hoặc gọi trực tiếp qua api instance để linh hoạt
+                const url = `/ai/predictions?farmId=${farmId}${selectedZoneId ? `&zoneId=${selectedZoneId}` : ''}`;
+                const response = await api.get(url);
+
                 if (response.data.success && response.data.data) {
                     setPredictionData(response.data.data);
-                    setError(null);
                 } else {
-                    setError(response.data.message || "AI Service không khả dụng");
-                    setPredictionData(null);
+                    // Nếu success=false hoặc data null
+                    setError(response.data.message || "AI Service không khả dụng hoặc thiếu dữ liệu.");
                 }
-            })
-            .catch(err => {
+            } catch (err: any) {
                 console.error("Failed to fetch AI predictions:", err);
                 const errorMsg = err.response?.data?.message || "Không thể kết nối đến AI Service";
                 setError(errorMsg);
-                setPredictionData(null);
-            })
-            .finally(() => setLoading(false));
-    }, [farmId]);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    // ✅ THÊM: Helper function để parse confidence
+        fetchPredictions();
+    }, [farmId, selectedZoneId]);
+
+    // Helper parse confidence
     const parseConfidence = (confidence: any): number | null => {
-        if (typeof confidence === 'number') {
-            return confidence;
-        }
+        if (typeof confidence === 'number') return confidence;
         if (typeof confidence === 'string') {
-            // Loại bỏ ký tự % và parse thành number
             const numValue = parseFloat(confidence.replace('%', ''));
             return isNaN(numValue) ? null : numValue;
         }
         return null;
     };
 
-    // ✅ THÊM: Xử lý upload ảnh chẩn đoán bệnh
+    // Xử lý upload ảnh
     const handleDiagnose = async (file: RcFile) => {
         setDiagnosing(true);
         setDiagnosisResult(null);
 
-        // Hiển thị preview ảnh
         const reader = new FileReader();
         reader.onload = (e) => setUploadedImage(e.target?.result as string);
         reader.readAsDataURL(file);
 
         try {
             const response = await diagnosePlantDisease(file);
-
             if (response.data.success) {
-                // ✅ THÊM: Normalize confidence trước khi lưu
                 const result = response.data.data;
                 const normalizedResult = {
                     ...result,
                     confidence: parseConfidence(result.confidence),
                 };
-
                 setDiagnosisResult(normalizedResult);
                 setIsModalVisible(true);
                 antdMessage.success('Chẩn đoán thành công!');
@@ -96,353 +113,177 @@ const AIPredictionPage: React.FC = () => {
         } finally {
             setDiagnosing(false);
         }
-
-        return false; // Prevent default upload behavior
+        return false;
     };
 
-    // Loading state
-    if (loading) {
-        return (
-            <div style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                minHeight: '60vh'
-            }}>
-                <Spin size="large" />
-            </div>
-        );
-    }
+    // Xử lý dữ liệu biểu đồ
+    const chartData = React.useMemo(() => {
+        if (!predictionData?.predictions) return [];
 
-    // Error state
-    if (error) {
-        return (
-            <div style={{ padding: '24px' }}>
+        const validPredictions = predictionData.predictions.filter(p =>
+            p.predicted_temperature !== null ||
+            p.predicted_humidity !== null ||
+            p.predicted_soil_moisture !== null
+        );
+
+        return validPredictions.map((p, index) => {
+            const timestamp = p.timestamp
+                ? new Date(p.timestamp)
+                : new Date(Date.now() + index * 60 * 60 * 1000);
+
+            return {
+                time: timestamp.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false }),
+                'Nhiệt độ Dự đoán (°C)': p.predicted_temperature ?? undefined,
+                'Độ ẩm Đất Dự đoán (%)': p.predicted_soil_moisture ?? undefined,
+            };
+        });
+    }, [predictionData]);
+
+    const hasChartData = chartData.length > 0;
+
+    return (
+        <div style={{ padding: '24px' }}>
+            {/* Header & Filter */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                <div>
+                    <Title level={2} style={{ margin: 0 }}>Dự đoán & Gợi ý từ AI</Title>
+                    <Text type="secondary">Phân tích Machine Learning cho {selectedZoneId ? 'khu vực đã chọn' : 'toàn bộ nông trại'}.</Text>
+                </div>
+
+                <Select
+                    style={{ width: 220 }}
+                    placeholder="Chọn khu vực"
+                    allowClear
+                    onChange={(val) => setSelectedZoneId(val)}
+                    value={selectedZoneId}
+                    suffixIcon={<EnvironmentOutlined style={{ fontSize: 14, opacity: 0.5 }} />}
+                >
+                    <Option value={null}>🏠 Toàn bộ nông trại</Option>
+                    {zones?.map(z => (
+                        <Option key={z.id} value={z.id}>{z.name}</Option>
+                    ))}
+                </Select>
+            </div>
+
+            {/* Loading State */}
+            {loading ? (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+                    <Spin size="large" tip="AI đang phân tích dữ liệu..." />
+                </div>
+            ) : error ? (
                 <Alert
                     message="AI Service chưa sẵn sàng"
                     description={
                         <>
                             <p>{error}</p>
                             <p style={{ marginTop: 8 }}>
-                                <WarningOutlined /> Có thể AI/ML model đang được huấn luyện hoặc dịch vụ đang bảo trì.
+                                <WarningOutlined /> Hãy đảm bảo khu vực này có đủ dữ liệu lịch sử để AI phân tích.
                             </p>
                         </>
                     }
                     type="warning"
                     showIcon
-                    action={
-                        <Button type="primary" onClick={() => window.location.reload()}>
-                            Thử lại
-                        </Button>
-                    }
+                    style={{ marginBottom: 24 }}
                 />
-            </div>
-        );
-    }
-
-    // Null data state
-    if (!predictionData || !predictionData.predictions || !predictionData.suggestion) {
-        return (
-            <Result
-                status="404"
-                title="Không có dữ liệu dự đoán"
-                subTitle="AI chưa có đủ dữ liệu lịch sử để đưa ra dự đoán."
-                extra={
-                    <Button type="primary" onClick={() => window.location.reload()}>
-                        Tải lại
-                    </Button>
-                }
-            />
-        );
-    }
-
-    // ✅ SỬA: Xử lý dữ liệu biểu đồ linh hoạt hơn
-    const validPredictions = predictionData.predictions.filter(p => {
-        // Chấp nhận prediction nếu có ít nhất 1 giá trị hợp lệ
-        return p.predicted_temperature !== null ||
-            p.predicted_humidity !== null ||
-            p.predicted_soil_moisture !== null;
-    });
-
-    const chartData = validPredictions.map((p, index) => {
-        // ✅ Nếu không có timestamp, tạo timestamp giả dựa trên index
-        const timestamp = p.timestamp
-            ? new Date(p.timestamp)
-            : new Date(Date.now() + index * 60 * 60 * 1000); // Mỗi điểm cách nhau 1 giờ
-
-        return {
-            time: timestamp.toLocaleTimeString('vi-VN', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false
-            }),
-            'Nhiệt độ Dự đoán (°C)': p.predicted_temperature ?? undefined,
-            'Độ ẩm Đất Dự đoán (%)': p.predicted_soil_moisture ?? undefined,
-        };
-    });
-
-    // ✅ THÊM: Kiểm tra có dữ liệu nào để vẽ biểu đồ không
-    const hasChartData = chartData.some(point =>
-        point['Nhiệt độ Dự đoán (°C)'] !== undefined ||
-        point['Độ ẩm Đất Dự đoán (%)'] !== undefined
-    );
-
-    return (
-        <div style={{ padding: '24px' }}>
-            <Title level={2}>Dự đoán & Gợi ý từ AI</Title>
-            <Paragraph type="secondary">Phân tích và dự đoán các chỉ số môi trường dựa trên Machine Learning.</Paragraph>
-
-            <Row gutter={[16, 16]}>
-                {/* ✅ THÊM: Card chẩn đoán bệnh cây */}
-                <Col span={24}>
-                    <Card
-                        title={
-                            <span>
-                                <CameraOutlined style={{ marginRight: 8 }} />
-                                Chẩn đoán Bệnh Cây từ Hình ảnh
-                            </span>
-                        }
-                        style={{ backgroundColor: '#f6ffed', border: '1px solid #b7eb8f' }}
-                    >
-                        <Dragger
-                            name="image"
-                            accept="image/*"
-                            beforeUpload={handleDiagnose}
-                            showUploadList={false}
-                            disabled={diagnosing}
+            ) : !predictionData ? (
+                <Empty description="Chưa có dữ liệu dự đoán. Vui lòng chọn nông trại khác hoặc thử lại sau." />
+            ) : (
+                <Row gutter={[16, 16]}>
+                    {/* Card Chẩn đoán bệnh */}
+                    <Col span={24}>
+                        <Card
+                            title={<span><CameraOutlined style={{ marginRight: 8 }} /> Chẩn đoán Bệnh Cây từ Hình ảnh</span>}
+                            style={{ backgroundColor: '#f6ffed', border: '1px solid #b7eb8f' }}
                         >
-                            <p className="ant-upload-drag-icon">
-                                <CloudUploadOutlined style={{ color: '#52c41a', fontSize: 48 }} />
-                            </p>
-                            <p className="ant-upload-text">
-                                {diagnosing ? 'AI đang phân tích...' : 'Kéo thả hoặc click để tải ảnh lên'}
-                            </p>
-                            <p className="ant-upload-hint">
-                                Hỗ trợ các định dạng: JPG, PNG, JPEG. Ảnh rõ nét của lá cây hoặc cả cây.
-                            </p>
-                        </Dragger>
+                            <Dragger
+                                name="image"
+                                accept="image/*"
+                                beforeUpload={handleDiagnose}
+                                showUploadList={false}
+                                disabled={diagnosing}
+                                style={{ padding: '20px 0' }}
+                            >
+                                <p className="ant-upload-drag-icon">
+                                    <CloudUploadOutlined style={{ color: '#52c41a', fontSize: 48 }} />
+                                </p>
+                                <p className="ant-upload-text">Kéo thả hoặc click để tải ảnh lên</p>
+                                <p className="ant-upload-hint">Hỗ trợ JPG, PNG. AI sẽ phát hiện sâu bệnh trên lá cây.</p>
+                            </Dragger>
+                            {diagnosing && <div style={{ textAlign: 'center', marginTop: 16 }}><Spin tip="Đang chẩn đoán..." /></div>}
+                        </Card>
+                    </Col>
 
-                        {diagnosing && (
-                            <div style={{ textAlign: 'center', marginTop: 16 }}>
-                                <Spin tip="AI đang phân tích hình ảnh..." />
-                            </div>
-                        )}
-                    </Card>
-                </Col>
+                    {/* Card Gợi ý */}
+                    <Col span={24}>
+                        <Card style={{ backgroundColor: '#e6f4ff', border: '1px solid #91caff' }}>
+                            <Title level={4}><BulbOutlined style={{ color: '#1677ff' }} /> Gợi ý thông minh</Title>
+                            <Paragraph style={{ fontSize: '16px' }}>{predictionData.suggestion.message}</Paragraph>
+                            <Space direction="vertical" size={0}>
+                                <Text>Hành động đề xuất: <Text code strong>{predictionData.suggestion.action}</Text></Text>
+                                {predictionData.suggestion.confidence && (
+                                    <Text type="secondary">Độ tin cậy: {(predictionData.suggestion.confidence * 100).toFixed(0)}%</Text>
+                                )}
+                            </Space>
+                        </Card>
+                    </Col>
 
-                {/* Card hiển thị Gợi ý */}
-                <Col span={24}>
-                    <Card style={{ backgroundColor: '#e6f4ff', border: '1px solid #91caff' }}>
-                        <Typography>
-                            <Title level={4}>
-                                <BulbOutlined style={{ color: '#1677ff' }} /> Gợi ý thông minh
-                            </Title>
-                            <Paragraph style={{ fontSize: '16px' }}>
-                                {predictionData.suggestion.message}
-                            </Paragraph>
-                            <Text strong>Hành động đề xuất: </Text>
-                            <Text code>{predictionData.suggestion.action}</Text>
-                            {predictionData.suggestion.confidence && (
-                                <>
-                                    <br />
-                                    <Text strong>Độ tin cậy: </Text>
-                                    <Text>{(predictionData.suggestion.confidence * 100).toFixed(0)}%</Text>
-                                </>
-                            )}
-                        </Typography>
-                    </Card>
-                </Col>
-
-                {/* ✅ SỬA: Card hiển thị Biểu đồ dự đoán */}
-                <Col span={24}>
-                    <Card
-                        title="Biểu đồ Dự đoán Môi trường"
-                        extra={
-                            !hasChartData && (
-                                <Alert
-                                    message="AI đang học từ dữ liệu cảm biến"
-                                    type="info"
-                                    showIcon
-                                    style={{ marginBottom: 0 }}
-                                />
-                            )
-                        }
-                    >
-                        {hasChartData ? (
-                            <>
-                                <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
-                                    Dự đoán dựa trên xu hướng dữ liệu gần đây. Độ chính xác sẽ tăng theo thời gian.
-                                </Text>
+                    {/* Biểu đồ */}
+                    <Col span={24}>
+                        <Card title="Biểu đồ Dự đoán Môi trường (24h tới)">
+                            {hasChartData ? (
                                 <ResponsiveContainer width="100%" height={400}>
                                     <LineChart data={chartData}>
                                         <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis
-                                            dataKey="time"
-                                            label={{ value: 'Thời gian', position: 'insideBottom', offset: -5 }}
-                                        />
-                                        <YAxis
-                                            yAxisId="left"
-                                            stroke="#ff4d4f"
-                                            label={{ value: 'Nhiệt độ (°C)', angle: -90, position: 'insideLeft' }}
-                                        />
-                                        <YAxis
-                                            yAxisId="right"
-                                            orientation="right"
-                                            stroke="#82ca9d"
-                                            label={{ value: 'Độ ẩm đất (%)', angle: 90, position: 'insideRight' }}
-                                        />
-                                        <Tooltip
-                                            formatter={(value: any, name: string) => {
-                                                if (value === undefined) return ['Không có dữ liệu', name];
-                                                return [value.toFixed(1), name];
-                                            }}
-                                        />
+                                        <XAxis dataKey="time" />
+                                        <YAxis yAxisId="left" label={{ value: 'Nhiệt độ (°C)', angle: -90, position: 'insideLeft' }} />
+                                        <YAxis yAxisId="right" orientation="right" label={{ value: 'Độ ẩm đất (%)', angle: 90, position: 'insideRight' }} />
+                                        <Tooltip />
                                         <Legend />
-
-                                        {/* ✅ Chỉ hiển thị line nếu có data */}
-                                        {chartData.some(p => p['Nhiệt độ Dự đoán (°C)'] !== undefined) && (
-                                            <Line
-                                                yAxisId="left"
-                                                type="monotone"
-                                                dataKey="Nhiệt độ Dự đoán (°C)"
-                                                stroke="#ff4d4f"
-                                                strokeWidth={2}
-                                                strokeDasharray="5 5"
-                                                dot={{ r: 4 }}
-                                                activeDot={{ r: 6 }}
-                                            />
-                                        )}
-
-                                        {chartData.some(p => p['Độ ẩm Đất Dự đoán (%)'] !== undefined) && (
-                                            <Line
-                                                yAxisId="right"
-                                                type="monotone"
-                                                dataKey="Độ ẩm Đất Dự đoán (%)"
-                                                stroke="#82ca9d"
-                                                strokeWidth={2}
-                                                strokeDasharray="5 5"
-                                                dot={{ r: 4 }}
-                                                activeDot={{ r: 6 }}
-                                            />
-                                        )}
+                                        <Line yAxisId="left" type="monotone" dataKey="Nhiệt độ Dự đoán (°C)" stroke="#ff4d4f" strokeWidth={2} dot={{ r: 4 }} />
+                                        <Line yAxisId="right" type="monotone" dataKey="Độ ẩm Đất Dự đoán (%)" stroke="#82ca9d" strokeWidth={2} dot={{ r: 4 }} />
                                     </LineChart>
                                 </ResponsiveContainer>
-
-                                {/* ✅ THÊM: Hiển thị thông tin data có sẵn */}
-                                <div style={{ marginTop: 16, padding: '12px', backgroundColor: '#fafafa', borderRadius: 8 }}>
-                                    <Text type="secondary">
-                                        📊 Dữ liệu dự đoán:{' '}
-                                        {chartData.some(p => p['Nhiệt độ Dự đoán (°C)'] !== undefined) &&
-                                            <Text>Nhiệt độ ✓ </Text>}
-                                        {chartData.some(p => p['Độ ẩm Đất Dự đoán (%)'] !== undefined) &&
-                                            <Text>Độ ẩm đất ✓</Text>}
-                                    </Text>
-                                </div>
-                            </>
-                        ) : (
-                            <Empty
-                                description={
-                                    <div>
-                                        <p>AI đang học từ dữ liệu cảm biến của bạn</p>
-                                        <Text type="secondary">
-                                            Biểu đồ dự đoán sẽ hiển thị sau khi hệ thống thu thập đủ dữ liệu lịch sử (khoảng 24-48 giờ)
-                                        </Text>
-                                    </div>
-                                }
-                                image={Empty.PRESENTED_IMAGE_SIMPLE}
-                            />
-                        )}
-                    </Card>
-                </Col>
-
-                {/* Card thông tin Model AI */}
-                {predictionData.model_info && (
-                    <Col span={24}>
-                        <Card title="Thông tin Model AI">
-                            <Row gutter={16}>
-                                <Col span={12}>
-                                    <p>
-                                        <Text strong>Loại model:</Text> {predictionData.model_info.model_type || 'N/A'}
-                                    </p>
-                                    <p>
-                                        <Text strong>Version:</Text> {predictionData.model_info.version || 'N/A'}
-                                    </p>
-                                    <p>
-                                        <Text strong>Số lượng features:</Text> {predictionData.model_info.features_used || 'N/A'}
-                                    </p>
-                                </Col>
-                                <Col span={12}>
-                                    <p>
-                                        <Text strong>R² Score:</Text> {predictionData.model_info.r2_score || 'N/A'}
-                                    </p>
-                                    <p>
-                                        <Text strong>Trained on:</Text> {predictionData.model_info.trained_on || 'N/A'}
-                                    </p>
-                                </Col>
-                            </Row>
+                            ) : (
+                                <Empty description="Không đủ dữ liệu để vẽ biểu đồ dự đoán." />
+                            )}
                         </Card>
                     </Col>
-                )}
-            </Row>
 
-            {/* Modal chẩn đoán (giữ nguyên) */}
+                    {/* Model Info */}
+                    {predictionData.model_info && (
+                        <Col span={24}>
+                            <Card size="small" title="Thông tin Model AI">
+                                <Row gutter={16}>
+                                    <Col span={8}><Text type="secondary">Model Type:</Text> <Text strong>{predictionData.model_info.model_type}</Text></Col>
+                                    <Col span={8}><Text type="secondary">R² Score:</Text> <Text strong>{predictionData.model_info.r2_score}</Text></Col>
+                                    <Col span={8}><Text type="secondary">Trained on:</Text> <Text strong>{predictionData.model_info.trained_on}</Text></Col>
+                                </Row>
+                            </Card>
+                        </Col>
+                    )}
+                </Row>
+            )}
+
+            {/* Modal Kết quả Chẩn đoán */}
             <Modal
-                title="Kết quả Chẩn đoán Bệnh Cây"
+                title="Kết quả Chẩn đoán"
                 open={isModalVisible}
                 onCancel={() => setIsModalVisible(false)}
-                footer={[
-                    <Button key="close" type="primary" onClick={() => setIsModalVisible(false)}>
-                        Đóng
-                    </Button>
-                ]}
+                footer={[<Button key="close" type="primary" onClick={() => setIsModalVisible(false)}>Đóng</Button>]}
                 width={700}
             >
                 {diagnosisResult && (
-                    <div>
-                        <Row gutter={16}>
-                            <Col span={12}>
-                                {uploadedImage && (
-                                    <Image
-                                        src={uploadedImage}
-                                        alt="Uploaded"
-                                        style={{ width: '100%', borderRadius: 8 }}
-                                    />
-                                )}
-                            </Col>
-                            <Col span={12}>
-                                <Title level={4}>Kết quả:</Title>
-                                <Paragraph>
-                                    <Text strong>Bệnh phát hiện: </Text>
-                                    <Text type={diagnosisResult.disease ? 'danger' : 'success'}>
-                                        {diagnosisResult.disease || 'Cây khỏe mạnh'}
-                                    </Text>
-                                </Paragraph>
-
-                                {diagnosisResult.confidence !== null && diagnosisResult.confidence !== undefined && (
-                                    <Paragraph>
-                                        <Text strong>Độ tin cậy: </Text>
-                                        <Text>
-                                            {typeof diagnosisResult.confidence === 'number'
-                                                ? `${diagnosisResult.confidence.toFixed(1)}%`
-                                                : diagnosisResult.confidence}
-                                        </Text>
-                                    </Paragraph>
-                                )}
-
-                                {diagnosisResult.treatment && (
-                                    <Paragraph>
-                                        <Text strong>Hướng xử lý: </Text>
-                                        {diagnosisResult.treatment}
-                                    </Paragraph>
-                                )}
-                                {diagnosisResult.description && (
-                                    <Paragraph type="secondary">
-                                        {diagnosisResult.description}
-                                    </Paragraph>
-                                )}
-                            </Col>
-                        </Row>
-                    </div>
+                    <Row gutter={16}>
+                        <Col span={10}>
+                            {uploadedImage && <Image src={uploadedImage} style={{ borderRadius: 8 }} />}
+                        </Col>
+                        <Col span={14}>
+                            <Title level={4} style={{ marginTop: 0 }}>Kết quả: {diagnosisResult.disease}</Title>
+                            <Paragraph><Text strong>Độ tin cậy:</Text> {typeof diagnosisResult.confidence === 'number' ? `${diagnosisResult.confidence.toFixed(1)}%` : 'N/A'}</Paragraph>
+                            <Paragraph><Text strong>Hướng xử lý:</Text> {diagnosisResult.treatment}</Paragraph>
+                            <Paragraph type="secondary">{diagnosisResult.description}</Paragraph>
+                        </Col>
+                    </Row>
                 )}
             </Modal>
         </div>

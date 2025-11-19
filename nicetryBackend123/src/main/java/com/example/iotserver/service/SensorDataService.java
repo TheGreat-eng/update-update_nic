@@ -665,12 +665,13 @@ public class SensorDataService {
     /**
      * Lấy giá trị trung bình của một trường dữ liệu trong một khoảng thời gian.
      */
-    public Double getAverageValueInRange(Long farmId, String field, Instant start, Instant end) {
-        String deviceIdFilter = deviceRepository.findByFarmId(farmId).stream()
-                .map(d -> String.format("r.device_id == \"%s\"", d.getDeviceId()))
+    public Double getAverageValueInRange(Long farmId, Long zoneId, String field, Instant start, Instant end) {
+        List<String> deviceIds = getDeviceIdsByFarmAndZone(farmId, zoneId);
+        if (deviceIds.isEmpty()) return null;
+
+        String deviceFilter = deviceIds.stream()
+                .map(id -> String.format("r.device_id == \"%s\"", id))
                 .collect(Collectors.joining(" or "));
-        if (deviceIdFilter.isEmpty())
-            return null;
 
         String query = String.format(
                 "from(bucket: \"%s\")\n" +
@@ -679,7 +680,7 @@ public class SensorDataService {
                         "  |> filter(fn: (r) => r._field == \"%s\")\n" +
                         "  |> filter(fn: (r) => %s)\n" +
                         "  |> mean()",
-                influxDBConfig.getBucket(), start.toString(), end.toString(), field, deviceIdFilter);
+                influxDBConfig.getBucket(), start.toString(), end.toString(), field, deviceFilter);
 
         List<FluxTable> tables = influxDBClient.getQueryApi().query(query);
         if (!tables.isEmpty() && !tables.get(0).getRecords().isEmpty()) {
@@ -692,21 +693,24 @@ public class SensorDataService {
     /**
      * Lấy giá trị gần nhất trước một thời điểm cụ thể.
      */
-    public Double getLatestValueBefore(Long farmId, String field, Instant time) {
-        String deviceIdFilter = deviceRepository.findByFarmId(farmId).stream()
-                .map(d -> String.format("r.device_id == \"%s\"", d.getDeviceId()))
+    public Double getLatestValueBefore(Long farmId, Long zoneId, String field, Instant time) {
+         List<String> deviceIds = getDeviceIdsByFarmAndZone(farmId, zoneId);
+         if (deviceIds.isEmpty()) return null;
+         
+         String deviceFilter = deviceIds.stream()
+                .map(id -> String.format("r.device_id == \"%s\"", id))
                 .collect(Collectors.joining(" or "));
-        if (deviceIdFilter.isEmpty())
-            return null;
 
-        String query = String.format(
+         // ... query giống hàm cũ nhưng thay deviceIdFilter bằng deviceFilter mới ...
+         // ...
+         String query = String.format(
                 "from(bucket: \"%s\")\n" +
-                        "  |> range(start: -30d, stop: %s)\n" + // Tìm trong 30 ngày qua cho đến thời điểm 'time'
+                        "  |> range(start: -30d, stop: %s)\n" + 
                         "  |> filter(fn: (r) => r._measurement == \"sensor_data\")\n" +
                         "  |> filter(fn: (r) => r._field == \"%s\")\n" +
                         "  |> filter(fn: (r) => %s)\n" +
                         "  |> last()",
-                influxDBConfig.getBucket(), time.toString(), field, deviceIdFilter);
+                influxDBConfig.getBucket(), time.toString(), field, deviceFilter);
 
         List<FluxTable> tables = influxDBClient.getQueryApi().query(query);
         if (!tables.isEmpty() && !tables.get(0).getRecords().isEmpty()) {
@@ -714,6 +718,65 @@ public class SensorDataService {
             return value instanceof Number ? ((Number) value).doubleValue() : null;
         }
         return null;
+    }
+
+
+    // Lấy danh sách deviceId thuộc zone cụ thể để lọc trong InfluxDB
+    public List<String> getDeviceIdsByFarmAndZone(Long farmId, Long zoneId) {
+        return deviceRepository.findByFarmId(farmId).stream()
+            .filter(d -> zoneId == null || (d.getZone() != null && d.getZone().getId().equals(zoneId)))
+            .map(Device::getDeviceId)
+            .collect(Collectors.toList());
+    }
+
+
+     // Hàm lấy dữ liệu hiện tại cho zone
+    public SensorDataDTO getLatestDataForZone(Long farmId, Long zoneId) {
+        List<String> deviceIds = getDeviceIdsByFarmAndZone(farmId, zoneId);
+        if (deviceIds.isEmpty()) return null;
+
+        // Logic giống getLatestSensorDataForFarmDevices nhưng filter theo list deviceIds cụ thể
+        // ... (bạn có thể copy logic và thay filter r.device_id)
+         String deviceIdFilter = deviceIds.stream()
+                .map(id -> String.format("r.device_id == \"%s\"", id))
+                .collect(Collectors.joining(" or "));
+
+        String query = String.format(
+                "from(bucket: \"%s\") " +
+                        "|> range(start: -30d) " +
+                        "|> filter(fn: (r) => r._measurement == \"sensor_data\" and (%s)) " +
+                        "|> last()",
+                influxDBConfig.getBucket(),
+                deviceIdFilter);
+        
+        // ... thực thi và map kết quả giống hàm cũ
+        try {
+            QueryApi queryApi = influxDBClient.getQueryApi();
+            List<FluxTable> tables = queryApi.query(query);
+            if (tables.isEmpty()) return null;
+             var dtoBuilder = SensorDataDTO.builder();
+             // ... (logic map giống hệt getLatestSensorDataForFarmDevices)
+             for (FluxTable table : tables) {
+                for (FluxRecord record : table.getRecords()) {
+                     if (dtoBuilder.build().getDeviceId() == null) {
+                        dtoBuilder.deviceId((String) record.getValueByKey("device_id"));
+                        dtoBuilder.timestamp(record.getTime());
+                    }
+                    String field = record.getField();
+                    Object value = record.getValue();
+                     if (field != null && value instanceof Number) {
+                        switch (field) {
+                            case "temperature" -> dtoBuilder.temperature(((Number) value).doubleValue());
+                            case "humidity" -> dtoBuilder.humidity(((Number) value).doubleValue());
+                            case "soil_moisture" -> dtoBuilder.soilMoisture(((Number) value).doubleValue());
+                            case "light_intensity" -> dtoBuilder.lightIntensity(((Number) value).doubleValue());
+                            case "soilPH" -> dtoBuilder.soilPH(((Number) value).doubleValue());
+                        }
+                    }
+                }
+             }
+             return dtoBuilder.build();
+        } catch (Exception e) { return null; }
     }
 
 }
