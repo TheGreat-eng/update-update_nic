@@ -55,7 +55,14 @@ public class SecurityConfig {
                                                                 "/error",
                                                                 "/v3/api-docs/**",
                                                                 "/swagger-ui/**",
-                                                                "/swagger-ui.html")
+                                                                "/swagger-ui.html",
+                                                        
+                                                                // 👇 THÊM DÒNG NÀY ĐỂ CHO PHÉP FILE TEST TRUY CẬP
+                                                                "/websocket-test.html",
+                                                                "/webjars/**", // Cho phép các thư viện js nếu có
+                                                                "/favicon.ico"
+                                                        
+                                                        )
 
                                                 .permitAll()
 

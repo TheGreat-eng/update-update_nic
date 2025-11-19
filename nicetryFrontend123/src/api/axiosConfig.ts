@@ -3,88 +3,133 @@ import axios from 'axios';
 import { message } from 'antd';
 import { getAuthToken, clearAuthData } from '../utils/auth';
 
-// Tạo một instance axios với cấu hình cơ bản
+// Tạo instance axios
 const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
-    timeout: 10000, // ✅ THÊM: Timeout 10s
+    timeout: 10000,
     headers: {
         'Content-Type': 'application/json',
     },
 });
 
-// ✅ Request Interceptor - Tự động thêm token
+// --- LOGIC QUẢN LÝ REFRESH TOKEN ---
+let isRefreshing = false;
+let failedQueue: any[] = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+    failedQueue.forEach(prom => {
+        if (error) {
+            prom.reject(error);
+        } else {
+            prom.resolve(token);
+        }
+    });
+    failedQueue = [];
+};
+
+// Request Interceptor
 api.interceptors.request.use(
     (config) => {
-        const token = getAuthToken(); // ✅ Dùng helper thay vì lấy trực tiếp
-
+        const token = getAuthToken();
         if (token) {
             config.headers['Authorization'] = `Bearer ${token}`;
-        } else {
-            // ✅ CHỈ redirect nếu KHÔNG phải trang public
-            const publicUrls = ['/auth/login', '/auth/register'];
-            const isPublicUrl = publicUrls.some(url => config.url?.includes(url));
-
-            // ✅ THÊM: Kiểm tra xem có đang ở login page không
-            const isLoginPage = window.location.pathname === '/login';
-
-            // ✅ CHỈ reject nếu không phải public URL VÀ không phải login page
-            if (!isPublicUrl && !isLoginPage) {
-                console.warn('⚠️ No token, canceling request to:', config.url);
-                return Promise.reject(new Error('No authentication token'));
-            }
         }
-
         return config;
     },
     (error) => Promise.reject(error)
 );
 
-// ✅ Response Interceptor - Xử lý lỗi 401/403
+// Response Interceptor
 api.interceptors.response.use(
     (response) => response,
-    (error) => {
-        if (!error.response) {
-            message.error('Không thể kết nối đến máy chủ');
+    async (error) => {
+        const originalRequest = error.config;
+
+        // Nếu lỗi không phải 401 hoặc không có response, trả về lỗi luôn
+        if (!error.response || error.response.status !== 401) {
+            const errorMsg = error.response?.data?.message || 'Có lỗi xảy ra';
+            // Chỉ hiện lỗi nếu không phải trang login (để tránh spam)
+            if (window.location.pathname !== '/login') {
+                message.error(errorMsg);
+            }
             return Promise.reject(error);
         }
 
-        const { status, data } = error.response;
-        const isLoginPage = window.location.pathname === '/login';
+        // Nếu đang ở trang login hoặc request là public thì không refresh
+        if (window.location.pathname === '/login' || originalRequest.url.includes('/auth/login')) {
+            return Promise.reject(error);
+        }
 
-        switch (status) {
-            case 401:
-                if (!isLoginPage) {
-                    clearAuthData(); // ✅ Sẽ trigger storage event
-                    message.error('Phiên đăng nhập đã hết hạn');
-                    setTimeout(() => {
-                        window.location.href = '/login';
-                    }, 1500);
+        // --- XỬ LÝ 401: REFRESH TOKEN ---
+        if (error.response.status === 401 && !originalRequest._retry) {
+            if (isRefreshing) {
+                // Nếu đang có tiến trình refresh khác chạy, thì request này xếp hàng đợi
+                return new Promise(function (resolve, reject) {
+                    failedQueue.push({ resolve, reject });
+                }).then(token => {
+                    originalRequest.headers['Authorization'] = 'Bearer ' + token;
+                    return api(originalRequest);
+                }).catch(err => {
+                    return Promise.reject(err);
+                });
+            }
+
+            originalRequest._retry = true;
+            isRefreshing = true;
+
+            const refreshToken = localStorage.getItem('refreshToken');
+
+            if (!refreshToken) {
+                // Không có refresh token -> Logout
+                handleLogout();
+                return Promise.reject(error);
+            }
+
+            try {
+                // Gọi API refresh (dùng instance axios mặc định để tránh loop interceptor)
+                const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/refresh`, {
+                    refreshToken: refreshToken
+                });
+
+                const { accessToken, refreshToken: newRefreshToken } = response.data;
+
+                // Lưu token mới
+                // Lưu ý: setAuthData có thể cần sửa để nhận accessToken riêng nếu hàm đó chỉ nhận full object
+                // Ở đây ta set thủ công cho chắc chắn
+                localStorage.setItem('token', accessToken);
+                if (newRefreshToken) {
+                    localStorage.setItem('refreshToken', newRefreshToken);
                 }
-                break;
 
-            case 403:
-                // ✅ Không hiển thị message nếu đang ở login page
-                if (!isLoginPage) {
-                    message.error('Bạn không có quyền truy cập');
-                }
-                break;
+                // Cập nhật header mặc định cho các request sau
+                api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+                originalRequest.headers['Authorization'] = `Bearer ${accessToken}`;
 
-            case 404:
-                message.error(data?.message || 'Không tìm thấy tài nguyên');
-                break;
+                // Xử lý hàng đợi đang chờ
+                processQueue(null, accessToken);
 
-            case 500:
-                message.error('Lỗi máy chủ. Vui lòng thử lại sau');
-                break;
+                return api(originalRequest);
 
-            default:
-                if (!isLoginPage) {
-                    message.error(data?.message || 'Có lỗi xảy ra');
-                }
+            } catch (refreshError) {
+                // Refresh thất bại -> Logout
+                processQueue(refreshError, null);
+                handleLogout();
+                return Promise.reject(refreshError);
+            } finally {
+                isRefreshing = false;
+            }
         }
 
         return Promise.reject(error);
     }
 );
+
+const handleLogout = () => {
+    clearAuthData();
+    message.error('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.');
+    setTimeout(() => {
+        window.location.href = '/login';
+    }, 1000);
+};
 
 export default api;

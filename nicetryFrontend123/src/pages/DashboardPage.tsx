@@ -18,6 +18,7 @@ import { getAuthToken } from '../utils/auth';
 import { useTheme } from '../context/ThemeContext';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { useDashboardSummary } from '../hooks/useDashboardData';
+import type { SensorDataMessage } from '../types/websocket';
 
 // --- Components con (Giữ nguyên) ---
 const StatChip = ({ children, bg }: { children: React.ReactNode; bg: string }) => (
@@ -240,6 +241,7 @@ const DashboardPage: React.FC = () => {
     useEffect(() => { fetchChartData(); }, [fetchChartData]);
 
     // 12. WebSocket Connection
+    // --- WEB SOCKET OPTIMIZED ---
     useEffect(() => {
         if (farmId === null) return;
         const token = getAuthToken();
@@ -252,15 +254,35 @@ const DashboardPage: React.FC = () => {
         });
 
         client.onConnect = () => {
-            // Subscribe cập nhật sensor (Optimistic Update - Cẩn thận khi có Filter Zone)
-            // Nếu đang lọc theo Zone, việc update optimistic này có thể không chính xác hoàn toàn 
-            // nếu ta không check zone của thiết bị gửi lên. 
-            // Tuy nhiên để đơn giản, ta có thể tạm thời invalidate query để fetch lại cho đúng.
-            client.subscribe(`/topic/farm/${farmId}/sensor-data`, () => {
-                // Invalidate để fetch lại dữ liệu mới nhất theo đúng Zone filter
-                queryClient.invalidateQueries({ queryKey: ['dashboard-summary', farmId, selectedZoneId] });
+            // 1. Sensor Data - Optimistic Update Chart
+            client.subscribe(`/topic/farm/${farmId}/sensor-data`, (message) => {
+                try {
+                    const data: SensorDataMessage = JSON.parse(message.body);
+
+                    // Update Chart Data trực tiếp
+                    if (data.deviceId === selectedEnvDevice || data.deviceId === selectedSoilDevice || data.deviceId === selectedPHDevice) {
+                        const newPoint = {
+                            time: new Date(data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                            temperature: data.temperature,
+                            humidity: data.humidity,
+                            soilMoisture: data.soilMoisture,
+                            soilPH: data.soilPH
+                        };
+                        setChartData(prev => {
+                            const newData = [...prev, newPoint];
+                            if (newData.length > 50) newData.shift();
+                            return newData;
+                        });
+                    }
+
+                    // Vẫn Invalidate Summary để đảm bảo dữ liệu tổng hợp đúng (vì tính toán phức tạp)
+                    // Nhưng có thể dùng debounce hoặc throttle nếu cần
+                    queryClient.invalidateQueries({ queryKey: ['dashboard-summary', farmId, selectedZoneId] });
+
+                } catch (err) { console.error(err); }
             });
 
+            // 2. Device Status
             client.subscribe(`/topic/farm/${farmId}/device-status`, () => {
                 queryClient.invalidateQueries({ queryKey: ['dashboard-summary', farmId, selectedZoneId] });
             });
@@ -268,7 +290,7 @@ const DashboardPage: React.FC = () => {
 
         client.activate();
         return () => { if (client.active) client.deactivate(); };
-    }, [farmId, queryClient, selectedZoneId]); // Thêm selectedZoneId vào deps
+    }, [farmId, queryClient, selectedZoneId, selectedEnvDevice, selectedSoilDevice, selectedPHDevice]);
 
     // 13. Render UI
     if (isLoadingFarm) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}><Spin size="large" /></div>;

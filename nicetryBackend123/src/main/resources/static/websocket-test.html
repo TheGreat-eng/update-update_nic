@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -477,6 +477,227 @@
         // Auto-connect on page load
         connect();
     </script>
+</body>
+
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Security Tester</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            background-color: #f0f2f5;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #333;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            margin-right: 10px;
+        }
+
+        #btnConnect {
+            background-color: #1890ff;
+        }
+
+        #btnConnect:hover {
+            background-color: #40a9ff;
+        }
+
+        #btnDisconnect {
+            background-color: #ff4d4f;
+            display: none;
+        }
+
+        #status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            background: #fafafa;
+            border: 1px solid #eee;
+            min-height: 50px;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            font-family: monospace;
+            border-bottom: 1px dashed #eee;
+            padding-bottom: 2px;
+        }
+
+        .log-time {
+            color: #888;
+            margin-right: 10px;
+            font-size: 0.9em;
+        }
+
+        .success {
+            color: #52c41a;
+            font-weight: bold;
+        }
+
+        .error {
+            color: #f5222d;
+            font-weight: bold;
+        }
+
+        .info {
+            color: #1890ff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>🛡️ WebSocket Security Tester</h2>
+
+        <div class="control-group">
+            <label for="wsUrl">WebSocket URL:</label>
+            <input type="text" id="wsUrl" value="http://localhost:8080/ws">
+        </div>
+
+        <div class="control-group">
+            <label for="token">JWT Token (Bearer ...):</label>
+            <input type="text" id="token" placeholder="Để trống để giả làm Hacker (Không có token)">
+            <small style="color: #666;">* Để trống để test trường hợp bị chặn (401/403). Nhập token thật để test kết nối
+                thành công.</small>
+        </div>
+
+        <div class="control-group">
+            <button id="btnConnect" onclick="connect()">🚀 Kết nối</button>
+            <button id="btnDisconnect" onclick="disconnect()">❌ Ngắt kết nối</button>
+            <button onclick="clearLog()" style="background-color: #888;">🧹 Xóa Log</button>
+        </div>
+
+        <div id="status">
+            <div class="log-entry info">Sẵn sàng kiểm tra...</div>
+        </div>
+    </div>
+
+    <script>
+        var stompClient = null;
+
+        function setConnected(connected) {
+            document.getElementById('btnConnect').style.display = connected ? 'none' : 'inline-block';
+            document.getElementById('btnDisconnect').style.display = connected ? 'inline-block' : 'none';
+            document.getElementById('token').disabled = connected;
+        }
+
+        function log(message, type = 'info') {
+            var statusDiv = document.getElementById('status');
+            var entry = document.createElement('div');
+            entry.className = 'log-entry ' + type;
+            var time = new Date().toLocaleTimeString();
+            entry.innerHTML = `<span class="log-time">[${time}]</span> ${message}`;
+            statusDiv.insertBefore(entry, statusDiv.firstChild);
+        }
+
+        function clearLog() {
+            document.getElementById('status').innerHTML = '';
+        }
+
+        function connect() {
+            var url = document.getElementById('wsUrl').value;
+            var tokenRaw = document.getElementById('token').value.trim();
+
+            log("Đang thử kết nối tới: " + url + "...", 'info');
+
+            var socket = new SockJS(url);
+            stompClient = Stomp.over(socket);
+
+            // Tắt debug log rác của Stomp
+            stompClient.debug = function (str) { };
+
+            // Chuẩn bị Header
+            var headers = {};
+            if (tokenRaw) {
+                // Nếu người dùng nhập "Bearer ...", giữ nguyên, nếu chỉ nhập mã thì thêm "Bearer "
+                headers['Authorization'] = tokenRaw.startsWith('Bearer ') ? tokenRaw : 'Bearer ' + tokenRaw;
+                log("Đang gửi kèm Token...", 'info');
+            } else {
+                log("⚠️ Đang kết nối KHÔNG CÓ Token (Giả lập Hacker)...", 'error');
+            }
+
+            stompClient.connect(headers, function (frame) {
+                // --- KẾT NỐI THÀNH CÔNG ---
+                setConnected(true);
+                log("✅ KẾT NỐI THÀNH CÔNG!", 'success');
+                log("Server phản hồi: " + frame, 'info');
+
+                // Thử subscribe vào một topic bất kỳ để xem có nhận được tin không
+                stompClient.subscribe('/topic/notifications', function (greeting) {
+                    log("Nhận tin nhắn: " + greeting.body, 'info');
+                });
+
+            }, function (error) {
+                // --- KẾT NỐI THẤT BẠI ---
+                setConnected(false);
+                // SockJS/Stomp đôi khi trả về object lỗi hoặc string
+                var errorMsg = typeof error === 'string' ? error : "Connection lost / Refused";
+
+                if (errorMsg.includes("Whoops! Lost connection") || errorMsg.includes("WebSocket is closed")) {
+                    log("❌ KẾT NỐI BỊ TỪ CHỐI / NGẮT KẾT NỐI!", 'error');
+                    log("=> Backend đã chặn kết nối này (ĐÚNG MONG ĐỢI nếu không có token).", 'success');
+                } else {
+                    log("❌ Lỗi: " + errorMsg, 'error');
+                }
+            });
+        }
+
+        function disconnect() {
+            if (stompClient !== null) {
+                stompClient.disconnect();
+            }
+            setConnected(false);
+            log("Đã ngắt kết nối.", 'info');
+        }
+    </script>
+
 </body>
 
 </html>

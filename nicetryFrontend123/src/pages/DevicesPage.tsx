@@ -69,19 +69,42 @@ const DevicesPage: React.FC = () => {
     });
     // ^^^^------------------------------------------------^^^^
 
+    // --- OPTIMISTIC UPDATE CHO DEVICES PAGE ---
     useStomp(farmId, 'farm', {
         onConnect: (client) => {
             return client.subscribe(`/topic/farm/${farmId}/device-status`, (message) => {
                 try {
                     const update: DeviceStatusMessage = JSON.parse(message.body);
-                    queryClient.setQueryData<Device[]>(['devices', farmId], (oldData) => {
-                        if (!oldData) return [];
-                        return oldData.map(device =>
-                            device.deviceId === update.deviceId
-                                ? { ...device, status: update.status, currentState: update.currentState, lastSeen: update.timestamp }
-                                : device
-                        );
+                    console.log('⚡ Device Update Received:', update);
+
+                    // Cập nhật trực tiếp cache React Query mà KHÔNG gọi lại API
+                    queryClient.setQueryData<Device[]>(['devices', farmId], (oldDevices) => {
+                        if (!oldDevices) return [];
+
+                        return oldDevices.map(device => {
+                            if (device.deviceId === update.deviceId) {
+                                // Merge dữ liệu mới
+                                return {
+                                    ...device,
+                                    status: update.status,
+                                    currentState: update.currentState ?? device.currentState, // Chỉ update nếu có
+                                    lastSeen: update.timestamp
+                                };
+                            }
+                            return device;
+                        });
                     });
+
+                    // Nếu đang điều khiển thiết bị này, bỏ trạng thái loading
+                    if (controllingDevices.has(update.deviceId)) {
+                        setControllingDevices(prev => {
+                            const newSet = new Set(prev);
+                            newSet.delete(update.deviceId);
+                            return newSet;
+                        });
+                        antdMessage.success(`Thiết bị ${update.deviceId} đã phản hồi: ${update.status}`);
+                    }
+
                 } catch (error) {
                     console.error('Failed to parse device status message:', error);
                 }
