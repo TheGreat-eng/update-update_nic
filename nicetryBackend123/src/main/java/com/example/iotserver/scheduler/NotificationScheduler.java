@@ -1,17 +1,20 @@
 // TẠO FILE MỚI: src/main/java/com/example/iotserver/scheduler/NotificationScheduler.java
 package com.example.iotserver.scheduler;
 
+import java.util.Set;
+
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.example.iotserver.entity.Farm;
 import com.example.iotserver.entity.Notification;
 import com.example.iotserver.repository.FarmRepository;
 import com.example.iotserver.service.NotificationService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
-
-import java.util.Set;
 
 @Component
 @Slf4j
@@ -26,6 +29,7 @@ public class NotificationScheduler {
      * Chạy mỗi 2 phút để gom các thông báo offline và gửi 1 lần
      */
     @Scheduled(fixedRate = 120000) // 2 phút
+    @Transactional //  2. THÊM ANNOTATION NÀY ĐỂ FIX LỖI LAZY LOAD
     public void processOfflineNotifications() {
         Set<String> farmIds = redisTemplate.opsForSet().members("farms_with_offline_devices");
 
