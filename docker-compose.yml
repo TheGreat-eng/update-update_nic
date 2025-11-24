@@ -42,7 +42,7 @@ services:
       OPENWEATHER_API_KEY: ${OPENWEATHER_API_KEY}
       OPENWEATHER_API_URL: ${OPENWEATHER_API_URL}
 
-      
+      AI_SERVICE_URL: ${AI_SERVICE_URL}
       
       SPRING_MAIL_HOST: ${SPRING_MAIL_HOST}
       SPRING_MAIL_PORT: ${SPRING_MAIL_PORT}
@@ -65,6 +65,8 @@ services:
         condition: service_started
       redis:
         condition: service_started
+      ai-service:
+        condition: service_healthy
 
     networks:
       - smartfarm-net
@@ -152,6 +154,27 @@ services:
       retries: 5
     command: redis-server --appendonly yes
     restart: unless-stopped
+
+  ai-service:
+    build:
+      context: ./AppAI
+    container_name: smartfarm-ai-service12345
+    ports:
+      - "${AI_SERVICE_HOST_PORT:-5001}:5001"
+    networks:
+      - smartfarm-net
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ}
+      WEATHER_API_KEY: ${OPENWEATHER_API_KEY}
+    # VVVV--- THÊM PHẦN NÀY ---VVVV
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"] # Test xem có nhận được response từ trang chủ không
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s # Thời gian chờ trước khi bắt đầu kiểm tra sức khỏe
+    # ^^^^--- THÊM PHẦN NÀY ---^^^^
 
 
 

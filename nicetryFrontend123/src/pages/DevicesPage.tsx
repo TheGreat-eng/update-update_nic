@@ -18,7 +18,7 @@ import DeviceFormModal from '../components/DeviceFormModal';
 import { TableSkeleton } from '../components/LoadingSkeleton';
 import type { Device } from '../types/device';
 import type { DeviceFormData } from '../api/deviceService';
-import type { DeviceStatusMessage } from '../types/websocket';
+//import type { DeviceStatusMessage } from '../types/websocket';
 import { DEVICE_STATUS, DEVICE_STATE, getDeviceTypeLabel } from '../constants/device';
 
 const { Title, Text } = Typography;
@@ -70,24 +70,28 @@ const DevicesPage: React.FC = () => {
     // ^^^^------------------------------------------------^^^^
 
     // --- OPTIMISTIC UPDATE CHO DEVICES PAGE ---
+    // --- OPTIMISTIC UPDATE CHO DEVICES PAGE ---
     useStomp(farmId, 'farm', {
         onConnect: (client) => {
             return client.subscribe(`/topic/farm/${farmId}/device-status`, (message) => {
                 try {
-                    const update: DeviceStatusMessage = JSON.parse(message.body);
-                    console.log('⚡ Device Update Received:', update);
+                    const update: any = JSON.parse(message.body); // Dùng any để debug
+                    console.log('⚡ WebSocket nhận được:', update);
 
-                    // Cập nhật trực tiếp cache React Query mà KHÔNG gọi lại API
                     queryClient.setQueryData<Device[]>(['devices', farmId], (oldDevices) => {
                         if (!oldDevices) return [];
 
                         return oldDevices.map(device => {
                             if (device.deviceId === update.deviceId) {
-                                // Merge dữ liệu mới
+                                // Logic mới: Ưu tiên lấy từ update, nếu không có thì kiểm tra xem update có key 'state' không (do fake_pump.py gửi 'state')
+                                const newState = update.currentState || update.state || device.currentState;
+
+                                console.log(`Cập nhật ${device.deviceId}: OldState=${device.currentState} -> NewState=${newState}`);
+
                                 return {
                                     ...device,
                                     status: update.status,
-                                    currentState: update.currentState ?? device.currentState, // Chỉ update nếu có
+                                    currentState: newState, // Cập nhật state mới
                                     lastSeen: update.timestamp
                                 };
                             }

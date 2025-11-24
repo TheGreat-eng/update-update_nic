@@ -66,6 +66,13 @@ def on_message(client, userdata, msg):
                 "duration": duration,
                 "timestamp": datetime.now().isoformat()
             }
+
+
+            # --- THÊM DÒNG NÀY ĐỂ DEBUG ---
+            print(f"📦 Đang gửi gói tin: {json.dumps(feedback)}") 
+            # ------------------------------
+
+
             client.publish(f"device/{DEVICE_ID}/status", json.dumps(feedback))
             print(f"✅ Đã gửi trạng thái: MÁY BƠM ĐANG BẬT\n")
             
@@ -79,6 +86,9 @@ def on_message(client, userdata, msg):
                 "state": "OFF",
                 "timestamp": datetime.now().isoformat()
             }
+            # --- THÊM DÒNG NÀY ĐỂ DEBUG ---
+            print(f"📦 Đang gửi gói tin: {json.dumps(feedback)}") 
+            # ------------------------------
             client.publish(f"device/{DEVICE_ID}/status", json.dumps(feedback))
             print(f"✅ Đã gửi trạng thái: MÁY BƠM ĐÃ TẮT\n")
         else:

@@ -1,31 +1,37 @@
 package com.example.iotserver.service;
 
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.example.iotserver.dto.SensorDataDTO;
 import com.example.iotserver.dto.WeatherDTO;
-import com.example.iotserver.entity.Notification;
+import com.example.iotserver.entity.ActivityLog;
+import com.example.iotserver.entity.Device; // THÊM IMPORT
+import com.example.iotserver.entity.Notification; // THÊM IMPORT
 import com.example.iotserver.entity.Rule;
 import com.example.iotserver.entity.RuleCondition;
 import com.example.iotserver.entity.RuleExecutionLog;
 import com.example.iotserver.entity.User;
+import com.example.iotserver.repository.DeviceRepository; // <<<< 1. THÊM IMPORT
 import com.example.iotserver.repository.RuleExecutionLogRepository;
 import com.example.iotserver.repository.RuleRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import com.example.iotserver.entity.ActivityLog;
-import com.example.iotserver.entity.Device; // THÊM IMPORT
-import com.example.iotserver.repository.DeviceRepository; // THÊM IMPORT
-
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import com.example.iotserver.service.EmailService; // <<<< 1. THÊM IMPORT
 
 @Service
 @Slf4j
@@ -454,6 +460,25 @@ public class RuleEngineService {
      * Bật thiết bị
      */
     private String turnOnDevice(Rule.RuleAction action) {
+
+
+        // 1. Lấy thông tin thiết bị mới nhất từ DB (để có trạng thái current_state)
+    // Lưu ý: action.getDeviceId() trả về String deviceId (VD: "PUMP-001")
+    Device device = deviceRepository.findByDeviceId(action.getDeviceId()).orElse(null);
+
+    if (device == null) {
+        return "Không tìm thấy thiết bị " + action.getDeviceId();
+    }
+
+    // 2. LOGIC CHỐNG SPAM: Nếu đã ON rồi thì thôi
+    // Sử dụng equalsIgnoreCase để không phân biệt hoa thường ("ON", "on", "On")
+    if ("ON".equalsIgnoreCase(device.getCurrentState())) {
+        log.debug("Thiết bị {} đã ở trạng thái ON. Bỏ qua lệnh kích hoạt lại.", action.getDeviceId());
+        return "SKIPPED: Thiết bị đã BẬT."; 
+    }
+
+
+
         Map<String, Object> command = new HashMap<>();
         command.put("action", "turn_on");
         if (action.getDurationSeconds() != null) {
@@ -475,6 +500,21 @@ public class RuleEngineService {
      * Tắt thiết bị
      */
     private String turnOffDevice(Rule.RuleAction action) {
+
+
+        Device device = deviceRepository.findByDeviceId(action.getDeviceId()).orElse(null);
+
+    if (device == null) {
+        return "Không tìm thấy thiết bị " + action.getDeviceId();
+    }
+
+    // LOGIC CHỐNG SPAM: Nếu đã OFF rồi thì thôi
+    if ("OFF".equalsIgnoreCase(device.getCurrentState())) {
+        log.debug("Thiết bị {} đã ở trạng thái OFF. Bỏ qua lệnh tắt lại.", action.getDeviceId());
+        return "SKIPPED: Thiết bị đã TẮT.";
+    }
+
+
         Map<String, Object> command = new HashMap<>();
         command.put("action", "turn_off");
 

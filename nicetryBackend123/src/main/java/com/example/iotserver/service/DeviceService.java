@@ -1,21 +1,5 @@
 package com.example.iotserver.service;
 
-import com.example.iotserver.dto.DeviceDTO;
-import com.example.iotserver.dto.SensorDataDTO;
-import com.example.iotserver.enums.DeviceStatus;
-import com.example.iotserver.enums.DeviceType;
-import com.example.iotserver.repository.DeviceRepository;
-import com.example.iotserver.repository.FarmRepository;
-import com.example.iotserver.repository.ZoneRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
-// <<<< THÊM IMPORT
-import com.example.iotserver.entity.*;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -23,14 +7,31 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import org.springframework.cache.annotation.Cacheable; // <-- THÊM IMPORT
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.cache.annotation.CacheEvict; // <-- THÊM IMPORT
-import java.time.temporal.ChronoUnit; // <<<< 1. THÊM IMPORT
-import java.util.UUID; // Thêm import này
 
-import com.example.iotserver.enums.FarmRole; // <<<< THÊM IMPORT
-import com.example.iotserver.exception.ResourceNotFoundException;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.example.iotserver.dto.DeviceDTO;
+import com.example.iotserver.dto.SensorDataDTO;
+import com.example.iotserver.entity.ActivityLog;
+import com.example.iotserver.entity.Device;
+import com.example.iotserver.entity.Farm;
+import com.example.iotserver.entity.User;
+import com.example.iotserver.entity.Zone;
+import com.example.iotserver.enums.DeviceStatus;
+import com.example.iotserver.enums.DeviceType; // <-- THÊM IMPORT
+import com.example.iotserver.enums.FarmRole;
+import com.example.iotserver.exception.ResourceNotFoundException; // <-- THÊM IMPORT
+import com.example.iotserver.repository.DeviceRepository; // <<<< 1. THÊM IMPORT
+import com.example.iotserver.repository.FarmRepository; // Thêm import này
+import com.example.iotserver.repository.ZoneRepository; // <<<< THÊM IMPORT
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
@@ -427,6 +428,12 @@ public class DeviceService {
                 .description(device.getDescription())
                 .type(device.getType().name())
                 .status(device.getStatus().name())
+
+                // ✅ QUAN TRỌNG: Thêm dòng này để trả về trạng thái ON/OFF
+                .currentState(device.getCurrentState())
+
+
+
                 .lastSeen(device.getLastSeen())
                 .metadata(device.getMetadata())
                 .createdAt(device.getCreatedAt())
