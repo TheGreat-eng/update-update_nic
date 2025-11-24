@@ -234,7 +234,7 @@ class SensorSimulator:
 
 
 def main():
-    BROKER_HOST = os.getenv("MQTT_HOST", "localhost")
+    BROKER_HOST = os.getenv("MQTT_HOST", "10.1.0.166") #replace localhost or ip with your pc     ip
     BROKER_PORT = int(os.getenv("MQTT_PORT", "1883"))
     MQTT_USER   = os.getenv("MQTT_USER")
     MQTT_PASS   = os.getenv("MQTT_PASS")
