@@ -22,6 +22,7 @@ import { History } from 'lucide-react'; // Thêm icon
 
 
 import { Leaf } from 'lucide-react'; // Thêm icon
+import ChatWidget from '../components/ChatWidget';
 
 
 const { Content, Sider } = Layout;
@@ -174,6 +175,14 @@ const AppLayout: React.FC<PropsWithChildren> = ({ children }) => {
                     </div>
                 </Content>
                 <AppFooter />
+
+
+
+
+                {/* ✅ GẮN CHAT WIDGET VÀO ĐÂY */}
+                <ChatWidget />
+
+
             </Layout>
         </Layout>
     );

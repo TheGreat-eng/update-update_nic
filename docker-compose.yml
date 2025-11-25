@@ -56,6 +56,14 @@ services:
       LOGGING_LEVEL_COM_EXAMPLE_IOTSERVER: ${LOGGING_LEVEL_APP}
       SPRINGDOC_API_DOCS_ENABLED: ${SWAGGER_ENABLED}
       SPRINGDOC_SWAGGER_UI_ENABLED: ${SWAGGER_ENABLED}
+
+
+      # 👇👇👇 THÊM 2 DÒNG NÀY VÀO 👇👇👇
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GEMINI_API_URL: ${GEMINI_API_URL}
+
+
+
     depends_on:
       mysql:
         condition: service_healthy
