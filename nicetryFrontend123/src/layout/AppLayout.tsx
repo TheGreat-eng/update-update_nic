@@ -126,14 +126,14 @@ const AppLayout: React.FC<PropsWithChildren> = ({ children }) => {
                 theme={isDark ? 'dark' : 'light'}
                 width={220}
                 style={{
-                    overflow: 'auto',
                     height: '100vh',
                     position: 'fixed',
                     left: 0,
                     top: 0,
                     bottom: 0,
-                    zIndex: 100
+                    zIndex: 100,
                 }}
+            // Thêm class này để ẩn thanh cuộn trên Chrome/Safari (nếu muốn)
             >
                 <div
                     style={{

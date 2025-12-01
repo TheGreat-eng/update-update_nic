@@ -96,6 +96,13 @@ body[data-theme='dark'] {
 }
 
 
+
+.custom-sider::-webkit-scrollbar {
+    display: none;
+}
+
+
+
 /* ==========================================================================
    Login Page - REFRESHED DESIGN
    ========================================================================== */
@@ -419,4 +426,51 @@ body[data-theme='dark'] .landing-cta {
         background: var(--background-light);
         /* Use main background on mobile */
     }
+}
+
+
+
+
+/* ==========================================================================
+   SIDEBAR FIX - GIẢI QUYẾT LỖI MẤT MENU CUỐI
+   ========================================================================== */
+
+/* 1. Biến thẻ con trực tiếp của Sider thành Flexbox dọc */
+.ant-layout-sider-children {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    /* Chiều cao bằng màn hình */
+    overflow: hidden;
+    /* Ẩn thanh cuộn của container ngoài */
+}
+
+/* 2. Logo (phần tử đầu tiên) giữ nguyên, không co giãn */
+.ant-layout-sider-children>div:first-child {
+    flex-shrink: 0;
+}
+
+/* 3. Menu (phần tử thứ hai) chiếm phần còn lại và cho phép cuộn */
+.ant-layout-sider-children .ant-menu {
+    flex: 1;
+    /* Chiếm hết khoảng trống còn lại */
+    overflow-y: auto;
+    /* Chỉ cuộn dọc phần Menu này thôi */
+    overflow-x: hidden;
+    padding-bottom: 60px;
+    /* ✅ QUAN TRỌNG: Khoảng trống lớn ở đáy để không bị cắt chữ */
+}
+
+/* 4. Làm đẹp thanh cuộn (cho Chrome/Edge) để nó không thô */
+.ant-layout-sider-children .ant-menu::-webkit-scrollbar {
+    width: 5px;
+}
+
+.ant-layout-sider-children .ant-menu::-webkit-scrollbar-thumb {
+    background-color: rgba(128, 128, 128, 0.3);
+    border-radius: 10px;
+}
+
+.ant-layout-sider-children .ant-menu::-webkit-scrollbar-track {
+    background: transparent;
 }
