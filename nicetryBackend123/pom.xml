@@ -21,6 +21,7 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http:/
 	<java.version>17</java.version>		<!-- ✅ Java 17+ -->
 	<lombok.version>1.18.38</lombok.version>		<!-- ✅ THÊM VERSION -->
 </properties>
+
 <dependencies>
 	<dependency>
 		<groupId>org.springframework.boot</groupId>
