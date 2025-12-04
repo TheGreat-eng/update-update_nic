@@ -159,6 +159,9 @@ class SensorSimulator:
         elif device_id == "DHT22-1234": # Thiết bị ở Vùng Lạnh
             temperature = 25.0  # Mát mẻ
             humidity = 80.0
+        elif device_id == "DHT-REALTIME-TEST": # Thiết bị ở Vùng Ẩm ướt
+            temperature = 28.0
+            humidity = 95.0
         else:
             # Các thiết bị khác
             temperature = 25.0
@@ -243,6 +246,7 @@ def main():
     devices = [
         {"id": "DHT22-123", "type": "DHT22"},
         {"id": "DHT22-1234", "type": "DHT22"},
+        {"id": "DHT-REALTIME-TEST", "type": "DHT22"},
         {"id": "SOIL-123",  "type": "SOIL_MOISTURE"},
         {"id": "SOIL-1234",  "type": "SOIL_MOISTURE"},
         {"id": "LIGHT-123", "type": "LIGHT"},
