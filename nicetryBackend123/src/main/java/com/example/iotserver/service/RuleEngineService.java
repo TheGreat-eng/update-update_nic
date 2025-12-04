@@ -109,6 +109,25 @@ public class RuleEngineService {
     public boolean executeRule(Rule rule, Map<String, SensorDataDTO> sensorDataCache) {
         long startTime = System.currentTimeMillis();
 
+
+        // --- [FIX 1: THÊM LOGIC COOLDOWN] ---
+    // Kiểm tra nếu quy tắc vừa chạy gần đây (ví dụ: trong vòng 5 phút) thì bỏ qua
+    if (rule.getLastExecutedAt() != null) {
+        long minutesSinceLastRun = java.time.temporal.ChronoUnit.MINUTES.between(
+            rule.getLastExecutedAt(), 
+            LocalDateTime.now()
+        );
+        
+        // Cấu hình thời gian nghỉ (Cooldown) là 5 phút
+        // Bạn có thể đưa số 5 này vào cấu hình Rule (entity) nếu muốn linh động
+        if (minutesSinceLastRun < 5) {
+            log.debug("⏳ Quy tắc '{}' đang trong thời gian nghỉ (Cooldown). Lần chạy cuối: {} phút trước.", 
+                      rule.getName(), minutesSinceLastRun);
+            return false; // Bỏ qua, không làm gì cả
+        }
+    }
+    // --- [KẾT THÚC FIX 1] ---
+
         log.debug("Đang kiểm tra quy tắc: {}", rule.getName());
 
         try {
@@ -254,6 +273,25 @@ public class RuleEngineService {
                 return false;
             }
 
+
+
+            // --- [FIX 2: KIỂM TRA ĐỘ "TƯƠI" CỦA DỮ LIỆU] ---
+        if (sensorData.getTimestamp() != null) {
+            java.time.Instant dataTime = sensorData.getTimestamp();
+            java.time.Instant now = java.time.Instant.now();
+            
+            // Tính khoảng cách thời gian (phút)
+            long minutesDiff = java.time.temporal.ChronoUnit.MINUTES.between(dataTime, now);
+            
+            // Ngưỡng chấp nhận: 15 phút. Nếu cũ hơn 15p -> Bỏ qua
+            if (minutesDiff > 15) {
+                log.warn("⚠️ [Rule Check] Dữ liệu từ thiết bị {} quá cũ ({} phút trước). Bỏ qua điều kiện.", 
+                         deviceId, minutesDiff);
+                return false; // Coi như điều kiện sai để an toàn
+            }
+        }
+        // --- [KẾT THÚC FIX 2] ---
+
             Double actualValue = getSensorValue(sensorData, condition.getField());
 
             log.info("🔍 [Rule Check] actualValue: {}, expectedValue: {}", actualValue, condition.getValue());
@@ -263,6 +301,9 @@ public class RuleEngineService {
                         condition.getRule().getName(), condition.getField(), deviceId);
                 return false;
             }
+
+
+
 
             Double expectedValue = Double.parseDouble(condition.getValue());
             context.put(condition.getField(), actualValue);
