@@ -313,7 +313,7 @@ public class DeviceService {
         // log.info("✅ Đã gửi lệnh MQTT tới device {}: {} with params: {}", deviceId,
         // action, params);
         // } catch (Exception e) {
-        // log.error("❌ Lỗi khi gửi lệnh MQTT: {}", e.getMessage());
+        // log.error(" Lỗi khi gửi lệnh MQTT: {}", e.getMessage());
         // throw new RuntimeException("Failed to send control command", e);
         // }
         internalControlDevice(device, action, params);
@@ -342,7 +342,7 @@ public class DeviceService {
             mqttGateway.sendToMqtt(objectMapper.writeValueAsString(command), topic);
             log.info("✅ Đã gửi lệnh MQTT tới device {}: {} with params: {}", device.getDeviceId(), action, params);
         } catch (Exception e) {
-            log.error("❌ Lỗi khi gửi lệnh MQTT: {}", e.getMessage());
+            log.error(" Lỗi khi gửi lệnh MQTT: {}", e.getMessage());
             throw new RuntimeException("Failed to send control command", e);
         }
     }

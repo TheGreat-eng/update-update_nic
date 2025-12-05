@@ -1,14 +1,11 @@
 package com.example.iotserver.config;
 
-import com.example.iotserver.security.JwtUtil;
-import com.example.iotserver.security.CustomUserDetailsService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -21,7 +18,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
-import org.springframework.messaging.MessagingException; // 👈 Quan trọng: Import Exception để chặn kết nối
+
+import com.example.iotserver.security.CustomUserDetailsService;
+import com.example.iotserver.security.JwtUtil;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j; // 👈 Quan trọng: Import Exception để chặn kết nối
 
 @Configuration
 @EnableWebSocketMessageBroker
@@ -79,7 +81,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                                 }
                             }
                         } catch (Exception e) {
-                            log.error("❌ [WS Security] Token lỗi: {}", e.getMessage());
+                            log.error(" [WS Security] Token lỗi: {}", e.getMessage());
                         }
                     } else {
                         log.warn("⚠️ [WS Security] Không tìm thấy Header Authorization");

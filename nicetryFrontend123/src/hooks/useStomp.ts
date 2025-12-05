@@ -49,7 +49,7 @@ export const useStomp = (
         };
 
         client.onStompError = (frame) => {
-            console.error('❌ STOMP Error:', frame.headers['message'], frame.body);
+            console.error(' STOMP Error:', frame.headers['message'], frame.body);
         };
 
         client.activate();

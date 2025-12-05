@@ -97,7 +97,7 @@ def run_test(scenario):
         print("--------------------------------------------------")
 
     except Exception as e:
-        print(f"\n❌ LỖI: {e}")
+        print(f"\n LỖI: {e}")
         print("\n🔧 KHẮC PHỤC:")
         print("   1. Đảm bảo Docker và container 'smartfarm-mosquitto' đang chạy.")
         print("   2. Kiểm tra lại địa chỉ Broker và Port.\n")

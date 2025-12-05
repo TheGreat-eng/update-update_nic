@@ -33,7 +33,7 @@ const AppHeader: React.FC = () => {
                 const farmList = response.data.data || response.data;
                 setFarms(Array.isArray(farmList) ? farmList : []);
             } catch (error) {
-                console.error('❌ Failed to fetch farms:', error);
+                console.error(' Failed to fetch farms:', error);
             } finally {
                 setLoadingFarms(false);
             }

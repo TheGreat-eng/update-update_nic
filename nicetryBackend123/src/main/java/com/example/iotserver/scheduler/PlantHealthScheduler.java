@@ -1,10 +1,12 @@
 package com.example.iotserver.scheduler;
 
-import com.example.iotserver.service.PlantHealthService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
+import com.example.iotserver.service.PlantHealthService;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Scheduled tasks cho Plant Health Module
@@ -32,7 +34,7 @@ public class PlantHealthScheduler {
             log.info("✅ [Scheduler] Hoàn thành dọn dẹp cảnh báo cũ hơn {} ngày", daysToKeep);
 
         } catch (Exception e) {
-            log.error("❌ [Scheduler] Lỗi khi dọn dẹp cảnh báo: {}", e.getMessage(), e);
+            log.error(" [Scheduler] Lỗi khi dọn dẹp cảnh báo: {}", e.getMessage(), e);
         }
     }
 }

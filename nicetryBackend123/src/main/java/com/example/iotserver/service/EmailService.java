@@ -1,11 +1,12 @@
 package com.example.iotserver.service;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
@@ -25,7 +26,7 @@ public class EmailService {
             emailSender.send(message);
             log.info("✅ Đã gửi email thành công tới {}", to);
         } catch (Exception e) {
-            log.error("❌ Lỗi khi gửi email tới {}: {}", to, e.getMessage());
+            log.error(" Lỗi khi gửi email tới {}: {}", to, e.getMessage());
         }
     }
 }

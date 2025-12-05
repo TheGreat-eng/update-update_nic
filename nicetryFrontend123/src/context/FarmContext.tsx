@@ -68,7 +68,7 @@ export const FarmProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         console.warn('⚠️ No farms available');
                     }
                 } catch (error) {
-                    console.error('❌ Failed to auto-select farm:', error);
+                    console.error(' Failed to auto-select farm:', error);
                 } finally {
                     setIsLoadingFarm(false);
                 }

@@ -49,7 +49,7 @@ const RulesPage: React.FC = () => {
             console.log('✅ Rules loaded:', response.data.data.length);
             setRules(response.data.data);
         } catch (error) {
-            console.error('❌ Failed to fetch rules:', error);
+            console.error(' Failed to fetch rules:', error);
             message.error('Không thể tải danh sách quy tắc');
         } finally {
             setLoading(false);

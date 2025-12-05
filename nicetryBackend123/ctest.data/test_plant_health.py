@@ -42,7 +42,7 @@ class PlantHealthTester:
             response = requests.get(url)
             if response.status_code == 200:
                 data = response.json()
-                print(f"\n🌿 KẾT QUẢ KIỂM TRA:")
+                print(f"\n KẾT QUẢ KIỂM TRA:")
                 print(f"   Điểm sức khỏe: {data['healthScore']}/100")
                 print(f"   Trạng thái: {data['status']}")
                 print(f"   Số cảnh báo: {len(data['activeAlerts'])}")
@@ -56,10 +56,10 @@ class PlantHealthTester:
                 print(f"\n   💬 Tổng quan: {data['overallSuggestion']}")
                 return data
             else:
-                print(f"❌ Lỗi API: {response.status_code}")
+                print(f" Lỗi API: {response.status_code}")
                 return None
         except Exception as e:
-            print(f"❌ Lỗi kết nối API: {e}")
+            print(f" Lỗi kết nối API: {e}")
             return None
     
     def test_rule_1_fungus(self):
@@ -83,7 +83,7 @@ class PlantHealthTester:
         if result and any(a['type'] == 'FUNGUS' for a in result['activeAlerts']):
             print("\n✅ PASS: Phát hiện nguy cơ nấm")
         else:
-            print("\n❌ FAIL: Không phát hiện nguy cơ nấm")
+            print("\n FAIL: Không phát hiện nguy cơ nấm")
     
     def test_rule_2_heat_stress(self):
         """Test Quy tắc 2: Stress nhiệt"""
@@ -105,7 +105,7 @@ class PlantHealthTester:
         if result and any(a['type'] == 'HEAT_STRESS' for a in result['activeAlerts']):
             print("\n✅ PASS: Phát hiện stress nhiệt")
         else:
-            print("\n❌ FAIL: Không phát hiện stress nhiệt")
+            print("\n FAIL: Không phát hiện stress nhiệt")
     
     def test_rule_3_drought(self):
         """Test Quy tắc 3: Thiếu nước"""
@@ -127,7 +127,7 @@ class PlantHealthTester:
         if result and any(a['type'] == 'DROUGHT' for a in result['activeAlerts']):
             print("\n✅ PASS: Phát hiện thiếu nước")
         else:
-            print("\n❌ FAIL: Không phát hiện thiếu nước")
+            print("\n FAIL: Không phát hiện thiếu nước")
     
     def test_rule_4_cold(self):
         """Test Quy tắc 4: Lạnh"""
@@ -155,7 +155,7 @@ class PlantHealthTester:
             if result and any(a['type'] == 'COLD' for a in result['activeAlerts']):
                 print("\n✅ PASS: Phát hiện nguy cơ lạnh (ban đêm)")
             else:
-                print("\n❌ FAIL: Không phát hiện nguy cơ lạnh")
+                print("\n FAIL: Không phát hiện nguy cơ lạnh")
         else:
             print(f"\n⏭️  SKIP: Hiện tại là {current_hour}h (ban ngày), quy tắc chỉ chạy 22h-6h")
     
@@ -223,7 +223,7 @@ class PlantHealthTester:
             if result and any(a['type'] == 'LOW_LIGHT' for a in result['activeAlerts']):
                 print("\n✅ PASS: Phát hiện thiếu ánh sáng (ban ngày)")
             else:
-                print("\n❌ FAIL: Không phát hiện thiếu ánh sáng")
+                print("\n FAIL: Không phát hiện thiếu ánh sáng")
         else:
             print(f"\n⏭️  SKIP: Hiện tại là {current_hour}h (ban đêm), quy tắc chỉ chạy 8h-18h")
     
@@ -248,7 +248,7 @@ class PlantHealthTester:
         if result and any(a['type'] == 'PH_ABNORMAL' for a in result['activeAlerts']):
             print("\n✅ PASS: Phát hiện pH bất thường")
         else:
-            print("\n❌ FAIL: Không phát hiện pH bất thường")
+            print("\n FAIL: Không phát hiện pH bất thường")
     
     def test_combined_issues(self):
         """Test kết hợp nhiều vấn đề"""
@@ -282,9 +282,9 @@ class PlantHealthTester:
     
     def run_all_tests(self):
         """Chạy tất cả test cases"""
-        print("\n" + "🌿"*30)
+        print("\n" + ""*30)
         print("BẮT ĐẦU TEST MODULE 9: PLANT HEALTH ALERTS")
-        print("🌿"*30)
+        print(""*30)
         
         tests = [
             self.test_rule_1_fungus,
@@ -302,7 +302,7 @@ class PlantHealthTester:
                 test()
                 time.sleep(2)  # Đợi giữa các test
             except Exception as e:
-                print(f"\n❌ Lỗi test {i}: {e}")
+                print(f"\n Lỗi test {i}: {e}")
         
         print("\n" + "="*60)
         print("✅ HOÀN THÀNH TẤT CẢ TEST CASES")

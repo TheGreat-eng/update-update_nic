@@ -44,7 +44,7 @@ def on_connect(client, userdata, flags, reason_code, properties):
         # Gửi trạng thái hiện tại khi vừa kết nối
         publish_status(client, pump_state, "ONLINE", "Device Connected")
     else:
-        print(f"❌ Kết nối thất bại, mã lỗi: {reason_code}")
+        print(f" Kết nối thất bại, mã lỗi: {reason_code}")
 
 def on_message(client, userdata, msg):
     global pump_state, off_timer
@@ -82,7 +82,7 @@ def on_message(client, userdata, msg):
             publish_status(client, "OFF", "ONLINE", "Turned OFF manually")
             
     except Exception as e:
-        print(f"❌ Lỗi xử lý message: {e}")
+        print(f" Lỗi xử lý message: {e}")
 
 # Khởi tạo Client
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=UNIQUE_CLIENT_ID)
@@ -127,4 +127,4 @@ except KeyboardInterrupt:
     print("👋 Đã ngắt kết nối an toàn.")
 
 except Exception as e:
-    print(f"❌ Lỗi Fatal: {e}")
+    print(f" Lỗi Fatal: {e}")

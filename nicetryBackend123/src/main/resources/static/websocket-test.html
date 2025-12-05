@@ -351,8 +351,8 @@
                     subscribeTo('/topic/notifications', handleNotification, 'notification');
                 },
                 function (error) {
-                    console.error('❌ Connection error:', error);
-                    statusDiv.textContent = '❌ Disconnected';
+                    console.error(' Connection error:', error);
+                    statusDiv.textContent = ' Disconnected';
                     statusDiv.className = 'status disconnected';
                     addSystemMessage('Connection failed: ' + error);
 
@@ -610,7 +610,7 @@
 
         <div class="control-group">
             <button id="btnConnect" onclick="connect()">🚀 Kết nối</button>
-            <button id="btnDisconnect" onclick="disconnect()">❌ Ngắt kết nối</button>
+            <button id="btnDisconnect" onclick="disconnect()"> Ngắt kết nối</button>
             <button onclick="clearLog()" style="background-color: #888;">🧹 Xóa Log</button>
         </div>
 
@@ -681,10 +681,10 @@
                 var errorMsg = typeof error === 'string' ? error : "Connection lost / Refused";
 
                 if (errorMsg.includes("Whoops! Lost connection") || errorMsg.includes("WebSocket is closed")) {
-                    log("❌ KẾT NỐI BỊ TỪ CHỐI / NGẮT KẾT NỐI!", 'error');
+                    log(" KẾT NỐI BỊ TỪ CHỐI / NGẮT KẾT NỐI!", 'error');
                     log("=> Backend đã chặn kết nối này (ĐÚNG MONG ĐỢI nếu không có token).", 'success');
                 } else {
-                    log("❌ Lỗi: " + errorMsg, 'error');
+                    log(" Lỗi: " + errorMsg, 'error');
                 }
             });
         }

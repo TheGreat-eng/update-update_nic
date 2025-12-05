@@ -183,7 +183,7 @@ public class RuleEngineService {
 
         } catch (Exception e) {
             long executionTime = System.currentTimeMillis() - startTime;
-            log.error("❌ Lỗi khi thực thi quy tắc '{}': {}", rule.getName(), e.getMessage(), e);
+            log.error(" Lỗi khi thực thi quy tắc '{}': {}", rule.getName(), e.getMessage(), e);
 
             // Lưu log lỗi
             saveExecutionLog(rule, RuleExecutionLog.ExecutionStatus.FAILED,
@@ -270,13 +270,13 @@ public class RuleEngineService {
                     deviceId, condition.getField(), condition.getOperator(), condition.getValue());
 
             if (deviceId == null || deviceId.isEmpty()) {
-                log.warn("❌ [Rule Check] Thiếu deviceId cho điều kiện cảm biến");
+                log.warn(" [Rule Check] Thiếu deviceId cho điều kiện cảm biến");
                 return false;
             }
 
             // ✅ THÊM: Kiểm tra dữ liệu có tồn tại không
             if (!sensorDataService.hasRecentData(deviceId, 24)) {
-                log.warn("❌ [Rule Check] Không có dữ liệu 24h gần nhất cho device: {}", deviceId);
+                log.warn(" [Rule Check] Không có dữ liệu 24h gần nhất cho device: {}", deviceId);
                 return false;
             }
 
@@ -342,7 +342,7 @@ public class RuleEngineService {
             return result;
 
         } catch (Exception e) {
-            log.error("❌ [Rule Check] Lỗi: {}", e.getMessage(), e);
+            log.error(" [Rule Check] Lỗi: {}", e.getMessage(), e);
             return false;
         }
     }

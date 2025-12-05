@@ -44,7 +44,7 @@ def on_connect(client, userdata, flags, rc):
     if rc == 0:
         print("✅ Connected to MQTT Broker!")
     else:
-        print(f"❌ Failed to connect, return code {rc}")
+        print(f" Failed to connect, return code {rc}")
 
 def generate_sensor_data(device_id, device_info):
     """Tạo dữ liệu sensor ngẫu nhiên"""
@@ -133,7 +133,7 @@ def main():
                     if device_id == "PUMP-0001" and data.get("soil_moisture", 100) < 30:
                         print(f"   ⚠️  Độ ẩm thấp! Rule 'Tưới nước tự động' sẽ được kích hoạt!")
                 else:
-                    print(f"❌ Failed to send data for {device_id}")
+                    print(f" Failed to send data for {device_id}")
             
             time.sleep(10)  # Gửi mỗi 10 giây
             

@@ -108,7 +108,7 @@ public class SensorDataService {
             List<FluxTable> tables = queryApi.query(query, influxDBConfig.getOrg());
 
             if (tables.isEmpty() || tables.get(0).getRecords().isEmpty()) {
-                log.warn("❌ [InfluxDB] No data found for device: {} in the last hour.", deviceId);
+                log.warn(" [InfluxDB] No data found for device: {} in the last hour.", deviceId);
                 return null;
             }
 
@@ -130,7 +130,7 @@ public class SensorDataService {
             return sensorData;
 
         } catch (Exception e) {
-            log.error("❌ [InfluxDB] Error querying latest sensor data for {}: {}", deviceId, e.getMessage(), e);
+            log.error(" [InfluxDB] Error querying latest sensor data for {}: {}", deviceId, e.getMessage(), e);
             return null; // Trả về null khi có lỗi
         }
     }
@@ -298,7 +298,7 @@ public class SensorDataService {
             return results;
 
         } catch (Exception e) {
-            log.error("❌ [InfluxDB] Lỗi query: {}", e.getMessage(), e);
+            log.error(" [InfluxDB] Lỗi query: {}", e.getMessage(), e);
             return Collections.emptyList(); // ✅ Trả về list rỗng thay vì throw exception
         }
     }
@@ -370,7 +370,7 @@ public class SensorDataService {
             return data;
 
         } catch (Exception e) {
-            log.error("❌ [InfluxDB] Lỗi khi lấy dữ liệu farmId {}: {}", farmId, e.getMessage());
+            log.error(" [InfluxDB] Lỗi khi lấy dữ liệu farmId {}: {}", farmId, e.getMessage());
             return null;
         }
     }
@@ -436,7 +436,7 @@ public class SensorDataService {
             return data;
 
         } catch (Exception e) {
-            log.error("❌ [InfluxDB] Lỗi khi lấy dữ liệu farmId {}: {}", farmId, e.getMessage());
+            log.error(" [InfluxDB] Lỗi khi lấy dữ liệu farmId {}: {}", farmId, e.getMessage());
             return null;
         }
     }
@@ -468,7 +468,7 @@ public class SensorDataService {
             return false;
 
         } catch (Exception e) {
-            log.error("❌ Lỗi kiểm tra dữ liệu: {}", e.getMessage());
+            log.error(" Lỗi kiểm tra dữ liệu: {}", e.getMessage());
             return false;
         }
     }
@@ -537,7 +537,7 @@ public class SensorDataService {
             List<FluxTable> tables = queryApi.query(query);
 
             if (tables.isEmpty()) {
-                log.warn("❌ [InfluxDB] Query không trả về bảng nào cho các thiết bị của farm: {}", farmId);
+                log.warn(" [InfluxDB] Query không trả về bảng nào cho các thiết bị của farm: {}", farmId);
                 return null;
             }
 
@@ -573,7 +573,7 @@ public class SensorDataService {
             }
 
             if (!hasData) {
-                log.warn("❌ [InfluxDB] Query trả về bảng nhưng không có record nào cho farm: {}", farmId);
+                log.warn(" [InfluxDB] Query trả về bảng nhưng không có record nào cho farm: {}", farmId);
                 return null;
             }
 
@@ -582,7 +582,7 @@ public class SensorDataService {
             return finalDto;
 
         } catch (Exception e) {
-            log.error("❌ [InfluxDB] Lỗi nghiêm trọng khi xử lý kết quả query cho farm {}: {}", farmId, e.getMessage(),
+            log.error(" [InfluxDB] Lỗi nghiêm trọng khi xử lý kết quả query cho farm {}: {}", farmId, e.getMessage(),
                     e);
             return null;
         }
@@ -840,7 +840,7 @@ public class SensorDataService {
             return resultMap;
 
         } catch (Exception e) {
-            log.error("❌ [Batch Query] Lỗi: {}", e.getMessage());
+            log.error(" [Batch Query] Lỗi: {}", e.getMessage());
             return Collections.emptyMap();
         }
     }

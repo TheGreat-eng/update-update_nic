@@ -36,7 +36,7 @@ def on_connect(client, userdata, flags, reason_code, properties):
         client.publish(f"device/{DEVICE_ID}/status", json.dumps(feedback))
         print(f"✅ Đã gửi status: ONLINE, state: {pump_state}\n")
     else:
-        print(f"❌ Kết nối thất bại, mã lỗi: {reason_code}")
+        print(f" Kết nối thất bại, mã lỗi: {reason_code}")
 
 # on_message kiểu mới có 4 tham số
 def on_message(client, userdata, msg):
@@ -95,7 +95,7 @@ def on_message(client, userdata, msg):
             print(f"⚠️  Lệnh không xác định: {action}\n")
             
     except Exception as e:
-        print(f"❌ Lỗi xử lý message: {e}\n")
+        print(f" Lỗi xử lý message: {e}\n")
 
 # <<< BƯỚC 2: KHỞI TẠO CLIENT VỚI PHIÊN BẢN API v2 >>>
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=UNIQUE_CLIENT_ID)
@@ -119,4 +119,4 @@ except KeyboardInterrupt:
     print(f"{'='*60}\n")
     client.disconnect()
 except Exception as e:
-    print(f"❌ Lỗi: {e}")
+    print(f" Lỗi: {e}")

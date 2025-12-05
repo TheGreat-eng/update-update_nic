@@ -1,14 +1,12 @@
 package com.example.iotserver.service;
 
-import com.example.iotserver.dto.WeatherDTO;
-import com.example.iotserver.entity.Farm;
-import com.example.iotserver.entity.Weather;
-import com.example.iotserver.repository.FarmRepository;
-import com.example.iotserver.repository.WeatherRepository;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -16,12 +14,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import com.example.iotserver.dto.WeatherDTO;
+import com.example.iotserver.entity.Farm;
+import com.example.iotserver.entity.Weather;
+import com.example.iotserver.repository.FarmRepository;
+import com.example.iotserver.repository.WeatherRepository;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
@@ -173,7 +175,7 @@ public class WeatherService {
             return saved;
 
         } catch (Exception e) {
-            log.error("❌ Lỗi khi fetch thời tiết: {}", e.getMessage());
+            log.error(" Lỗi khi fetch thời tiết: {}", e.getMessage());
             throw new RuntimeException("Failed to fetch weather data", e);
         }
     }
@@ -220,7 +222,7 @@ public class WeatherService {
             return forecasts;
 
         } catch (Exception e) {
-            log.error("❌ Lỗi khi fetch forecast: {}", e.getMessage());
+            log.error(" Lỗi khi fetch forecast: {}", e.getMessage());
             return new ArrayList<>();
         }
     }

@@ -2,14 +2,13 @@
 
 package com.example.iotserver.service;
 
-import com.example.iotserver.dto.AIPredictionResponse;
-import com.example.iotserver.dto.SensorDataDTO;
-import com.example.iotserver.entity.Farm;
-import com.example.iotserver.exception.ResourceNotFoundException;
-import com.example.iotserver.repository.FarmRepository;
+import java.io.IOException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
@@ -21,12 +20,14 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import com.example.iotserver.dto.AIPredictionResponse;
+import com.example.iotserver.dto.SensorDataDTO;
+import com.example.iotserver.entity.Farm;
+import com.example.iotserver.exception.ResourceNotFoundException;
+import com.example.iotserver.repository.FarmRepository;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
@@ -137,7 +138,7 @@ public class AIService {
             return response;
 
         } catch (Exception e) {
-            log.error("❌ Lỗi khi gọi AI Service", e);
+            log.error(" Lỗi khi gọi AI Service", e);
             return null;
         }
     }
@@ -165,10 +166,10 @@ public class AIService {
             return response;
 
         } catch (IOException e) {
-            log.error("❌ Lỗi đọc file ảnh: {}", e.getMessage());
+            log.error(" Lỗi đọc file ảnh: {}", e.getMessage());
             return Map.of("error", "Lỗi đọc file ảnh");
         } catch (Exception e) {
-            log.error("❌ Lỗi khi gọi AI Service chẩn đoán: {}", e.getMessage());
+            log.error(" Lỗi khi gọi AI Service chẩn đoán: {}", e.getMessage());
             return Map.of("error", "Lỗi dịch vụ AI không khả dụng");
         }
     }
