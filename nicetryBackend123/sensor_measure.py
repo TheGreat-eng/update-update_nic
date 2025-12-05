@@ -44,7 +44,7 @@ class SensorSimulator:
 
         self.start_time = time.time()
 
-        # ✅ Assign callback functions
+        #  Assign callback functions
         self.client.on_connect = self.on_connect
         self.client.on_disconnect = self.on_disconnect
 
@@ -52,10 +52,10 @@ class SensorSimulator:
     
     def on_connect(self, client, userdata, flags, reason_code, properties):
         if reason_code == 0:
-            print("✅ Connected to MQTT Broker!")
+            print(" Connected to MQTT Broker!")
             self.connected = True
         else:
-            print(f"❌ Failed to connect, reason code {reason_code}")
+            print(f" Failed to connect, reason code {reason_code}")
             self.connected = False
 
     def on_disconnect(self, client, userdata, flags, reason_code, properties):
@@ -71,7 +71,7 @@ class SensorSimulator:
             self.client.loop_start()
             return True
         except Exception as e:
-            print(f"❌ Connection error: {e}")
+            print(f" Connection error: {e}")
             return False
 
     def run_simulation(self, devices: list, interval: int = 10):
@@ -95,7 +95,7 @@ class SensorSimulator:
             time.sleep(0.5)
         
         if not self.connected:
-            print("❌ Connection timed out. Exiting.")
+            print(" Connection timed out. Exiting.")
             self.client.loop_stop()
             return
 
@@ -210,7 +210,7 @@ class SensorSimulator:
         if res.rc == mqtt.MQTT_ERR_SUCCESS:
             print(f"📤 {device_id}: {data.get('sensorType')} sent")
         else:
-            print(f"❌ Publish failed for {device_id} with code {res.rc}")
+            print(f" Publish failed for {device_id} with code {res.rc}")
 
     def publish_device_status(self, device_id: str, status: str):
         topic = f"device/{device_id}/status"

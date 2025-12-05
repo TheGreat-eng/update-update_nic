@@ -2,14 +2,10 @@
 
 package com.example.iotserver.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.example.iotserver.dto.SensorDataDTO;
-import com.example.iotserver.entity.Device;
-import com.example.iotserver.entity.Farm;
-import com.example.iotserver.repository.DeviceRepository;
-import com.example.iotserver.repository.FarmRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.annotation.ServiceActivator;
@@ -17,15 +13,18 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.example.iotserver.enums.DeviceStatus;
-import com.example.iotserver.entity.User;
-import com.example.iotserver.entity.Notification; // <<<< Thêm vào
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
-import java.util.Map;
+import com.example.iotserver.dto.SensorDataDTO;
+import com.example.iotserver.entity.Device;
+import com.example.iotserver.entity.Farm;
+import com.example.iotserver.entity.Notification;
+import com.example.iotserver.entity.User;
+import com.example.iotserver.enums.DeviceStatus;
+import com.example.iotserver.repository.DeviceRepository; // <<<< Thêm vào
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
@@ -104,6 +103,7 @@ public class MqttMessageHandler {
                 device.setStatus(DeviceStatus.ONLINE);
                 webSocketService.sendDeviceStatus(farmId, deviceId, "ONLINE");
             }
+            
             deviceRepository.save(device);
 
             webSocketService.sendSensorData(farmId, sensorData);

@@ -105,7 +105,7 @@ def setup():
         print("✅ Đã kết nối & Báo trạng thái ONLINE")
         
     except Exception as e:
-        print(f"❌ Không thể kết nối MQTT: {e}")
+        print(f" Không thể kết nối MQTT: {e}")
         sys.exit(1)
     print("--- KẾT THÚC SETUP ---\n")
 

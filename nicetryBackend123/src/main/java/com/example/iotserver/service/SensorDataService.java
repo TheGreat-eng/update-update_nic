@@ -1,20 +1,5 @@
 package com.example.iotserver.service;
 
-import com.influxdb.client.InfluxDBClient;
-import com.influxdb.client.QueryApi;
-import com.influxdb.client.WriteApiBlocking;
-import com.influxdb.client.domain.WritePrecision;
-import com.influxdb.client.write.Point;
-import com.influxdb.query.FluxRecord;
-import com.influxdb.query.FluxTable;
-import com.example.iotserver.config.InfluxDBConfig;
-import com.example.iotserver.dto.SensorDataDTO;
-import com.example.iotserver.entity.Device;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -23,9 +8,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import com.example.iotserver.repository.DeviceRepository; // Thêm import này
 
+import org.springframework.stereotype.Service;
+
+import com.example.iotserver.config.InfluxDBConfig;
+import com.example.iotserver.dto.SensorDataDTO;
+import com.example.iotserver.entity.Device;
+import com.example.iotserver.repository.DeviceRepository;
+import com.influxdb.client.InfluxDBClient;
+import com.influxdb.client.QueryApi;
+import com.influxdb.client.WriteApiBlocking;
+import com.influxdb.client.domain.WritePrecision;
+import com.influxdb.client.write.Point;
 import com.influxdb.query.FluxRecord;
+import com.influxdb.query.FluxTable;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j; // Thêm import này
 
 @Service
 @Slf4j
@@ -779,4 +778,70 @@ public class SensorDataService {
         } catch (Exception e) { return null; }
     }
 
+
+
+// [SensorDataService.java]
+
+    /**
+     * TỐI ƯU HÓA: Lấy dữ liệu mới nhất cho một DANH SÁCH thiết bị (Batch Query).
+     * Thay vì gọi 100 query lẻ, ta chỉ gọi 1 query duy nhất.
+     */
+    public Map<String, SensorDataDTO> getLatestDataForListDevices(java.util.Set<String> deviceIds) {
+        if (deviceIds == null || deviceIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        // 1. Xây dựng bộ lọc dynamic: r.device_id == "A" or r.device_id == "B" ...
+        String deviceFilter = deviceIds.stream()
+                .map(id -> String.format("r.device_id == \"%s\"", id))
+                .collect(Collectors.joining(" or "));
+
+        // 2. Câu truy vấn gộp
+        String query = String.format(
+                "from(bucket: \"%s\")\n" +
+                "  |> range(start: -24h)\n" +  // Tìm trong 24h qua
+                "  |> filter(fn: (r) => r._measurement == \"sensor_data\")\n" +
+                "  |> filter(fn: (r) => %s)\n" + // Chèn bộ lọc OR ở đây
+                "  |> last()\n" + // Lấy giá trị mới nhất
+                "  |> pivot(rowKey:[\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")",
+                influxDBConfig.getBucket(), 
+                deviceFilter
+        );
+
+        log.debug("🚀 [Batch Query] Executing for {} devices...", deviceIds.size());
+
+        try {
+            QueryApi queryApi = influxDBClient.getQueryApi();
+            List<FluxTable> tables = queryApi.query(query, influxDBConfig.getOrg());
+
+            Map<String, SensorDataDTO> resultMap = new HashMap<>();
+
+            for (FluxTable table : tables) {
+                for (FluxRecord record : table.getRecords()) {
+                    String deviceId = (String) record.getValueByKey("device_id");
+                    if (deviceId == null) continue;
+
+                    // Map record sang DTO
+                    Map<String, Object> values = record.getValues();
+                    SensorDataDTO dto = SensorDataDTO.builder()
+                            .deviceId(deviceId)
+                            .timestamp(record.getTime())
+                            .temperature(getDoubleValue(values, "temperature"))
+                            .humidity(getDoubleValue(values, "humidity"))
+                            .soilMoisture(getDoubleValue(values, "soil_moisture"))
+                            .lightIntensity(getDoubleValue(values, "light_intensity"))
+                            .soilPH(getDoubleValue(values, "soilPH"))
+                            .build();
+                    
+                    resultMap.put(deviceId, dto);
+                }
+            }
+            log.info("✅ [Batch Query] Đã lấy dữ liệu cho {} thiết bị trong 1 lần gọi.", resultMap.size());
+            return resultMap;
+
+        } catch (Exception e) {
+            log.error("❌ [Batch Query] Lỗi: {}", e.getMessage());
+            return Collections.emptyMap();
+        }
+    }
 }

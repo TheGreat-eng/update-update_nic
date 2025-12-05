@@ -45,12 +45,12 @@ class SensorSimulator:
             print("✅ Connected to MQTT Broker!")
             self.connected = True
         else:
-            print(f"❌ Failed to connect, reason code {reason_code}")
+            print(f" Failed to connect, reason code {reason_code}")
             self.connected = False
 
     # ✅ SỬA 4: Cập nhật chữ ký của hàm on_disconnect
     def on_disconnect(self, client, userdata, flags, reason_code, properties):
-        print(f"⚠️  Disconnected from MQTT Broker with reason code: {reason_code}")
+        print(f" Disconnected from MQTT Broker with reason code: {reason_code}")
         self.connected = False
 
     # =============== Logic Kết nối & Chạy =================
@@ -62,7 +62,7 @@ class SensorSimulator:
             self.client.loop_start() # Bắt đầu vòng lặp network ngay sau khi gọi connect
             return True
         except Exception as e:
-            print(f"❌ Connection error: {e}")
+            print(f" Connection error: {e}")
             return False
 
     def run_simulation(self, devices: list, interval: int = 10):
@@ -80,7 +80,7 @@ class SensorSimulator:
             time.sleep(0.5)
         
         if not self.connected:
-            print("❌ Connection timed out. Exiting.")
+            print(" Connection timed out. Exiting.")
             self.client.loop_stop()
             return
 
@@ -120,13 +120,13 @@ class SensorSimulator:
                 time.sleep(interval)
 
         except KeyboardInterrupt:
-            print("\n🛑 Stopping simulator…")
+            print("\n Stopping simulator…")
             for d in devices:
                 self.publish_device_status(d["id"], "OFFLINE")
                 time.sleep(0.1) # Đợi một chút để gửi hết message
             self.client.loop_stop()
             self.client.disconnect()
-            print("✅ Stopped.")
+            print(" Stopped.")
 
     # =============== Các hàm mô phỏng (Giữ nguyên, đã thống nhất camelCase) ===============
     
@@ -223,7 +223,7 @@ class SensorSimulator:
         if res.rc == mqtt.MQTT_ERR_SUCCESS:
             print(f"📤 {device_id}: {data.get('sensorType')} sent")
         else:
-            print(f"❌ Publish failed for {device_id} with code {res.rc}")
+            print(f" Publish failed for {device_id} with code {res.rc}")
 
     def publish_device_status(self, device_id: str, status: str):
         topic = f"device/{device_id}/status"

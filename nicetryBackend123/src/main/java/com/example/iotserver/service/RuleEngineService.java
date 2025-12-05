@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,6 +51,11 @@ public class RuleEngineService {
     private final DeviceRepository deviceRepository; // VVVV--- THÊM DEPENDENCY NÀY ---VVVV
     private final ActivityLogService activityLogService; // <<< THÊM
 
+
+    // ... dependencies cũ ...
+    private final StringRedisTemplate redisTemplate; // [FIX]: Inject thêm cái này
+    private static final String MANUAL_OVERRIDE_PREFIX = "manual_override:";
+
     /**
      * Chạy tất cả quy tắc đang kích hoạt
      */
@@ -69,14 +75,19 @@ public class RuleEngineService {
                 .collect(Collectors.toSet());
 
         // Lấy dữ liệu cho tất cả thiết bị cần thiết trong 1 lần lặp
-        Map<String, SensorDataDTO> sensorDataCache = new HashMap<>();
-        for (String deviceId : allDeviceIds) {
-            // Lần gọi này có thể được cache ở tầng service nếu bạn cấu hình @Cacheable
-            // nhưng làm thế này cũng đã giảm đáng kể việc gọi lặp đi lặp lại
-            sensorDataCache.put(deviceId, sensorDataService.getLatestSensorData(deviceId));
+       // Dùng Batch Query để lấy dữ liệu 1 lần duy nhất
+        Map<String, SensorDataDTO> sensorDataCache;
+        if (!allDeviceIds.isEmpty()) {
+            sensorDataCache = sensorDataService.getLatestDataForListDevices(allDeviceIds);
+        } else {
+            sensorDataCache = new HashMap<>();
         }
         log.debug("Đã cache dữ liệu cho {} thiết bị.", sensorDataCache.size());
         // <<<< KẾT THÚC PHẦN TẠO CACHE >>>>
+
+        // [FIX 4: DANH SÁCH THIẾT BỊ ĐÃ ĐƯỢC ĐIỀU KHIỂN TRONG CHU KỲ NÀY]
+        // Set này chứa các deviceId đã nhận lệnh từ quy tắc có priority cao hơn
+        Set<String> devicesControlledInThisCycle = new java.util.HashSet<>();
 
         int successCount = 0;
         int skippedCount = 0;
@@ -84,8 +95,8 @@ public class RuleEngineService {
 
         for (Rule rule : enabledRules) {
             try {
-                // <<<< 2. TRUYỀN CACHE VÀO PHƯƠNG THỨC THỰC THI >>>>
-                boolean executed = executeRule(rule, sensorDataCache);
+                // Truyền thêm danh sách devicesControlledInThisCycle vào hàm executeRule
+                boolean executed = executeRule(rule, sensorDataCache, devicesControlledInThisCycle);
                 if (executed) {
                     successCount++;
                 } else {
@@ -106,7 +117,7 @@ public class RuleEngineService {
      * Thực thi một quy tắc cụ thể
      */
     @Transactional
-    public boolean executeRule(Rule rule, Map<String, SensorDataDTO> sensorDataCache) {
+    public boolean executeRule(Rule rule, Map<String, SensorDataDTO> sensorDataCache, Set<String> devicesControlledInThisCycle) {
         long startTime = System.currentTimeMillis();
 
 
@@ -139,9 +150,16 @@ public class RuleEngineService {
 
             // Bước 2: Nếu điều kiện đúng → Thực hiện hành động
             if (allConditionsMet) {
+                
                 log.info("✅ Quy tắc '{}' - Điều kiện ĐÃ THỎA MÃN", rule.getName());
 
-                List<String> performedActions = performActions(rule);
+                // [FIX 4 & 3]: Truyền danh sách device đã lock xuống để kiểm tra trước khi action
+                List<String> performedActions = performActions(rule, devicesControlledInThisCycle);
+                
+                // Nếu không có hành động nào thực sự được thực hiện (do bị chặn bởi Priority hoặc Manual Override)
+                if (performedActions.isEmpty()) {
+                     return false; 
+                }
 
                 // Cập nhật thống kê
                 rule.setLastExecutedAt(LocalDateTime.now());
@@ -451,12 +469,41 @@ public class RuleEngineService {
     /**
      * Thực hiện các hành động
      */
-    private List<String> performActions(Rule rule) {
+    private List<String> performActions(Rule rule, Set<String> devicesControlledInThisCycle) {
         List<String> performedActions = new ArrayList<>();
 
         for (Rule.RuleAction action : rule.getActions()) {
             try {
+
+
+
+
+
+                String deviceId = action.getDeviceId();
+
+                // --- [KIỂM TRA 1: XUNG ĐỘT QUY TẮC (PRIORITY)] ---
+                if (deviceId != null && devicesControlledInThisCycle.contains(deviceId)) {
+                    log.debug("⛔ Quy tắc '{}' (Priority {}) bị bỏ qua cho thiết bị {} vì đã được xử lý bởi quy tắc ưu tiên cao hơn.", 
+                              rule.getName(), rule.getPriority(), deviceId);
+                    continue; // Bỏ qua action này
+                }
+
+                // --- [KIỂM TRA 2: MANUAL OVERRIDE (USER VS AUTO)] ---
+                if (deviceId != null && Boolean.TRUE.equals(redisTemplate.hasKey(MANUAL_OVERRIDE_PREFIX + deviceId))) {
+                    log.debug("⛔ Quy tắc '{}' bị bỏ qua cho thiết bị {} vì đang ở chế độ Manual Override.", 
+                              rule.getName(), deviceId);
+                    continue; // Bỏ qua action này
+                }
+
+                // Thực hiện hành động
                 String result = performSingleAction(rule, action);
+
+                // Nếu hành động là điều khiển thiết bị, đánh dấu vào Set để chặn các quy tắc thấp hơn
+                if (action.getType() == Rule.ActionType.TURN_ON_DEVICE || action.getType() == Rule.ActionType.TURN_OFF_DEVICE) {
+                    if (deviceId != null) {
+                        devicesControlledInThisCycle.add(deviceId);
+                    }
+                }
 
                 // <<< GHI LOG Ở ĐÂY >>>
                 String description = String.format("Quy tắc '%s' đã thực thi hành động: %s", rule.getName(), result);

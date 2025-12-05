@@ -45,7 +45,7 @@ class SensorSimulator:
             print("✅ Connected to MQTT Broker!")
             self.connected = True
         else:
-            print(f"❌ Failed to connect, reason code {reason_code}")
+            print(f" Failed to connect, reason code {reason_code}")
             self.connected = False
 
     # ✅ SỬA 4: Cập nhật chữ ký của hàm on_disconnect
@@ -62,7 +62,7 @@ class SensorSimulator:
             self.client.loop_start() # Bắt đầu vòng lặp network ngay sau khi gọi connect
             return True
         except Exception as e:
-            print(f"❌ Connection error: {e}")
+            print(f" Connection error: {e}")
             return False
 
     def run_simulation(self, devices: list, interval: int = 10):
@@ -80,7 +80,7 @@ class SensorSimulator:
             time.sleep(0.5)
         
         if not self.connected:
-            print("❌ Connection timed out. Exiting.")
+            print(" Connection timed out. Exiting.")
             self.client.loop_stop()
             return
 
@@ -218,9 +218,9 @@ class SensorSimulator:
         payload = json.dumps(data)
         res = self.client.publish(topic, payload, qos=1)
         if res.rc == mqtt.MQTT_ERR_SUCCESS:
-            print(f"📤 {device_id}: {data.get('sensorType')} sent")
+            print(f" {device_id}: {data.get('sensorType')} sent")
         else:
-            print(f"❌ Publish failed for {device_id} with code {res.rc}")
+            print(f" Publish failed for {device_id} with code {res.rc}")
 
     def publish_device_status(self, device_id: str, status: str):
         topic = f"device/{device_id}/status"

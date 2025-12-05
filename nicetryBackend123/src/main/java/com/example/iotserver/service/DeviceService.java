@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.springframework.cache.annotation.CacheEvict;
@@ -47,6 +48,11 @@ public class DeviceService {
     private final ActivityLogService activityLogService; // <<< THÊM
     private final ObjectMapper objectMapper; // <<< 1. Inject ObjectMapper thay vì tạo mới
     private final StringRedisTemplate redisTemplate; // Đảm bảo đã inject cái này
+
+
+    private static final String MANUAL_OVERRIDE_PREFIX = "manual_override:";
+    private static final long OVERRIDE_DURATION_MINUTES = 30; // Thời gian "miễn nhiễm" với auto
+
 
     // VVVV--- THÊM DÒNG NÀY ---VVVV
     private final ZoneRepository zoneRepository;
@@ -277,6 +283,16 @@ public class DeviceService {
         // Ghi log trước khi thực hiện
         String description = String.format("Điều khiển thiết bị '%s' (%s): %s.", device.getName(), deviceId, action);
         activityLogService.logUserActivity(device.getFarm().getId(), "DEVICE_CONTROL", "DEVICE", deviceId, description);
+
+
+        // [FIX 3: THÊM LOGIC MANUAL OVERRIDE]
+        // Đặt cờ trong Redis để chặn Rule Engine đụng vào thiết bị này trong 30 phút
+        String overrideKey = MANUAL_OVERRIDE_PREFIX + deviceId;
+        redisTemplate.opsForValue().set(overrideKey, "ACTIVE", OVERRIDE_DURATION_MINUTES, TimeUnit.MINUTES);
+        log.info("🚫 Đã kích hoạt chế độ Manual Override cho thiết bị {} trong {} phút.", deviceId, OVERRIDE_DURATION_MINUTES);
+        // [KẾT THÚC FIX 3]
+
+
 
         // if (!isActuator(device.getType())) {
         // throw new RuntimeException("Device is not controllable");
