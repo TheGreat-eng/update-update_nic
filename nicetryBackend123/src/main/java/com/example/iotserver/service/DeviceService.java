@@ -289,7 +289,7 @@ public class DeviceService {
         // Đặt cờ trong Redis để chặn Rule Engine đụng vào thiết bị này trong 30 phút
         String overrideKey = MANUAL_OVERRIDE_PREFIX + deviceId;
         redisTemplate.opsForValue().set(overrideKey, "ACTIVE", OVERRIDE_DURATION_MINUTES, TimeUnit.MINUTES);
-        log.info("🚫 Đã kích hoạt chế độ Manual Override cho thiết bị {} trong {} phút.", deviceId, OVERRIDE_DURATION_MINUTES);
+        log.info(" Đã kích hoạt chế độ Manual Override cho thiết bị {} trong {} phút.", deviceId, OVERRIDE_DURATION_MINUTES);
         // [KẾT THÚC FIX 3]
 
 

@@ -60,7 +60,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                     StompCommand.STOMP.equals(accessor.getCommand())) {
 
                     String authorizationHeader = accessor.getFirstNativeHeader("Authorization");
-                    log.info("🔒 [WS Security] Kiểm tra kết nối mới...");
+                    log.info(" [WS Security] Kiểm tra kết nối mới...");
 
                     boolean isAuthenticated = false;
 
@@ -87,9 +87,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                         log.warn(" [WS Security] Không tìm thấy Header Authorization");
                     }
 
-                    // ⛔ QUAN TRỌNG NHẤT: NẾU KHÔNG HỢP LỆ -> NÉM RA EXCEPTION ĐỂ CHẶN NGAY
+                    //  QUAN TRỌNG NHẤT: NẾU KHÔNG HỢP LỆ -> NÉM RA EXCEPTION ĐỂ CHẶN NGAY
                     if (!isAuthenticated) {
-                        log.error("⛔ [WS Security] TỪ CHỐI KẾT NỐI: Token không hợp lệ hoặc thiếu!");
+                        log.error(" [WS Security] TỪ CHỐI KẾT NỐI: Token không hợp lệ hoặc thiếu!");
                         throw new MessagingException("Access Denied: Invalid or missing Token");
                     }
                 }

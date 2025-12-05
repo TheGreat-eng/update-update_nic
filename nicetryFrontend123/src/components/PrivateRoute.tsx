@@ -11,7 +11,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
 
     //  Log để debug
     useEffect(() => {
-        console.log('🔍 PrivateRoute check:', {
+        console.log(' PrivateRoute check:', {
             path: location.pathname,
             authenticated: isAuthenticated(),
             hasToken: !!localStorage.getItem('token')

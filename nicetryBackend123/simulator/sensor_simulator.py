@@ -108,7 +108,7 @@ def main():
     client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
     client.on_connect = on_connect
     
-    print(f"🔄 Connecting to MQTT Broker at {MQTT_BROKER}:{MQTT_PORT}...")
+    print(f" Connecting to MQTT Broker at {MQTT_BROKER}:{MQTT_PORT}...")
     client.connect(MQTT_BROKER, MQTT_PORT, 60)
     client.loop_start()
     

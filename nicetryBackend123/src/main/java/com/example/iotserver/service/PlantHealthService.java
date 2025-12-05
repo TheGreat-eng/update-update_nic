@@ -217,7 +217,7 @@ public class PlantHealthService {
             if (data.getTemperature() < coldThreshold) {
                 LocalTime now = LocalTime.now();
                 if (now.isAfter(LocalTime.of(22, 0)) || now.isBefore(LocalTime.of(6, 0))) {
-                    log.warn("❄️ Phát hiện nguy cơ lạnh! Nhiệt độ đêm: {}°C", data.getTemperature());
+                    log.warn(" Phát hiện nguy cơ lạnh! Nhiệt độ đêm: {}°C", data.getTemperature());
                     return Optional.of(PlantHealthAlert.builder()
                             .farmId(farm.getId())
                             .zone(zone) // <--- THÊM DÒNG NÀY
@@ -275,7 +275,7 @@ public class PlantHealthService {
             if (data.getLightIntensity() < lightThreshold) {
                 LocalTime now = LocalTime.now();
                 if (now.isAfter(LocalTime.of(8, 0)) && now.isBefore(LocalTime.of(18, 0))) {
-                    log.warn("🌥️ Phát hiện thiếu ánh sáng! Cường độ: {} lux", data.getLightIntensity());
+                    log.warn(" Phát hiện thiếu ánh sáng! Cường độ: {} lux", data.getLightIntensity());
                     return Optional.of(PlantHealthAlert.builder()
                             .farmId(farm.getId())
                             .zone(zone) // <--- THÊM DÒNG NÀY
@@ -301,7 +301,7 @@ public class PlantHealthService {
                     farm.getId(), data.getSoilPH(), phMin, phMax);
 
             if (data.getSoilPH() < phMin || data.getSoilPH() > phMax) {
-                log.warn("⚗️ Phát hiện pH bất thường! pH: {}", data.getSoilPH());
+                log.warn(" Phát hiện pH bất thường! pH: {}", data.getSoilPH());
                 String description = data.getSoilPH() < phMin
                         ? String.format("Đất quá chua - pH %.1f thấp hơn mức an toàn (%.1f)", data.getSoilPH(), phMin)
                         : String.format("Đất quá kiềm - pH %.1f cao hơn mức an toàn (%.1f)", data.getSoilPH(), phMax);

@@ -22,7 +22,7 @@ public class RuleScheduler {
      */
     @Scheduled(fixedDelay = 30000, initialDelay = 10000)
     public void executeRules() {
-        log.debug("🔄 Bắt đầu kiểm tra quy tắc tự động...");
+        log.debug(" Bắt đầu kiểm tra quy tắc tự động...");
 
         try {
             ruleEngineService.executeAllRules();

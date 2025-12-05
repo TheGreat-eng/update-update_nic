@@ -172,7 +172,7 @@ public class RuleEngineService {
 
                 return true;
             } else {
-                log.debug("⏭️ Quy tắc '{}' - Điều kiện CHƯA THỎA MÃN", rule.getName());
+                log.debug(" Quy tắc '{}' - Điều kiện CHƯA THỎA MÃN", rule.getName());
 
                 // Lưu log bỏ qua
                 saveExecutionLog(rule, RuleExecutionLog.ExecutionStatus.SKIPPED,
@@ -266,7 +266,7 @@ public class RuleEngineService {
         try {
             String deviceId = condition.getDeviceId();
 
-            log.info("🔍 [Rule Check] deviceId: {}, field: {}, operator: {}, value: {}",
+            log.info(" [Rule Check] deviceId: {}, field: {}, operator: {}, value: {}",
                     deviceId, condition.getField(), condition.getOperator(), condition.getValue());
 
             if (deviceId == null || deviceId.isEmpty()) {
@@ -282,7 +282,7 @@ public class RuleEngineService {
 
             SensorDataDTO sensorData = sensorDataCache.get(deviceId);
 
-            log.info("🔍 [Rule Check] Sensor data từ InfluxDB: {}", sensorData != null ? "CÓ DỮ LIỆU" : "NULL");
+            log.info(" [Rule Check] Sensor data từ InfluxDB: {}", sensorData != null ? "CÓ DỮ LIỆU" : "NULL");
 
             if (sensorData == null) {
                 // Thêm log chi tiết hơn
@@ -312,7 +312,7 @@ public class RuleEngineService {
 
             Double actualValue = getSensorValue(sensorData, condition.getField());
 
-            log.info("🔍 [Rule Check] actualValue: {}, expectedValue: {}", actualValue, condition.getValue());
+            log.info(" [Rule Check] actualValue: {}, expectedValue: {}", actualValue, condition.getValue());
 
             if (actualValue == null) {
                 log.warn("Rule [{}]: Không tìm thấy giá trị cho trường [{}] trên thiết bị [{}].",
@@ -483,14 +483,14 @@ public class RuleEngineService {
 
                 // --- [KIỂM TRA 1: XUNG ĐỘT QUY TẮC (PRIORITY)] ---
                 if (deviceId != null && devicesControlledInThisCycle.contains(deviceId)) {
-                    log.debug("⛔ Quy tắc '{}' (Priority {}) bị bỏ qua cho thiết bị {} vì đã được xử lý bởi quy tắc ưu tiên cao hơn.", 
+                    log.debug(" Quy tắc '{}' (Priority {}) bị bỏ qua cho thiết bị {} vì đã được xử lý bởi quy tắc ưu tiên cao hơn.", 
                               rule.getName(), rule.getPriority(), deviceId);
                     continue; // Bỏ qua action này
                 }
 
                 // --- [KIỂM TRA 2: MANUAL OVERRIDE (USER VS AUTO)] ---
                 if (deviceId != null && Boolean.TRUE.equals(redisTemplate.hasKey(MANUAL_OVERRIDE_PREFIX + deviceId))) {
-                    log.debug("⛔ Quy tắc '{}' bị bỏ qua cho thiết bị {} vì đang ở chế độ Manual Override.", 
+                    log.debug(" Quy tắc '{}' bị bỏ qua cho thiết bị {} vì đang ở chế độ Manual Override.", 
                               rule.getName(), deviceId);
                     continue; // Bỏ qua action này
                 }
@@ -723,7 +723,7 @@ public class RuleEngineService {
 
             boolean result = compareValues(actualValue, condition.getOperator(), expectedValue);
 
-            log.info("🌤️ Kiểm tra thời tiết: {} {} {} = {}",
+            log.info(" Kiểm tra thời tiết: {} {} {} = {}",
                     actualValue, condition.getOperator(), expectedValue, result);
 
             return result;

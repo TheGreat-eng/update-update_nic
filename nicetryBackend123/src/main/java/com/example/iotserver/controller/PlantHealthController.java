@@ -72,7 +72,7 @@ public class PlantHealthController {
             @Parameter(description = "ID nông trại", required = true) @RequestParam Long farmId,
 
             @Parameter(description = "Số ngày lấy lịch sử (mặc định 7 ngày)") @RequestParam(defaultValue = "7") int days) {
-        log.info("📋 [API] Lấy lịch sử cảnh báo cho nông trại {} trong {} ngày", farmId, days);
+        log.info(" [API] Lấy lịch sử cảnh báo cho nông trại {} trong {} ngày", farmId, days);
 
         try {
             List<PlantHealthAlert> alerts = plantHealthService.getAlertHistory(farmId, days);
@@ -107,7 +107,7 @@ public class PlantHealthController {
     @Operation(summary = "Phân tích chi tiết sức khỏe", description = "Chạy lại toàn bộ 7 quy tắc và tạo báo cáo chi tiết")
     public ResponseEntity<Map<String, Object>> analyzeDetailed(
             @Parameter(description = "ID nông trại", required = true) @RequestParam Long farmId) {
-        log.info("🔬 [API] Phân tích chi tiết cho nông trại: {}", farmId);
+        log.info(" [API] Phân tích chi tiết cho nông trại: {}", farmId);
 
         try {
             // Chạy phân tích

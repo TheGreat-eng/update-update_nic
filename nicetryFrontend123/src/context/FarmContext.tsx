@@ -28,7 +28,7 @@ export const FarmProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     useEffect(() => {
         const checkAuth = () => {
             if (!isAuthenticated()) {
-                console.log('🔄 Auth lost, resetting farm context');
+                console.log(' Auth lost, resetting farm context');
                 resetFarmContext();
                 setIsLoadingFarm(false);
             }
@@ -49,7 +49,7 @@ export const FarmProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     useEffect(() => {
         const autoSelectFarm = async () => {
             if (!isAuthenticated()) {
-                console.log('⏸️ Not authenticated, skipping farm fetch');
+                console.log(' Not authenticated, skipping farm fetch');
                 setIsLoadingFarm(false);
                 setFarmId(null);
                 return;
@@ -57,7 +57,7 @@ export const FarmProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
             if (farmId === null) {
                 try {
-                    console.log('🔍 Auto-selecting first farm...');
+                    console.log(' Auto-selecting first farm...');
                     const response = await getFarms();
                     const farmList = response.data.data || response.data;
 
@@ -84,7 +84,7 @@ export const FarmProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     useEffect(() => {
         if (farmId !== null) {
             localStorage.setItem('selectedFarmId', farmId.toString());
-            console.log('💾 Saved farmId to localStorage:', farmId);
+            console.log(' Saved farmId to localStorage:', farmId);
         } else {
             localStorage.removeItem('selectedFarmId');
         }

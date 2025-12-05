@@ -27,7 +27,7 @@ public class SearchController {
     public ResponseEntity<ApiResponse<GlobalSearchResultDTO>> globalSearch(
             @RequestParam(value = "q", required = false, defaultValue = "") String query) {
 
-        log.info("🔍 Search request received with query: {}", query);
+        log.info(" Search request received with query: {}", query);
 
         if (query == null || query.trim().isEmpty()) {
             return ResponseEntity.ok(

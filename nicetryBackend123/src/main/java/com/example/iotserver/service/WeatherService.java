@@ -120,7 +120,7 @@ public class WeatherService {
     @Scheduled(fixedRate = 1800000, initialDelay = 60000) // 30 phút
     @Transactional
     public void updateAllWeatherData() {
-        log.info("🌤️ Bắt đầu cập nhật thời tiết tự động...");
+        log.info(" Bắt đầu cập nhật thời tiết tự động...");
 
         List<Farm> farms = farmRepository.findAll();
         int successCount = 0;

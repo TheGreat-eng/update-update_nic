@@ -48,7 +48,7 @@ class PlantHealthTester:
                 print(f"   Số cảnh báo: {len(data['activeAlerts'])}")
                 
                 if data['activeAlerts']:
-                    print(f"\n   📋 CẢNH BÁO:")
+                    print(f"\n    CẢNH BÁO:")
                     for alert in data['activeAlerts']:
                         print(f"   - [{alert['severity']}] {alert['type']}: {alert['description']}")
                         print(f"     💡 Gợi ý: {alert['suggestion']}")
@@ -132,7 +132,7 @@ class PlantHealthTester:
     def test_rule_4_cold(self):
         """Test Quy tắc 4: Lạnh"""
         print("\n" + "="*60)
-        print("TEST QUY TẮC 4: NGUY CƠ LẠNH ❄️")
+        print("TEST QUY TẮC 4: NGUY CƠ LẠNH ")
         print("="*60)
         
         data = {
@@ -157,7 +157,7 @@ class PlantHealthTester:
             else:
                 print("\n FAIL: Không phát hiện nguy cơ lạnh")
         else:
-            print(f"\n⏭️  SKIP: Hiện tại là {current_hour}h (ban ngày), quy tắc chỉ chạy 22h-6h")
+            print(f"\n  SKIP: Hiện tại là {current_hour}h (ban ngày), quy tắc chỉ chạy 22h-6h")
     
     def test_rule_5_unstable_moisture(self):
         """Test Quy tắc 5: Độ ẩm dao động"""
@@ -196,12 +196,12 @@ class PlantHealthTester:
         if result and any(a['type'] == 'UNSTABLE_MOISTURE' for a in result['activeAlerts']):
             print("\n PASS: Phát hiện độ ẩm dao động")
         else:
-            print("\n⏭️  Có thể cần đợi lâu hơn hoặc có dữ liệu 6h trước trong DB")
+            print("\n  Có thể cần đợi lâu hơn hoặc có dữ liệu 6h trước trong DB")
     
     def test_rule_6_low_light(self):
         """Test Quy tắc 6: Thiếu ánh sáng"""
         print("\n" + "="*60)
-        print("TEST QUY TẮC 6: THIẾU ÁNH SÁNG 🌥️")
+        print("TEST QUY TẮC 6: THIẾU ÁNH SÁNG ")
         print("="*60)
         
         data = {
@@ -225,12 +225,12 @@ class PlantHealthTester:
             else:
                 print("\n FAIL: Không phát hiện thiếu ánh sáng")
         else:
-            print(f"\n⏭️  SKIP: Hiện tại là {current_hour}h (ban đêm), quy tắc chỉ chạy 8h-18h")
+            print(f"\n  SKIP: Hiện tại là {current_hour}h (ban đêm), quy tắc chỉ chạy 8h-18h")
     
     def test_rule_7_ph_abnormal(self):
         """Test Quy tắc 7: pH bất thường"""
         print("\n" + "="*60)
-        print("TEST QUY TẮC 7: PH BẤT THƯỜNG ⚗️")
+        print("TEST QUY TẮC 7: PH BẤT THƯỜNG ")
         print("="*60)
         
         # Test pH quá thấp

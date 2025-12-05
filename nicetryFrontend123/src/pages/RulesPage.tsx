@@ -44,7 +44,7 @@ const RulesPage: React.FC = () => {
 
         setLoading(true);
         try {
-            console.log('🔍 Fetching rules for farmId:', farmId);
+            console.log(' Fetching rules for farmId:', farmId);
             const response = await getRulesByFarm(farmId);
             console.log(' Rules loaded:', response.data.data.length);
             setRules(response.data.data);

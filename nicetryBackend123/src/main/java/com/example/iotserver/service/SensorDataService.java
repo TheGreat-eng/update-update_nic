@@ -87,7 +87,7 @@ public class SensorDataService {
      */
     public SensorDataDTO getLatestSensorData(String deviceId) {
         try {
-            log.info("🔍 [InfluxDB] Getting latest data for device: {}", deviceId);
+            log.info(" [InfluxDB] Getting latest data for device: {}", deviceId);
 
             //  SỬA ĐỔI QUERY: Thêm pivot() để gộp các fields lại thành một hàng duy nhất
             String query = String.format(
@@ -102,7 +102,7 @@ public class SensorDataService {
                             "  |> pivot(rowKey:[\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")",
                     influxDBConfig.getBucket(), deviceId);
 
-            log.debug("🔍 [InfluxDB] Executing Pivot Query: {}", query);
+            log.debug(" [InfluxDB] Executing Pivot Query: {}", query);
 
             QueryApi queryApi = influxDBClient.getQueryApi();
             List<FluxTable> tables = queryApi.query(query, influxDBConfig.getOrg());
@@ -191,7 +191,7 @@ public class SensorDataService {
         List<Map<String, Object>> rawDataList = executeQueryList(flux);
 
         //  THÊM: Log debug
-        log.info("🔍 [Aggregated Query] Device: {}, Field: {}, Window: {}, Results: {}",
+        log.info(" [Aggregated Query] Device: {}, Field: {}, Window: {}, Results: {}",
                 deviceId, field, window, rawDataList.size());
 
         if (rawDataList.isEmpty()) {
@@ -267,7 +267,7 @@ public class SensorDataService {
             List<FluxTable> tables = queryApi.query(flux, influxDBConfig.getOrg());
 
             //  THÊM: Log debug
-            log.debug("🔍 [InfluxDB] Query executed, tables count: {}", tables.size());
+            log.debug(" [InfluxDB] Query executed, tables count: {}", tables.size());
 
             if (tables.isEmpty()) {
                 return Collections.emptyList(); //  Trả về list rỗng
@@ -326,7 +326,7 @@ public class SensorDataService {
                     influxDBConfig.getBucket(),
                     String.valueOf(farmId));
 
-            log.debug("🔍 [InfluxDB] Query for latest farm data {}: {}", farmId, query);
+            log.debug(" [InfluxDB] Query for latest farm data {}: {}", farmId, query);
 
             QueryApi queryApi = influxDBClient.getQueryApi();
             List<FluxTable> tables = queryApi.query(query);
@@ -392,7 +392,7 @@ public class SensorDataService {
                     dateTime.plusMinutes(30).toString() + "Z",
                     farmId);
 
-            log.debug("🔍 [InfluxDB] Query for farmId {}: {}", farmId, query);
+            log.debug(" [InfluxDB] Query for farmId {}: {}", farmId, query);
 
             QueryApi queryApi = influxDBClient.getQueryApi();
             List<FluxTable> tables = queryApi.query(query);
@@ -442,7 +442,7 @@ public class SensorDataService {
     }
 
     /**
-     * 🔍 DEBUG: Kiểm tra dữ liệu sensor có tồn tại không
+     *  DEBUG: Kiểm tra dữ liệu sensor có tồn tại không
      */
     public boolean hasRecentData(String deviceId, int hoursBack) {
         try {
@@ -460,7 +460,7 @@ public class SensorDataService {
             if (!tables.isEmpty() && !tables.get(0).getRecords().isEmpty()) {
                 Object count = tables.get(0).getRecords().get(0).getValue();
                 long recordCount = count != null ? ((Number) count).longValue() : 0;
-                log.info("🔍 Device {} có {} bản ghi trong {}h qua", deviceId, recordCount, hoursBack);
+                log.info(" Device {} có {} bản ghi trong {}h qua", deviceId, recordCount, hoursBack);
                 return recordCount > 0;
             }
 
@@ -530,7 +530,7 @@ public class SensorDataService {
                 influxDBConfig.getBucket(),
                 deviceIdFilter);
 
-        log.debug("🔍 [InfluxDB] Query for latest farm devices data: {}", query);
+        log.debug(" [InfluxDB] Query for latest farm devices data: {}", query);
 
         try {
             QueryApi queryApi = influxDBClient.getQueryApi();
@@ -808,7 +808,7 @@ public class SensorDataService {
                 deviceFilter
         );
 
-        log.debug("🚀 [Batch Query] Executing for {} devices...", deviceIds.size());
+        log.debug(" [Batch Query] Executing for {} devices...", deviceIds.size());
 
         try {
             QueryApi queryApi = influxDBClient.getQueryApi();

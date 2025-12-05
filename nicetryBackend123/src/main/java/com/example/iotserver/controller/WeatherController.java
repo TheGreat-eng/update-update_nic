@@ -85,7 +85,7 @@ public class WeatherController {
 
         // Kiểm tra mưa
         if (weather.getRainAmount() != null && weather.getRainAmount() > 5.0) {
-            suggestions.add("⛔ TẮT HỆ THỐNG TƯỚI - Dự báo mưa lớn");
+            suggestions.add(" TẮT HỆ THỐNG TƯỚI - Dự báo mưa lớn");
             shouldStopWatering = true;
         } else if (weather.getRainAmount() != null && weather.getRainAmount() > 0) {
             suggestions.add(" GIẢM TƯỚI 50% - Có mưa nhẹ");
