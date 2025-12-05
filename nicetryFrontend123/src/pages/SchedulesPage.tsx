@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Table, Button, Space, Tag, Popconfirm, message, Typography, Tooltip, Switch } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SyncOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -23,13 +23,19 @@ const SchedulesPage: React.FC = () => {
         enabled: !!farmId,
     });
 
-    const { data: devices } = useQuery({
+    const { data: rawDevices } = useQuery({
         queryKey: ['devices', farmId],
         queryFn: () => getDevicesByFarm(farmId!).then(res => res.data.data || []),
         enabled: !!farmId,
     });
 
-    const actuators = devices?.filter(d => d.type.startsWith('ACTUATOR')) || [];
+    // [FIX] Chuyển đổi an toàn: nếu cache trả về object lỗi, fallback về mảng rỗng
+    const actuators = useMemo(() => {
+        if (Array.isArray(rawDevices)) {
+            return rawDevices.filter(d => d.type.startsWith('ACTUATOR'));
+        }
+        return [];
+    }, [rawDevices]);
 
     const mutationOptions = (successMsg: string) => ({
         onSuccess: () => {

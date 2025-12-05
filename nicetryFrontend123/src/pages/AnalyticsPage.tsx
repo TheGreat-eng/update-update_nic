@@ -4,16 +4,14 @@ import { Card, DatePicker, Select, Spin, Empty, Row, Col, Typography } from 'ant
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
-import { useSearchParams } from 'react-router-dom'; // Thêm hook này
-
-
+import { useSearchParams } from 'react-router-dom';
 
 // API & Types
 import { useFarm } from '../context/FarmContext';
 import { getDevicesByFarm } from '../api/deviceService';
 import { getHistoricalData } from '../api/analyticsService';
-import type { SensorDataDTO } from '../types/api'; // DÙNG TYPE NÀY
-import type { Device } from '../types/device';   // DÙNG TYPE NÀY
+import type { SensorDataDTO } from '../types/api';
+import type { Device } from '../types/device';
 
 // Constants
 import { COLORS } from '../constants/colors';
@@ -23,15 +21,12 @@ const { Text } = Typography;
 
 const AnalyticsPage: React.FC = () => {
     const { farmId } = useFarm();
-    const [searchParams] = useSearchParams(); // Lấy params từ URL
-
-
+    const [searchParams] = useSearchParams();
 
     const [selectedDevices, setSelectedDevices] = useState<string[]>([]);
     const [selectedFields, setSelectedFields] = useState<string[]>([]);
     const [timeRange, setTimeRange] = useState<[dayjs.Dayjs, dayjs.Dayjs]>([dayjs().subtract(7, 'day'), dayjs()]);
 
-    // VVVV--- THÊM EFFECT NÀY ĐỂ ĐỌC URL ---VVVV
     useEffect(() => {
         const deviceIdParam = searchParams.get('deviceId');
         const fieldParam = searchParams.get('field');
@@ -42,29 +37,21 @@ const AnalyticsPage: React.FC = () => {
         if (fieldParam) {
             setSelectedFields([fieldParam]);
         }
-        // Nếu có params, ta có thể rút ngắn thời gian xem xuống 24h cho chi tiết
         if (deviceIdParam || fieldParam) {
             setTimeRange([dayjs().subtract(24, 'hour'), dayjs()]);
         }
     }, [searchParams]);
-    // ^^^^----------------------------------^^^^
 
-
-    // Fetch danh sách thiết bị để chọn
-    const { data: devicesResponse } = useQuery({
+    // VVVV--- [FIX QUAN TRỌNG] SỬA LẠI QUERY ĐỂ TRẢ VỀ MẢNG ---VVVV
+    // Trước đây: trả về object { data: ..., status: ... } làm hỏng cache của trang khác
+    // Bây giờ: Chỉ trả về mảng Device[], đồng bộ với DevicesPage và SchedulesPage
+    const { data: devices = [] } = useQuery({
         queryKey: ['devices', farmId],
-        queryFn: () => getDevicesByFarm(farmId!),
+        queryFn: () => getDevicesByFarm(farmId!).then(res => res.data.data || []), // Trích xuất mảng data ngay tại đây
         enabled: !!farmId,
+        initialData: [] // Đảm bảo luôn có giá trị khởi tạo
     });
-
-    // VVVV--- SỬA LẠI HOÀN TOÀN LOGIC NÀY CHO ĐÚNG ---VVVV
-    const devices = useMemo((): Device[] => {
-        // `devicesResponse` là toàn bộ phản hồi từ axios
-        // `devicesResponse.data` là đối tượng { success, data }
-        // `devicesResponse.data.data` mới là mảng Device[] chúng ta cần
-        return devicesResponse?.data?.data || [];
-    }, [devicesResponse]);
-    // ^^^^--------------------------------------------^^^^
+    // ^^^^---------------------------------------------------------^^^^
 
     // Fetch dữ liệu lịch sử
     const { data: chartData, isLoading, isFetching } = useQuery({
@@ -92,7 +79,6 @@ const AnalyticsPage: React.FC = () => {
         const dataMap = new Map<string, any>();
 
         Object.entries(chartData).forEach(([key, series]) => {
-            // Ép kiểu series thành mảng SensorDataDTO[] để TypeScript hiểu
             (series as SensorDataDTO[]).forEach((point: SensorDataDTO) => {
                 const time = dayjs(point.timestamp).format('YYYY-MM-DD HH:mm');
                 if (!dataMap.has(time)) {
@@ -116,8 +102,8 @@ const AnalyticsPage: React.FC = () => {
                             value={selectedDevices}
                             onChange={setSelectedDevices}
                             style={{ width: '100%' }}
-                            // VVVV--- SỬA LẠI ĐỂ DÙNG BIẾN `devices` ĐÃ ĐƯỢC XỬ LÝ ---VVVV
-                            options={devices.map(d => ({ label: `${d.name} (${d.deviceId})`, value: d.deviceId }))}
+                            // Dùng trực tiếp biến 'devices' vì giờ nó đã là mảng chuẩn
+                            options={devices.map((d: Device) => ({ label: `${d.name} (${d.deviceId})`, value: d.deviceId }))}
                         />
                     </Col>
                     <Col span={8}>
