@@ -246,6 +246,7 @@ def main():
     devices = [
         {"id": "DHT22-123", "type": "DHT22"},
         {"id": "DHT22-1234", "type": "DHT22"},
+        {"id": "DHT-109", "type": "DHT22"},
         {"id": "DHT-REALTIME-TEST", "type": "DHT22"},
         {"id": "SOIL-123",  "type": "SOIL_MOISTURE"},
         {"id": "SOIL-1234",  "type": "SOIL_MOISTURE"},

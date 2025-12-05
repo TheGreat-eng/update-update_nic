@@ -1,15 +1,15 @@
 package com.example.iotserver.config;
 
-import com.fasterxml.jackson.core.JsonGenerator;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.influxdb.client.InfluxDBClient;
 import com.influxdb.client.InfluxDBClientFactory;
 import com.influxdb.client.WriteApiBlocking;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class InfluxDBConfig {
@@ -52,4 +52,11 @@ public class InfluxDBConfig {
     public String getBucket() {
         return bucket;
     }
+
+// [FIX 3]: Thêm Bean ghi bất đồng bộ
+    @Bean
+    public com.influxdb.client.WriteApi writeApiAsync(InfluxDBClient influxDBClient) {
+        return influxDBClient.makeWriteApi(); 
+    }
+
 }

@@ -1,12 +1,12 @@
 package com.example.iotserver.repository;
 
-import com.example.iotserver.entity.Rule;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Optional;
+import com.example.iotserver.entity.Rule;
 
 @Repository
 public interface RuleRepository extends JpaRepository<Rule, Long> {
@@ -18,7 +18,11 @@ public interface RuleRepository extends JpaRepository<Rule, Long> {
     List<Rule> findByFarmIdAndEnabled(Long farmId, Boolean enabled);
 
     // Tìm tất cả quy tắc đang kích hoạt (để chạy tự động)
-    @Query("SELECT r FROM Rule r WHERE r.enabled = true ORDER BY r.priority DESC")
+    @Query("SELECT r FROM Rule r " +
+           "JOIN FETCH r.farm f " +
+           "JOIN FETCH f.owner " + 
+           "WHERE r.enabled = true " +
+           "ORDER BY r.priority DESC")
     List<Rule> findAllEnabledRules();
 
     // Tìm quy tắc theo Farm và enabled, sắp xếp theo priority

@@ -8,6 +8,7 @@ import PrivateRoute from './components/PrivateRoute';
 import NetworkStatus from './components/NetworkStatus';
 //import { CalendarClock } from 'lucide-react'; // Thêm icon
 import SchedulesPage from './pages/SchedulesPage';
+import { WebSocketProvider } from './context/WebSocketContext';
 
 
 
@@ -62,59 +63,62 @@ function App() {
     <Router>
       <NetworkStatus />
       <Suspense fallback={<LoadingFallback />}>
-        <Routes>
-          {/*  Public routes: Landing, Login, Register */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+        {/* [FIX] Bọc toàn bộ Routes trong WebSocketProvider */}
+        <WebSocketProvider>
+          <Routes>
+            {/*  Public routes: Landing, Login, Register */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
 
-          {/*  Protected routes (tất cả các trang bên trong ứng dụng) */}
-          {/* Khi người dùng truy cập /dashboard, PrivateRoute sẽ kiểm tra auth */}
-          <Route
-            path="/dashboard"
-            element={<PrivateRoute><AppLayout /></PrivateRoute>}
-          >
-            <Route index element={<DashboardPage />} />
-          </Route>
-          <Route
-            path="/farms"
-            element={<PrivateRoute><AppLayout /></PrivateRoute>}
-          >
-            <Route index element={<FarmsPage />} />
-          </Route>
-          <Route
-            path="/devices"
-            element={<PrivateRoute><AppLayout /></PrivateRoute>}
-          >
-            <Route index element={<DevicesPage />} />
-          </Route>
-          <Route
-            path="/rules"
-            element={<PrivateRoute><AppLayout /></PrivateRoute>}
-          >
-            <Route index element={<RulesPage />} />
-            <Route path="create" element={<CreateRulePage />} />
-            <Route path="edit/:ruleId" element={<EditRulePage />} />
-          </Route>
-          <Route path="/ai" element={<PrivateRoute><AppLayout><AIPredictionPage /></AppLayout></PrivateRoute>} />
-          <Route path="/profile" element={<PrivateRoute><AppLayout><ProfilePage /></AppLayout></PrivateRoute>} />
-          <Route path="/change-password" element={<PrivateRoute><AppLayout><ChangePasswordPage /></AppLayout></PrivateRoute>} />
-          {/* VVVV--- THÊM ROUTE MỚI CHO TRANG NOTIFICATIONS ---VVVV */}
-          <Route path="/notifications" element={<PrivateRoute><AppLayout><NotificationsPage /></AppLayout></PrivateRoute>} />
-          {/* ^^^^---------------------------------------------^^^^ */}
-          <Route path="/plant-health" element={<PrivateRoute><AppLayout><PlantHealthPage /></AppLayout></PrivateRoute>} />
-          <Route path="/schedules" element={<PrivateRoute><AppLayout><SchedulesPage /></AppLayout></PrivateRoute>} />
-          <Route path="/analytics" element={<PrivateRoute><AppLayout><AnalyticsPage /></AppLayout></PrivateRoute>} />
-          <Route path="/logs" element={<PrivateRoute><AppLayout><ActivityLogPage /></AppLayout></PrivateRoute>} />
-          <Route path="/settings" element={<PrivateRoute><AppLayout><SettingsPage /></AppLayout></PrivateRoute>} />
-          <Route path="/admin/dashboard" element={<PrivateRoute><AppLayout><AdminDashboardPage /></AppLayout></PrivateRoute>} />
-          <Route path="/admin/users" element={<PrivateRoute><AppLayout><UserManagementPage /></AppLayout></PrivateRoute>} />
-          {/* <<<< THÊM ROUTE MỚI >>>> */}
-          <Route path="/admin/plant-profiles" element={<PrivateRoute><AppLayout><PlantProfileManagementPage /></AppLayout></PrivateRoute>} />
-          <Route path="/admin/settings" element={<PrivateRoute><AppLayout><SystemSettingsPage /></AppLayout></PrivateRoute>} />
-          {/*  404 Page */}
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
+            {/*  Protected routes (tất cả các trang bên trong ứng dụng) */}
+            {/* Khi người dùng truy cập /dashboard, PrivateRoute sẽ kiểm tra auth */}
+            <Route
+              path="/dashboard"
+              element={<PrivateRoute><AppLayout /></PrivateRoute>}
+            >
+              <Route index element={<DashboardPage />} />
+            </Route>
+            <Route
+              path="/farms"
+              element={<PrivateRoute><AppLayout /></PrivateRoute>}
+            >
+              <Route index element={<FarmsPage />} />
+            </Route>
+            <Route
+              path="/devices"
+              element={<PrivateRoute><AppLayout /></PrivateRoute>}
+            >
+              <Route index element={<DevicesPage />} />
+            </Route>
+            <Route
+              path="/rules"
+              element={<PrivateRoute><AppLayout /></PrivateRoute>}
+            >
+              <Route index element={<RulesPage />} />
+              <Route path="create" element={<CreateRulePage />} />
+              <Route path="edit/:ruleId" element={<EditRulePage />} />
+            </Route>
+            <Route path="/ai" element={<PrivateRoute><AppLayout><AIPredictionPage /></AppLayout></PrivateRoute>} />
+            <Route path="/profile" element={<PrivateRoute><AppLayout><ProfilePage /></AppLayout></PrivateRoute>} />
+            <Route path="/change-password" element={<PrivateRoute><AppLayout><ChangePasswordPage /></AppLayout></PrivateRoute>} />
+            {/* VVVV--- THÊM ROUTE MỚI CHO TRANG NOTIFICATIONS ---VVVV */}
+            <Route path="/notifications" element={<PrivateRoute><AppLayout><NotificationsPage /></AppLayout></PrivateRoute>} />
+            {/* ^^^^---------------------------------------------^^^^ */}
+            <Route path="/plant-health" element={<PrivateRoute><AppLayout><PlantHealthPage /></AppLayout></PrivateRoute>} />
+            <Route path="/schedules" element={<PrivateRoute><AppLayout><SchedulesPage /></AppLayout></PrivateRoute>} />
+            <Route path="/analytics" element={<PrivateRoute><AppLayout><AnalyticsPage /></AppLayout></PrivateRoute>} />
+            <Route path="/logs" element={<PrivateRoute><AppLayout><ActivityLogPage /></AppLayout></PrivateRoute>} />
+            <Route path="/settings" element={<PrivateRoute><AppLayout><SettingsPage /></AppLayout></PrivateRoute>} />
+            <Route path="/admin/dashboard" element={<PrivateRoute><AppLayout><AdminDashboardPage /></AppLayout></PrivateRoute>} />
+            <Route path="/admin/users" element={<PrivateRoute><AppLayout><UserManagementPage /></AppLayout></PrivateRoute>} />
+            {/* <<<< THÊM ROUTE MỚI >>>> */}
+            <Route path="/admin/plant-profiles" element={<PrivateRoute><AppLayout><PlantProfileManagementPage /></AppLayout></PrivateRoute>} />
+            <Route path="/admin/settings" element={<PrivateRoute><AppLayout><SystemSettingsPage /></AppLayout></PrivateRoute>} />
+            {/*  404 Page */}
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </WebSocketProvider>
       </Suspense>
     </Router>
   );

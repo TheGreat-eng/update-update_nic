@@ -69,7 +69,7 @@ public class MqttMessageHandler {
     @Transactional
     private void handleSensorData(String topic, String payload) {
         try {
-            String deviceId = topic.split("/")[1];
+            String deviceId = topic.split("/")[1].toUpperCase();
             Device device = deviceRepository.findByDeviceIdWithFarmAndOwner(deviceId)
                     .orElse(null);
 
@@ -124,7 +124,7 @@ public class MqttMessageHandler {
     @Transactional // Thêm @Transactional để đảm bảo lưu DB thành công
     private void handleDeviceStatus(String topic, String payload) {
         try {
-            String deviceId = topic.split("/")[1];
+            String deviceId = topic.split("/")[1].toUpperCase();
             Map<String, Object> statusMap = objectMapper.readValue(payload, Map.class);
 
             deviceRepository.findByDeviceId(deviceId).ifPresent(device -> {

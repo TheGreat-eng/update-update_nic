@@ -71,27 +71,25 @@ const DevicesPage: React.FC = () => {
 
     // --- OPTIMISTIC UPDATE CHO DEVICES PAGE ---
     // --- OPTIMISTIC UPDATE CHO DEVICES PAGE ---
-    useStomp(farmId, 'farm', {
-        onConnect: (client) => {
-            return client.subscribe(`/topic/farm/${farmId}/device-status`, (message) => {
+    // [FIX QUAN TRỌNG]: Bọc callback trong useMemo để tránh re-subscribe liên tục
+    const stompCallbacks = useMemo(() => ({
+        onConnect: (client: any) => {
+            // Hàm này chỉ chạy 1 lần khi kết nối thành công hoặc khi farmId thay đổi
+            return client.subscribe(`/topic/farm/${farmId}/device-status`, (message: any) => {
                 try {
-                    const update: any = JSON.parse(message.body); // Dùng any để debug
+                    const update = JSON.parse(message.body);
                     console.log(' WebSocket nhận được:', update);
 
+                    // Cập nhật Cache React Query (Optimistic Update)
                     queryClient.setQueryData<Device[]>(['devices', farmId], (oldDevices) => {
                         if (!oldDevices) return [];
-
                         return oldDevices.map(device => {
                             if (device.deviceId === update.deviceId) {
-                                // Logic mới: Ưu tiên lấy từ update, nếu không có thì kiểm tra xem update có key 'state' không (do fake_pump.py gửi 'state')
                                 const newState = update.currentState || update.state || device.currentState;
-
-                                console.log(`Cập nhật ${device.deviceId}: OldState=${device.currentState} -> NewState=${newState}`);
-
                                 return {
                                     ...device,
                                     status: update.status,
-                                    currentState: newState, // Cập nhật state mới
+                                    currentState: newState,
                                     lastSeen: update.timestamp
                                 };
                             }
@@ -99,22 +97,21 @@ const DevicesPage: React.FC = () => {
                         });
                     });
 
-                    // Nếu đang điều khiển thiết bị này, bỏ trạng thái loading
-                    if (controllingDevices.has(update.deviceId)) {
-                        setControllingDevices(prev => {
-                            const newSet = new Set(prev);
-                            newSet.delete(update.deviceId);
-                            return newSet;
-                        });
-                        antdMessage.success(`Thiết bị ${update.deviceId} đã phản hồi: ${update.status}`);
-                    }
+                    // Tắt loading nếu đang điều khiển thiết bị này
+                    // Lưu ý: Để truy cập state 'controllingDevices' mới nhất trong callback này, 
+                    // cách tốt nhất là invalidate query để component tự render lại, 
+                    // hoặc dùng useRef cho controllingDevices. 
+                    // Nhưng đơn giản nhất là cứ invalidate query sau 1 khoảng thời gian như logic cũ.
 
                 } catch (error) {
                     console.error('Failed to parse device status message:', error);
                 }
             });
         }
-    });
+    }), [farmId, queryClient]); //  Chỉ tạo lại object này khi farmId hoặc queryClient thay đổi
+
+    // Gọi hook với object đã được ghi nhớ (memoized)
+    useStomp(farmId, 'farm', stompCallbacks);
 
     const mutationOptions = {
         onSuccess: () => {

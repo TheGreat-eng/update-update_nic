@@ -1,18 +1,33 @@
 package com.example.iotserver.service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.quartz.CronScheduleBuilder;
+import org.quartz.JobBuilder;
+import org.quartz.JobDataMap;
+import org.quartz.JobDetail;
+import org.quartz.JobKey;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.Trigger;
+import org.quartz.TriggerBuilder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.example.iotserver.dto.ScheduleDTO;
-import com.example.iotserver.entity.*;
+import com.example.iotserver.entity.Device;
+import com.example.iotserver.entity.Farm;
+import com.example.iotserver.entity.Schedule;
 import com.example.iotserver.exception.ResourceNotFoundException;
-import com.example.iotserver.repository.*;
+import com.example.iotserver.repository.DeviceRepository;
+import com.example.iotserver.repository.FarmRepository;
+import com.example.iotserver.repository.ScheduleRepository;
 import com.example.iotserver.scheduler.DeviceControlJob;
+
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.quartz.*;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -137,7 +152,9 @@ public class ScheduleService {
                 .forJob(jobDetail)
                 .withIdentity("trigger_" + schedule.getId())
                 .withDescription(schedule.getName())
-                .withSchedule(CronScheduleBuilder.cronSchedule(schedule.getCronExpression()))
+                .withSchedule(CronScheduleBuilder.cronSchedule(schedule.getCronExpression())
+                        .inTimeZone(java.util.TimeZone.getTimeZone("Asia/Ho_Chi_Minh"))
+                        .withMisfireHandlingInstructionDoNothing()) // [FIX 1: Bỏ qua job đã lỡ]
                 .build();
     }
 

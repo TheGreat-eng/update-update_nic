@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.example.iotserver.config.InfluxDBConfig;
@@ -17,21 +18,21 @@ import com.example.iotserver.entity.Device;
 import com.example.iotserver.repository.DeviceRepository;
 import com.influxdb.client.InfluxDBClient;
 import com.influxdb.client.QueryApi;
-import com.influxdb.client.WriteApiBlocking;
 import com.influxdb.client.domain.WritePrecision;
 import com.influxdb.client.write.Point;
 import com.influxdb.query.FluxRecord;
 import com.influxdb.query.FluxTable;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j; // Thêm import này
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class SensorDataService {
 
-    private final WriteApiBlocking writeApi;
+    //private final WriteApiBlocking writeApi;
+    private final com.influxdb.client.WriteApi writeApiAsync;
     private final InfluxDBClient influxDBClient;
     private final InfluxDBConfig influxDBConfig;
     private final DeviceRepository deviceRepository; // Inject DeviceRepository
@@ -67,15 +68,14 @@ public class SensorDataService {
 
             // Nếu không có field nào được thêm, không ghi để tránh lỗi
             if (point.hasFields()) {
-                writeApi.writePoint(point);
-                log.debug("Saved sensor data for device: {}", data.getDeviceId());
+                writeApiAsync.writePoint(point); // [FIX 3]: Dùng hàm async, không block
+                log.debug("Saved sensor data (async) for device: {}", data.getDeviceId());
             } else {
                 log.warn("No fields to write for device {}, skipping InfluxDB write.", data.getDeviceId());
             }
 
         } catch (Exception e) {
-            log.error("Error saving sensor data to InfluxDB: {}", e.getMessage(), e);
-            throw new RuntimeException("Failed to save sensor data", e);
+            log.error("Error queueing sensor data to InfluxDB: {}", e.getMessage());
         }
     }
 
@@ -791,37 +791,56 @@ public class SensorDataService {
             return Collections.emptyMap();
         }
 
-        // 1. Xây dựng bộ lọc dynamic: r.device_id == "A" or r.device_id == "B" ...
-        String deviceFilter = deviceIds.stream()
+        Map<String, SensorDataDTO> finalResult = new HashMap<>();
+        List<String> allIdsList = new ArrayList<>(deviceIds);
+        
+        // Kích thước mỗi gói: 50 thiết bị (An toàn cho URL length limit)
+        int chunkSize = 50; 
+
+        for (int i = 0; i < allIdsList.size(); i += chunkSize) {
+            // Cắt lấy 1 khúc danh sách
+            List<String> chunk = allIdsList.subList(i, Math.min(i + chunkSize, allIdsList.size()));
+            
+            // Xử lý khúc này
+            Map<String, SensorDataDTO> chunkResult = executeChunkQuery(chunk);
+            finalResult.putAll(chunkResult);
+        }
+        
+        return finalResult;
+    }
+
+
+
+
+
+    // Hàm helper để chạy query cho 1 chunk nhỏ
+    private Map<String, SensorDataDTO> executeChunkQuery(List<String> deviceIdsChunk) {
+        // Xây dựng bộ lọc OR: r.device_id == "A" or r.device_id == "B"
+        String deviceFilter = deviceIdsChunk.stream()
                 .map(id -> String.format("r.device_id == \"%s\"", id))
                 .collect(Collectors.joining(" or "));
 
-        // 2. Câu truy vấn gộp
         String query = String.format(
                 "from(bucket: \"%s\")\n" +
-                "  |> range(start: -24h)\n" +  // Tìm trong 24h qua
+                "  |> range(start: -24h)\n" +
                 "  |> filter(fn: (r) => r._measurement == \"sensor_data\")\n" +
-                "  |> filter(fn: (r) => %s)\n" + // Chèn bộ lọc OR ở đây
-                "  |> last()\n" + // Lấy giá trị mới nhất
+                "  |> filter(fn: (r) => %s)\n" + // Filter chunk này
+                "  |> last()\n" +
                 "  |> pivot(rowKey:[\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")",
                 influxDBConfig.getBucket(), 
                 deviceFilter
         );
 
-        log.debug(" [Batch Query] Executing for {} devices...", deviceIds.size());
-
         try {
             QueryApi queryApi = influxDBClient.getQueryApi();
             List<FluxTable> tables = queryApi.query(query, influxDBConfig.getOrg());
-
-            Map<String, SensorDataDTO> resultMap = new HashMap<>();
+            Map<String, SensorDataDTO> chunkMap = new HashMap<>();
 
             for (FluxTable table : tables) {
                 for (FluxRecord record : table.getRecords()) {
                     String deviceId = (String) record.getValueByKey("device_id");
                     if (deviceId == null) continue;
 
-                    // Map record sang DTO
                     Map<String, Object> values = record.getValues();
                     SensorDataDTO dto = SensorDataDTO.builder()
                             .deviceId(deviceId)
@@ -833,15 +852,42 @@ public class SensorDataService {
                             .soilPH(getDoubleValue(values, "soilPH"))
                             .build();
                     
-                    resultMap.put(deviceId, dto);
+                    chunkMap.put(deviceId, dto);
                 }
             }
-            log.info(" [Batch Query] Đã lấy dữ liệu cho {} thiết bị trong 1 lần gọi.", resultMap.size());
-            return resultMap;
-
+            return chunkMap;
         } catch (Exception e) {
-            log.error(" [Batch Query] Lỗi: {}", e.getMessage());
+            log.error(" [Batch Query Chunk] Lỗi: {}", e.getMessage());
             return Collections.emptyMap();
+        }
+
+
+    }
+
+
+
+    /**
+     * [FIX 3 - Data Retention]: Tự động dọn dẹp dữ liệu cũ hơn 90 ngày
+     * Chạy hàng ngày lúc 4:00 AM
+     */
+    @Scheduled(cron = "0 0 4 * * ?")
+    public void cleanupOldSensorData() {
+        log.info("🧹 Bắt đầu dọn dẹp dữ liệu InfluxDB cũ...");
+        try {
+            java.time.OffsetDateTime stop = java.time.OffsetDateTime.now().minusDays(90);
+            java.time.OffsetDateTime start = stop.minusYears(10); 
+            
+            influxDBClient.getDeleteApi().delete(
+                start, 
+                stop, 
+                "_measurement=\"sensor_data\"", 
+                influxDBConfig.getBucket(), 
+                influxDBConfig.getOrg()
+            );
+            
+            log.info(" Đã xóa dữ liệu cảm biến cũ hơn 90 ngày.");
+        } catch (Exception e) {
+            log.error(" Lỗi khi dọn dẹp InfluxDB: {}", e.getMessage());
         }
     }
 }

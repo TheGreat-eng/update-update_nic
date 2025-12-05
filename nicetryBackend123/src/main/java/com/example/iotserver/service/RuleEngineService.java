@@ -745,6 +745,15 @@ public class RuleEngineService {
             return "Lỗi: Không tìm thấy chủ nông trại.";
         }
 
+
+        // [LOGIC MỚI]: Kiểm tra Cooldown riêng cho thông báo (60 phút)
+        String notificationCooldownKey = "rule:notification:cooldown:" + rule.getId();
+        
+        // Nếu key tồn tại -> Đã gửi thông báo gần đây -> Bỏ qua
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(notificationCooldownKey))) {
+            return "SKIPPED: Đã gửi thông báo cho quy tắc này trong vòng 60 phút qua.";
+        }
+
         String title = "Quy tắc đã kích hoạt: " + rule.getName();
         String message = action.getMessage() != null && !action.getMessage().isEmpty()
                 ? action.getMessage()

@@ -9,6 +9,9 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import org.quartz.JobKey;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -20,6 +23,7 @@ import com.example.iotserver.dto.SensorDataDTO;
 import com.example.iotserver.entity.ActivityLog;
 import com.example.iotserver.entity.Device;
 import com.example.iotserver.entity.Farm;
+import com.example.iotserver.entity.Schedule;
 import com.example.iotserver.entity.User;
 import com.example.iotserver.entity.Zone;
 import com.example.iotserver.enums.DeviceStatus;
@@ -28,6 +32,7 @@ import com.example.iotserver.enums.FarmRole;
 import com.example.iotserver.exception.ResourceNotFoundException; // <-- THÊM IMPORT
 import com.example.iotserver.repository.DeviceRepository; // <<<< 1. THÊM IMPORT
 import com.example.iotserver.repository.FarmRepository; // Thêm import này
+import com.example.iotserver.repository.ScheduleRepository;
 import com.example.iotserver.repository.ZoneRepository; // <<<< THÊM IMPORT
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -48,6 +53,8 @@ public class DeviceService {
     private final ActivityLogService activityLogService; // <<< THÊM
     private final ObjectMapper objectMapper; // <<< 1. Inject ObjectMapper thay vì tạo mới
     private final StringRedisTemplate redisTemplate; // Đảm bảo đã inject cái này
+    private final ScheduleRepository scheduleRepository; // [FIX 1]: Inject
+    private final Scheduler quartzScheduler;             // [FIX 1]: Inject
 
 
     private static final String MANUAL_OVERRIDE_PREFIX = "manual_override:";
@@ -134,16 +141,24 @@ public class DeviceService {
         if (dto.getType() != null)
             device.setType(parseDeviceType(dto.getType())); // Cho phép đổi type
 
+        // [FIX 3: PARTIAL UPDATE BUG]
+        // Chỉ cập nhật Zone nếu dto có gửi zoneId lên.
+        // Nếu dto.getZoneId() == null nghĩa là người dùng không muốn thay đổi Zone -> Giữ nguyên cái cũ.
         if (dto.getZoneId() != null) {
-            Zone zone = zoneRepository.findById(dto.getZoneId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Zone", "id", dto.getZoneId()));
-            if (!zone.getFarm().getId().equals(device.getFarm().getId())) {
-                throw new IllegalArgumentException("Zone không thuộc về Farm này.");
+            // Quy ước: Nếu Frontend gửi -1 nghĩa là muốn XÓA thiết bị khỏi Zone
+            if (dto.getZoneId() == -1) {
+                device.setZone(null);
+            } else {
+                Zone zone = zoneRepository.findById(dto.getZoneId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Zone", "id", dto.getZoneId()));
+                
+                if (!zone.getFarm().getId().equals(device.getFarm().getId())) {
+                    throw new IllegalArgumentException("Zone không thuộc về Farm này.");
+                }
+                device.setZone(zone);
             }
-            device.setZone(zone);
-        } else {
-            device.setZone(null); // Cho phép bỏ thiết bị ra khỏi zone
         }
+        // [KẾT THÚC FIX 3]
 
         Device updated = deviceRepository.save(device);
         log.info("Đã cập nhật thiết bị: {}", updated.getDeviceId());
@@ -192,6 +207,28 @@ public class DeviceService {
         // <<<< BƯỚC KIỂM TRA QUYỀN >>>>
         User currentUser = authenticationService.getCurrentAuthenticatedUser();
         farmService.checkUserPermissionForFarm(currentUser.getId(), device.getFarm().getId(), FarmRole.OPERATOR);
+
+
+
+        // [FIX 1: GHOST SCHEDULES] - Xóa tất cả lịch trình của thiết bị này trước
+        // Tìm tất cả lịch trình liên quan đến deviceId này
+        List<Schedule> schedules = scheduleRepository.findByDeviceId(device.getDeviceId());
+        
+        for (Schedule s : schedules) {
+            try {
+                // Xóa job trong Quartz để nó không chạy nữa
+                quartzScheduler.deleteJob(new JobKey("schedule_" + s.getId()));
+                log.info("Deleted quartz job for schedule: {}", s.getId());
+            } catch (SchedulerException e) {
+                log.error("Lỗi khi xóa Quartz job cho lịch trình {}: {}", s.getId(), e.getMessage());
+            }
+            // Xóa bản ghi trong Database
+            scheduleRepository.delete(s);
+        }
+        // [KẾT THÚC FIX 1]
+
+
+
 
         deviceRepository.delete(device);
         log.info("Deleted device: {}", device.getDeviceId());
@@ -336,6 +373,28 @@ public class DeviceService {
         command.putAll(params);
         command.put("timestamp", LocalDateTime.now().toString());
 
+
+        // [FIX 2: SAFETY LIMIT] - Giới hạn thời gian chạy tối đa để bảo vệ thiết bị
+        // Chỉ áp dụng khi lệnh là "turn_on" và có tham số "duration"
+        if ("turn_on".equalsIgnoreCase(action) && command.containsKey("duration")) {
+            try {
+                // Parse duration an toàn từ Object (có thể là Integer, Long hoặc String)
+                int duration = Integer.parseInt(command.get("duration").toString());
+                int MAX_DURATION = 3600; // Giới hạn cứng: 60 phút (3600 giây)
+
+                if (duration > MAX_DURATION) {
+                    log.warn(" Yêu cầu bật thiết bị {} trong {}s quá lớn. Đã giới hạn xuống {}s để an toàn.", 
+                             device.getDeviceId(), duration, MAX_DURATION);
+                    command.put("duration", MAX_DURATION); // Ghi đè giá trị an toàn vào command
+                }
+            } catch (NumberFormatException e) {
+                // Nếu duration không phải là số hợp lệ, set mặc định an toàn là 60s
+                log.warn(" Tham số duration '{}' không hợp lệ. Sử dụng mặc định 60s.", command.get("duration"));
+                command.put("duration", 60);
+            }
+        }
+        // [KẾT THÚC FIX 2]
+
         try {
             // ObjectMapper có thể không được inject, cần chắc chắn nó có sẵn
             ObjectMapper objectMapper = new ObjectMapper();
@@ -372,6 +431,7 @@ public class DeviceService {
         for (Device device : staleDevices) {
             if (device.getStatus() == DeviceStatus.ONLINE) {
                 device.setStatus(DeviceStatus.OFFLINE);
+                device.setCurrentState(null); // [FIX 2: Reset trạng thái hoạt động]
                 webSocketService.sendDeviceStatus(device.getFarm().getId(), device.getDeviceId(), "OFFLINE");
 
                 // VVVV--- THAY ĐỔI LOGIC GỬI THÔNG BÁO ---VVVV

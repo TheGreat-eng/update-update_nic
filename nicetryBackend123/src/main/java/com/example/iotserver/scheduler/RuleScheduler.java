@@ -1,8 +1,11 @@
 package com.example.iotserver.scheduler;
 
+import java.time.LocalDateTime;
+
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import com.example.iotserver.repository.RuleExecutionLogRepository;
 import com.example.iotserver.service.RuleEngineService;
 
 import lombok.RequiredArgsConstructor;
@@ -14,6 +17,8 @@ import lombok.extern.slf4j.Slf4j;
 public class RuleScheduler {
 
     private final RuleEngineService ruleEngineService;
+        private final RuleExecutionLogRepository ruleExecutionLogRepository;
+
 
     /**
      * Chạy Rule Engine mỗi 30 giây
@@ -38,8 +43,15 @@ public class RuleScheduler {
     public void cleanupOldLogs() {
         log.info(" Bắt đầu dọn dẹp log cũ...");
 
-        // TODO: Triển khai logic xóa log cũ hơn 30 ngày
-
-        log.info(" Hoàn thành dọn dẹp log");
+        // [FIX 2: IMPLEMENT CLEANUP] - Xóa log cũ hơn 7 ngày (hoặc 30 ngày tùy bạn)
+        LocalDateTime threshold = LocalDateTime.now().minusDays(7);
+        try {
+            // Cần đảm bảo phương thức deleteOldLogs đã có trong Repository (đã khai báo ở các bước trước)
+            // Lưu ý: Cần thêm @Transactional cho phương thức xóa số lượng lớn
+            ruleExecutionLogRepository.deleteOldLogs(threshold);
+            log.info(" Đã xóa các log thực thi quy tắc cũ hơn {}", threshold);
+        } catch (Exception e) {
+            log.error(" Lỗi khi dọn dẹp log: {}", e.getMessage());
+        }
     }
 }

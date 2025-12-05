@@ -47,6 +47,14 @@ public class DeviceController {
     public ResponseEntity<ApiResponse<DeviceDTO>> createDevice(
             @Parameter(description = "ID nông trại") @RequestParam Long farmId,
             @RequestBody DeviceDTO dto) {
+
+
+        // [FIX 1: SANITIZATION] - Cắt khoảng trắng thừa
+        if (dto.getName() != null) dto.setName(dto.getName().trim());
+        if (dto.getDeviceId() != null) dto.setDeviceId(dto.getDeviceId().trim());
+        // ----------------------------------------------------
+
+
         DeviceDTO created = deviceService.createDevice(farmId, dto);
         return ResponseEntity.ok(ApiResponse.success("Device created successfully", created));
     }

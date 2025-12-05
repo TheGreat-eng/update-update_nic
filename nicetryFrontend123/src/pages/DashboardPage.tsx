@@ -4,8 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { Row, Col, Card, Statistic, Spin, Alert, Typography, Tabs, message, Result, Button, Select, Space, Tag, Empty } from 'antd';
 import { Thermometer, Droplet, Sun, Wifi, BarChart3, Beaker, Leaf, MapPin } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Client } from '@stomp/stompjs';
-import SockJS from 'sockjs-client';
 import api from '../api/axiosConfig';
 import WeatherWidget from '../components/dashboard/WeatherWidget';
 import { useFarm } from '../context/FarmContext';
@@ -14,11 +12,11 @@ import { getDevicesByFarm } from '../api/deviceService';
 import { getZonesByFarm } from '../api/zoneService'; //  IMPORT MỚI
 import type { Device } from '../types/device';
 import { DashboardSkeleton } from '../components/LoadingSkeleton';
-import { getAuthToken } from '../utils/auth';
 import { useTheme } from '../context/ThemeContext';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { useDashboardSummary } from '../hooks/useDashboardData';
 import type { SensorDataMessage } from '../types/websocket';
+import { useStomp } from '../hooks/useStomp';
 
 // --- Components con (Giữ nguyên) ---
 const StatChip = ({ children, bg }: { children: React.ReactNode; bg: string }) => (
@@ -242,24 +240,15 @@ const DashboardPage: React.FC = () => {
 
     // 12. WebSocket Connection
     // --- WEB SOCKET OPTIMIZED ---
-    useEffect(() => {
-        if (farmId === null) return;
-        const token = getAuthToken();
-        if (!token) return;
-
-        const client = new Client({
-            webSocketFactory: () => new SockJS(`${import.meta.env.VITE_WS_URL}`),
-            connectHeaders: { Authorization: `Bearer ${token}` },
-            reconnectDelay: 5000,
-        });
-
-        client.onConnect = () => {
-            // 1. Sensor Data - Optimistic Update Chart
-            client.subscribe(`/topic/farm/${farmId}/sensor-data`, (message) => {
+    // [FIX 1: SINGLETON WEBSOCKET] - Thay thế toàn bộ useEffect tạo Client cũ
+    useStomp(farmId, 'farm', useMemo(() => ({
+        onConnect: (client) => {
+            // 1. Subscribe Sensor Data
+            const sensorSub = client.subscribe(`/topic/farm/${farmId}/sensor-data`, (message) => {
                 try {
                     const data: SensorDataMessage = JSON.parse(message.body);
 
-                    // Update Chart Data trực tiếp
+                    // Logic update chart (giữ nguyên logic cũ của bạn)
                     if (data.deviceId === selectedEnvDevice || data.deviceId === selectedSoilDevice || data.deviceId === selectedPHDevice) {
                         const newPoint = {
                             time: new Date(data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -275,22 +264,25 @@ const DashboardPage: React.FC = () => {
                         });
                     }
 
-                    // Vẫn Invalidate Summary để đảm bảo dữ liệu tổng hợp đúng (vì tính toán phức tạp)
-                    // Nhưng có thể dùng debounce hoặc throttle nếu cần
+                    // Invalidate summary (Throttle nhẹ để đỡ lag nếu tin đến dồn dập)
                     queryClient.invalidateQueries({ queryKey: ['dashboard-summary', farmId, selectedZoneId] });
-
                 } catch (err) { console.error(err); }
             });
 
-            // 2. Device Status
-            client.subscribe(`/topic/farm/${farmId}/device-status`, () => {
+            // 2. Subscribe Device Status
+            const statusSub = client.subscribe(`/topic/farm/${farmId}/device-status`, () => {
                 queryClient.invalidateQueries({ queryKey: ['dashboard-summary', farmId, selectedZoneId] });
+                // Invalidate thêm danh sách thiết bị để cập nhật trạng thái ON/OFF/OFFLINE
+                queryClient.invalidateQueries({ queryKey: ['devices', farmId] });
             });
-        };
 
-        client.activate();
-        return () => { if (client.active) client.deactivate(); };
-    }, [farmId, queryClient, selectedZoneId, selectedEnvDevice, selectedSoilDevice, selectedPHDevice]);
+            // Trả về hàm cleanup để hook tự gọi khi unmount
+            return () => {
+                sensorSub.unsubscribe();
+                statusSub.unsubscribe();
+            };
+        }
+    }), [farmId, selectedEnvDevice, selectedSoilDevice, selectedPHDevice, selectedZoneId, queryClient]));
 
     // 13. Render UI
     if (isLoadingFarm) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}><Spin size="large" /></div>;
