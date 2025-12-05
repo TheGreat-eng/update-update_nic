@@ -303,7 +303,7 @@ public class RuleEngineService {
             
             // Ngưỡng chấp nhận: 15 phút. Nếu cũ hơn 15p -> Bỏ qua
             if (minutesDiff > 15) {
-                log.warn("⚠️ [Rule Check] Dữ liệu từ thiết bị {} quá cũ ({} phút trước). Bỏ qua điều kiện.", 
+                log.warn(" [Rule Check] Dữ liệu từ thiết bị {} quá cũ ({} phút trước). Bỏ qua điều kiện.", 
                          deviceId, minutesDiff);
                 return false; // Coi như điều kiện sai để an toàn
             }

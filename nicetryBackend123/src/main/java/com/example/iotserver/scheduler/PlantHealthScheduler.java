@@ -25,7 +25,7 @@ public class PlantHealthScheduler {
      */
     @Scheduled(cron = "0 0 2 * * ?")
     public void cleanupOldAlerts() {
-        log.info("🧹 [Scheduler] Bắt đầu dọn dẹp cảnh báo cũ...");
+        log.info(" [Scheduler] Bắt đầu dọn dẹp cảnh báo cũ...");
 
         try {
             int daysToKeep = 30;

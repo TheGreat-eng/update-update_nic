@@ -76,7 +76,7 @@ const DevicesPage: React.FC = () => {
             return client.subscribe(`/topic/farm/${farmId}/device-status`, (message) => {
                 try {
                     const update: any = JSON.parse(message.body); // Dùng any để debug
-                    console.log('⚡ WebSocket nhận được:', update);
+                    console.log(' WebSocket nhận được:', update);
 
                     queryClient.setQueryData<Device[]>(['devices', farmId], (oldDevices) => {
                         if (!oldDevices) return [];

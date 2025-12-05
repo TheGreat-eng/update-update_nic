@@ -19,7 +19,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
     }, [location]);
 
     if (!isAuthenticated()) {
-        console.warn('⚠️ Not authenticated, redirecting to login');
+        console.warn(' Not authenticated, redirecting to login');
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
 

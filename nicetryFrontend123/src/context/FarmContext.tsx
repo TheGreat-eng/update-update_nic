@@ -65,7 +65,7 @@ export const FarmProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         setFarmId(farmList[0].id);
                         console.log(' Auto-selected farm:', farmList[0].id);
                     } else {
-                        console.warn('⚠️ No farms available');
+                        console.warn(' No farms available');
                     }
                 } catch (error) {
                     console.error(' Failed to auto-select farm:', error);

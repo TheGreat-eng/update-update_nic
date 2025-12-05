@@ -180,7 +180,7 @@ class SensorSimulator:
         self.soil_moisture -= random.uniform(0.05, 0.15)
         if random.random() < 0.02:
             self.soil_moisture += random.uniform(15, 25)
-            print(f"💧 Irrigation event! Moisture -> {self.soil_moisture:.1f}%")
+            print(f" Irrigation event! Moisture -> {self.soil_moisture:.1f}%")
         self.soil_moisture = max(20, min(70, self.soil_moisture))
         return {
             "deviceId": device_id,

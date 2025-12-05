@@ -250,7 +250,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🔌 WebSocket Test Client</h1>
+            <h1> WebSocket Test Client</h1>
             <div id="status" class="status connecting">⏳ Connecting...</div>
         </div>
 
@@ -282,19 +282,19 @@
 
                 <div class="controls">
                     <div class="control-group">
-                        <h4>🌡️ Test Sensor Data</h4>
+                        <h4> Test Sensor Data</h4>
                         <input type="number" id="sensorFarmId" placeholder="Farm ID" value="1">
                         <button onclick="testSensor()">Send Test Sensor Data</button>
                     </div>
 
                     <div class="control-group">
-                        <h4>🚨 Test Alert</h4>
+                        <h4> Test Alert</h4>
                         <input type="number" id="alertFarmId" placeholder="Farm ID" value="1">
                         <button onclick="testAlert()">Send Test Alert</button>
                     </div>
 
                     <div class="control-group">
-                        <h4>🔌 Test Device Status</h4>
+                        <h4> Test Device Status</h4>
                         <input type="number" id="deviceFarmId" placeholder="Farm ID" value="1">
                         <input type="text" id="deviceId" placeholder="Device ID" value="TEST-001">
                         <button onclick="testDevice()">Send Device Status</button>
@@ -388,14 +388,14 @@
 
         function handleAlert(message, type) {
             const data = JSON.parse(message.body);
-            addMessage('🚨 Alert Received', data, type);
+            addMessage(' Alert Received', data, type);
             messageCount.alert++;
             updateStats();
         }
 
         function handleDeviceStatus(message, type) {
             const data = JSON.parse(message.body);
-            addMessage('🔌 Device Status Update', data, type);
+            addMessage(' Device Status Update', data, type);
             messageCount.device++;
             updateStats();
         }
@@ -611,7 +611,7 @@
         <div class="control-group">
             <button id="btnConnect" onclick="connect()">🚀 Kết nối</button>
             <button id="btnDisconnect" onclick="disconnect()"> Ngắt kết nối</button>
-            <button onclick="clearLog()" style="background-color: #888;">🧹 Xóa Log</button>
+            <button onclick="clearLog()" style="background-color: #888;"> Xóa Log</button>
         </div>
 
         <div id="status">
@@ -660,7 +660,7 @@
                 headers['Authorization'] = tokenRaw.startsWith('Bearer ') ? tokenRaw : 'Bearer ' + tokenRaw;
                 log("Đang gửi kèm Token...", 'info');
             } else {
-                log("⚠️ Đang kết nối KHÔNG CÓ Token (Giả lập Hacker)...", 'error');
+                log(" Đang kết nối KHÔNG CÓ Token (Giả lập Hacker)...", 'error');
             }
 
             stompClient.connect(headers, function (frame) {

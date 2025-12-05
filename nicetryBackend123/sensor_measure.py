@@ -21,7 +21,7 @@ class SensorSimulator:
         self.broker_port = broker_port
         self.connected = False
 
-        # ⚠️ HARD-CODED CONFIGURATION - CHANGE THESE VALUES AS NEEDED ⚠️
+        #  HARD-CODED CONFIGURATION - CHANGE THESE VALUES AS NEEDED 
         self.BASE_TEMPERATURE = 28.0      # Change this base temperature
         self.BASE_HUMIDITY = 65.0         # Change this base humidity
         self.START_SOIL_MOISTURE = 50.0   # Change initial soil moisture
@@ -59,7 +59,7 @@ class SensorSimulator:
             self.connected = False
 
     def on_disconnect(self, client, userdata, flags, reason_code, properties):
-        print(f"⚠️  Disconnected from MQTT Broker with reason code: {reason_code}")
+        print(f"  Disconnected from MQTT Broker with reason code: {reason_code}")
         self.connected = False
 
     # =============== Connection & Run Logic =================
@@ -167,7 +167,7 @@ class SensorSimulator:
         self.soil_moisture -= random.uniform(*self.MOISTURE_DECAY_RATE)
         if random.random() < self.IRRIGATION_CHANCE:
             self.soil_moisture += random.uniform(*self.IRRIGATION_AMOUNT)
-            print(f"💧 Irrigation event! Moisture -> {self.soil_moisture:.1f}%")
+            print(f" Irrigation event! Moisture -> {self.soil_moisture:.1f}%")
         self.soil_moisture = max(20, min(70, self.soil_moisture))
         return {
             "deviceId": device_id,
@@ -224,14 +224,14 @@ class SensorSimulator:
 
 
 def main():
-    # ⚠️ HARD-CODED BROKER SETTINGS - CHANGE THESE AS NEEDED ⚠️
+    #  HARD-CODED BROKER SETTINGS - CHANGE THESE AS NEEDED 
     BROKER_HOST = "localhost"      # Change MQTT broker host
     BROKER_PORT = 1883             # Change MQTT broker port
     MQTT_USER = None               # Change MQTT username if needed
     MQTT_PASS = None               # Change MQTT password if needed
     INTERVAL = 10                  # Change simulation interval in seconds
 
-    # ⚠️ HARD-CODED DEVICES - CHANGE THESE AS NEEDED ⚠️
+    #  HARD-CODED DEVICES - CHANGE THESE AS NEEDED 
     devices = [
         {"id": "DHT22-0001", "type": "DHT22"},
         {"id": "DHT22-000101", "type": "DHT22"},

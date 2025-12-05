@@ -45,7 +45,7 @@ public class PlantHealthController {
     @Operation(summary = "Lấy tình trạng sức khỏe hiện tại", description = "Phân tích sức khỏe cây dựa trên dữ liệu cảm biến mới nhất và các cảnh báo chưa xử lý")
     public ResponseEntity<ApiResponse<PlantHealthDTO>> getCurrentHealth(
             @Parameter(description = "ID nông trại", required = true) @RequestParam Long farmId) {
-        log.info("🌿 [API] Lấy sức khỏe hiện tại cho nông trại: {}", farmId);
+        log.info(" [API] Lấy sức khỏe hiện tại cho nông trại: {}", farmId);
 
         try {
             PlantHealthDTO healthReport = plantHealthService.getHealthStatus(farmId);
@@ -221,11 +221,11 @@ public class PlantHealthController {
         if (health.getHealthScore() >= 90) {
             recommendations.add(" Sức khỏe cây tuyệt vời! Tiếp tục duy trì chế độ chăm sóc hiện tại.");
         } else if (health.getHealthScore() >= 70) {
-            recommendations.add("👍 Sức khỏe cây tốt. Theo dõi và xử lý các vấn đề nhỏ kịp thời.");
+            recommendations.add(" Sức khỏe cây tốt. Theo dõi và xử lý các vấn đề nhỏ kịp thời.");
         } else if (health.getHealthScore() >= 50) {
-            recommendations.add("⚠️ Cần chú ý! Xử lý các cảnh báo mức HIGH và MEDIUM trong 24-48h.");
+            recommendations.add(" Cần chú ý! Xử lý các cảnh báo mức HIGH và MEDIUM trong 24-48h.");
         } else {
-            recommendations.add("🚨 KHẨN CẤP! Cần xử lý NGAY các vấn đề nghiêm trọng!");
+            recommendations.add(" KHẨN CẤP! Cần xử lý NGAY các vấn đề nghiêm trọng!");
         }
 
         // Thêm khuyến nghị cụ thể dựa trên loại cảnh báo
@@ -233,19 +233,19 @@ public class PlantHealthController {
             long fungusCount = health.getActiveAlerts().stream()
                     .filter(a -> a.getType().name().equals("FUNGUS")).count();
             if (fungusCount > 0) {
-                recommendations.add("🍄 Tăng cường thông gió và kiểm soát độ ẩm để ngăn nấm phát triển.");
+                recommendations.add(" Tăng cường thông gió và kiểm soát độ ẩm để ngăn nấm phát triển.");
             }
 
             long droughtCount = health.getActiveAlerts().stream()
                     .filter(a -> a.getType().name().equals("DROUGHT")).count();
             if (droughtCount > 0) {
-                recommendations.add("💧 Điều chỉnh lịch tưới để đảm bảo độ ẩm đất ổn định.");
+                recommendations.add(" Điều chỉnh lịch tưới để đảm bảo độ ẩm đất ổn định.");
             }
 
             long heatCount = health.getActiveAlerts().stream()
                     .filter(a -> a.getType().name().equals("HEAT_STRESS")).count();
             if (heatCount > 0) {
-                recommendations.add("🔥 Bật hệ thống làm mát hoặc che chắn trong giờ nắng gắt.");
+                recommendations.add(" Bật hệ thống làm mát hoặc che chắn trong giờ nắng gắt.");
             }
         }
 

@@ -50,7 +50,7 @@ class SensorSimulator:
 
     #  SỬA 4: Cập nhật chữ ký của hàm on_disconnect
     def on_disconnect(self, client, userdata, flags, reason_code, properties):
-        print(f"⚠️  Disconnected from MQTT Broker with reason code: {reason_code}")
+        print(f"  Disconnected from MQTT Broker with reason code: {reason_code}")
         self.connected = False
 
     # =============== Logic Kết nối & Chạy =================
@@ -153,7 +153,7 @@ class SensorSimulator:
         self.soil_moisture -= random.uniform(0.05, 0.15)
         if random.random() < 0.02:
             self.soil_moisture += random.uniform(15, 25)
-            print(f"💧 Irrigation event! Moisture -> {self.soil_moisture:.1f}%")
+            print(f" Irrigation event! Moisture -> {self.soil_moisture:.1f}%")
         self.soil_moisture = max(20, min(70, self.soil_moisture))
         return {
             "deviceId": device_id,

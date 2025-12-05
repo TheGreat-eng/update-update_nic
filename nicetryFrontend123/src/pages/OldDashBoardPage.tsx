@@ -245,7 +245,7 @@ const DashboardPage: React.FC = () => {
             isConnected = false;
             if (client.active) {
                 client.deactivate();
-                console.log('🔌 WebSocket Disconnected.');
+                console.log(' WebSocket Disconnected.');
             }
         };
     }, [farmId]);
@@ -444,7 +444,7 @@ const DashboardPage: React.FC = () => {
                 <Col xs={24} lg={8}>
                     <WeatherWidget />
 
-                    <Card style={{ marginTop: '16px' }} title="⚠️ Cảnh báo" size="small">
+                    <Card style={{ marginTop: '16px' }} title=" Cảnh báo" size="small">
                         <p style={{ margin: '8px 0' }}>• Nhiệt độ cao (35°C)</p>
                         <p style={{ margin: '8px 0' }}>• Độ ẩm đất thấp (25%)</p>
                         <p style={{ margin: '8px 0', color: '#52c41a' }}>✓ Hệ thống hoạt động bình thường</p>

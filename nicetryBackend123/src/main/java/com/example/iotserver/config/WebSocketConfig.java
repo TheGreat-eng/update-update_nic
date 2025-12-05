@@ -84,7 +84,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                             log.error(" [WS Security] Token lỗi: {}", e.getMessage());
                         }
                     } else {
-                        log.warn("⚠️ [WS Security] Không tìm thấy Header Authorization");
+                        log.warn(" [WS Security] Không tìm thấy Header Authorization");
                     }
 
                     // ⛔ QUAN TRỌNG NHẤT: NẾU KHÔNG HỢP LỆ -> NÉM RA EXCEPTION ĐỂ CHẶN NGAY

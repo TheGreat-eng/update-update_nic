@@ -63,7 +63,7 @@ public class PlantHealthService {
         }
 
         Long farmId = device.getFarm().getId();
-        log.info("🌿 Bắt đầu phân tích sức khỏe cho Farm {} từ dữ liệu của Device {}", farmId, device.getDeviceId());
+        log.info(" Bắt đầu phân tích sức khỏe cho Farm {} từ dữ liệu của Device {}", farmId, device.getDeviceId());
 
         // Lấy danh sách cảnh báo đang hoạt động TRƯỚC KHI kiểm tra
         List<PlantHealthAlert> activeAlertsBeforeCheck = alertRepository
@@ -85,11 +85,11 @@ public class PlantHealthService {
      */
     @Transactional(readOnly = true)
     public PlantHealthDTO getHealthStatus(Long farmId) {
-        log.info("🌿 Lấy báo cáo sức khỏe tổng hợp cho nông trại: {}", farmId);
+        log.info(" Lấy báo cáo sức khỏe tổng hợp cho nông trại: {}", farmId);
 
         SensorDataDTO latestData = sensorDataService.getLatestSensorDataByFarmId(farmId);
         if (latestData == null) {
-            log.warn("⚠️ Không có dữ liệu cảm biến cho nông trại: {}", farmId);
+            log.warn(" Không có dữ liệu cảm biến cho nông trại: {}", farmId);
             return createEmptyHealthReport(farmId);
         }
 
@@ -143,7 +143,7 @@ public class PlantHealthService {
             boolean optimalTemp = data.getTemperature() >= fungusTempMin && data.getTemperature() <= fungusTempMax;
 
             if (highHumidity && optimalTemp) {
-                log.warn("🍄 Phát hiện nguy cơ nấm! Độ ẩm: {}%, Nhiệt độ: {}°C", data.getHumidity(),
+                log.warn(" Phát hiện nguy cơ nấm! Độ ẩm: {}%, Nhiệt độ: {}°C", data.getHumidity(),
                         data.getTemperature());
                 return Optional.of(PlantHealthAlert.builder()
                         .farmId(farm.getId()).alertType(AlertType.FUNGUS)
@@ -167,7 +167,7 @@ public class PlantHealthService {
                     farm.getId(), data.getTemperature(), heatStressThreshold);
 
             if (data.getTemperature() > heatStressThreshold) {
-                log.warn("🔥 Phát hiện stress nhiệt! Nhiệt độ: {}°C", data.getTemperature());
+                log.warn(" Phát hiện stress nhiệt! Nhiệt độ: {}°C", data.getTemperature());
                 return Optional.of(PlantHealthAlert.builder()
                         .farmId(farm.getId())
                         .zone(zone) // <--- THÊM DÒNG NÀY
@@ -191,7 +191,7 @@ public class PlantHealthService {
                     farm.getId(), data.getSoilMoisture(), droughtThreshold);
 
             if (data.getSoilMoisture() < droughtThreshold) {
-                log.warn("💧 Phát hiện thiếu nước! Độ ẩm đất: {}%", data.getSoilMoisture());
+                log.warn(" Phát hiện thiếu nước! Độ ẩm đất: {}%", data.getSoilMoisture());
                 return Optional.of(PlantHealthAlert.builder()
                         .farmId(farm.getId())
                         .zone(zone) // <--- THÊM DÒNG NÀY
@@ -248,7 +248,7 @@ public class PlantHealthService {
                         farm.getId(), change, moistureChangeThreshold);
 
                 if (change > moistureChangeThreshold) {
-                    log.warn("⚡ Phát hiện độ ẩm dao động mạnh! Thay đổi: {}%", change);
+                    log.warn(" Phát hiện độ ẩm dao động mạnh! Thay đổi: {}%", change);
                     return Optional.of(PlantHealthAlert.builder()
                             .farmId(farm.getId())
                             .zone(zone) // <--- THÊM DÒNG NÀY
@@ -423,11 +423,11 @@ public class PlantHealthService {
         long highCount = alerts.stream().filter(a -> a.getSeverity() == Severity.HIGH).count();
         if (criticalCount > 0)
             return String.format(
-                    "⚠️ CẦN XỬ LÝ NGAY! Phát hiện %d vấn đề nghiêm trọng. Kiểm tra và xử lý các cảnh báo CRITICAL ngay lập tức.",
+                    " CẦN XỬ LÝ NGAY! Phát hiện %d vấn đề nghiêm trọng. Kiểm tra và xử lý các cảnh báo CRITICAL ngay lập tức.",
                     criticalCount);
         if (highCount > 0)
             return String.format(
-                    "⚠️ Cần chú ý! Phát hiện %d vấn đề mức cao. Nên xử lý trong vòng 24 giờ để tránh ảnh hưởng đến cây.",
+                    " Cần chú ý! Phát hiện %d vấn đề mức cao. Nên xử lý trong vòng 24 giờ để tránh ảnh hưởng đến cây.",
                     highCount);
         return String.format("Phát hiện %d vấn đề nhỏ. Theo dõi và điều chỉnh dần dần.", alerts.size());
     }
@@ -501,6 +501,6 @@ public class PlantHealthService {
     public void cleanupOldAlerts(int daysToKeep) {
         LocalDateTime cutoffDate = LocalDateTime.now().minusDays(daysToKeep);
         alertRepository.deleteByResolvedTrueAndResolvedAtBefore(cutoffDate);
-        log.info("🧹 Đã dọn dẹp các cảnh báo sức khỏe đã xử lý và cũ hơn ngày {}", cutoffDate);
+        log.info(" Đã dọn dẹp các cảnh báo sức khỏe đã xử lý và cũ hơn ngày {}", cutoffDate);
     }
 }

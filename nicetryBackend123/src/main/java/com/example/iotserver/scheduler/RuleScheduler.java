@@ -36,7 +36,7 @@ public class RuleScheduler {
      */
     @Scheduled(cron = "0 0 2 * * ?")
     public void cleanupOldLogs() {
-        log.info("🧹 Bắt đầu dọn dẹp log cũ...");
+        log.info(" Bắt đầu dọn dẹp log cũ...");
 
         // TODO: Triển khai logic xóa log cũ hơn 30 ngày
 

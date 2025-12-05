@@ -122,7 +122,7 @@ export const getUserFromStorage = (): any | null => {
 
         //  THÊM: Validate user object
         if (!user || typeof user !== 'object' || !user.email) {
-            console.warn('⚠️ Invalid user data in localStorage');
+            console.warn(' Invalid user data in localStorage');
             localStorage.removeItem('user');
 
             const token = getAuthToken();

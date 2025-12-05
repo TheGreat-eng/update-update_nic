@@ -131,7 +131,7 @@ def main():
                     
                     #  THÊM: Highlight khi PUMP-0001 gửi dữ liệu độ ẩm thấp
                     if device_id == "PUMP-0001" and data.get("soil_moisture", 100) < 30:
-                        print(f"   ⚠️  Độ ẩm thấp! Rule 'Tưới nước tự động' sẽ được kích hoạt!")
+                        print(f"     Độ ẩm thấp! Rule 'Tưới nước tự động' sẽ được kích hoạt!")
                 else:
                     print(f" Failed to send data for {device_id}")
             

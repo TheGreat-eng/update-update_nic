@@ -56,7 +56,7 @@ def on_message(client, userdata, msg):
         if "TURN_ON" in action or "ON" in action:
             duration = payload.get("duration", 60)
             pump_state = "ON"
-            print(f"\n💧 BẬT MÁY BƠM")
+            print(f"\n BẬT MÁY BƠM")
             print(f"⏱️  Thời gian: {duration} giây")
             
             feedback = {
@@ -92,7 +92,7 @@ def on_message(client, userdata, msg):
             client.publish(f"device/{DEVICE_ID}/status", json.dumps(feedback))
             print(f" Đã gửi trạng thái: MÁY BƠM ĐÃ TẮT\n")
         else:
-            print(f"⚠️  Lệnh không xác định: {action}\n")
+            print(f"  Lệnh không xác định: {action}\n")
             
     except Exception as e:
         print(f" Lỗi xử lý message: {e}\n")
@@ -104,7 +104,7 @@ client.on_connect = on_connect
 client.on_message = on_message
 
 print(f"{'='*60}")
-print(f"🔌 FAKE PUMP DEVICE - {DEVICE_ID}")
+print(f" FAKE PUMP DEVICE - {DEVICE_ID}")
 print(f"{'='*60}")
 print(f"🔗 Đang kết nối tới: {BROKER}:{PORT}...")
 

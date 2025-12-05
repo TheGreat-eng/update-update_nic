@@ -44,7 +44,7 @@ def callback(client, userdata, msg):
 
         if action == "turn_on":
             led_status = "ON"
-            print("⚡ RELAY: ON")
+            print(" RELAY: ON")
             feedback["status"] = "ONLINE"
             feedback["state"] = "ON"
             

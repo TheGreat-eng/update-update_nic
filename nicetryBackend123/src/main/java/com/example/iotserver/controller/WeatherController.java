@@ -1,13 +1,5 @@
 package com.example.iotserver.controller;
 
-import com.example.iotserver.dto.WeatherDTO;
-import com.example.iotserver.dto.response.ApiResponse;
-import com.example.iotserver.service.WeatherService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,7 +7,20 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.iotserver.dto.WeatherDTO;
+import com.example.iotserver.dto.response.ApiResponse;
+import com.example.iotserver.service.WeatherService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/weather")
@@ -83,12 +88,12 @@ public class WeatherController {
             suggestions.add("⛔ TẮT HỆ THỐNG TƯỚI - Dự báo mưa lớn");
             shouldStopWatering = true;
         } else if (weather.getRainAmount() != null && weather.getRainAmount() > 0) {
-            suggestions.add("⚠️ GIẢM TƯỚI 50% - Có mưa nhẹ");
+            suggestions.add(" GIẢM TƯỚI 50% - Có mưa nhẹ");
         }
 
         // Kiểm tra nắng nóng
         if (weather.getTemperature() > 38) {
-            suggestions.add("🔥 TĂNG TƯỚI 20% - Nắng nóng cực đoan");
+            suggestions.add(" TĂNG TƯỚI 20% - Nắng nóng cực đoan");
         }
 
         // Kiểm tra độ ẩm cao

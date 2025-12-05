@@ -38,7 +38,7 @@ const RulesPage: React.FC = () => {
 
     const fetchRules = async () => {
         if (!farmId) {
-            console.warn('⚠️ No farmId available');
+            console.warn(' No farmId available');
             return;
         }
 

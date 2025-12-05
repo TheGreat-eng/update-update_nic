@@ -62,7 +62,7 @@ def on_message(client, userdata, msg):
             # Nếu đang có timer cũ chạy thì hủy nó đi để tính giờ mới
             if off_timer and off_timer.is_alive():
                 off_timer.cancel()
-                print("⚠️  Đã hủy hẹn giờ cũ, đặt lại giờ mới.")
+                print("  Đã hủy hẹn giờ cũ, đặt lại giờ mới.")
 
             publish_status(client, "ON", "ONLINE", f"Turned ON for {duration}s")
             
@@ -102,7 +102,7 @@ client.will_set(f"device/{DEVICE_ID}/status", last_will_payload, qos=1, retain=T
 client.on_connect = on_connect
 client.on_message = on_message
 
-print(f"🔌 FAKE PUMP DEVICE - {DEVICE_ID}")
+print(f" FAKE PUMP DEVICE - {DEVICE_ID}")
 print(f"🔗 Connecting to {BROKER}...")
 
 try:
@@ -110,7 +110,7 @@ try:
     client.loop_forever()
     
 except KeyboardInterrupt:
-    print(f"\n\n🚨 PHÁT HIỆN CTRL+C (STOP)")
+    print(f"\n\n PHÁT HIỆN CTRL+C (STOP)")
     
     # 1. Hủy timer nếu đang chạy
     if off_timer and off_timer.is_alive():

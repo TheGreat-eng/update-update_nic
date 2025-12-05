@@ -195,7 +195,7 @@ public class SensorDataService {
                 deviceId, field, window, rawDataList.size());
 
         if (rawDataList.isEmpty()) {
-            log.warn("⚠️ Không có dữ liệu aggregated cho device: {}, field: {}", deviceId, field);
+            log.warn(" Không có dữ liệu aggregated cho device: {}, field: {}", deviceId, field);
             return Collections.emptyList(); //  Trả về list rỗng thay vì lỗi
         }
 
@@ -209,7 +209,7 @@ public class SensorDataService {
                         if (valueObj instanceof Number) {
                             dto.setAvgValue(((Number) valueObj).doubleValue());
                         } else {
-                            log.warn("⚠️ Value không phải số: {}", valueObj);
+                            log.warn(" Value không phải số: {}", valueObj);
                         }
                     }
 
@@ -283,7 +283,7 @@ public class SensorDataService {
                     if (value != null) {
                         data.put("_value", value);
                     } else {
-                        log.warn("⚠️ Record có value null, bỏ qua");
+                        log.warn(" Record có value null, bỏ qua");
                         continue; // Skip record này
                     }
 
@@ -332,7 +332,7 @@ public class SensorDataService {
             List<FluxTable> tables = queryApi.query(query);
 
             if (tables == null || tables.isEmpty()) {
-                log.warn("⚠️ [InfluxDB] Không có dữ liệu cho farmId: {}", farmId);
+                log.warn(" [InfluxDB] Không có dữ liệu cho farmId: {}", farmId);
                 return null;
             }
 
@@ -398,7 +398,7 @@ public class SensorDataService {
             List<FluxTable> tables = queryApi.query(query);
 
             if (tables == null || tables.isEmpty()) {
-                log.warn("⚠️ [InfluxDB] Không có dữ liệu cho farmId: {}", farmId);
+                log.warn(" [InfluxDB] Không có dữ liệu cho farmId: {}", farmId);
                 return null;
             }
 
@@ -464,7 +464,7 @@ public class SensorDataService {
                 return recordCount > 0;
             }
 
-            log.warn("⚠️ Không có dữ liệu nào cho device {} trong {}h qua", deviceId, hoursBack);
+            log.warn(" Không có dữ liệu nào cho device {} trong {}h qua", deviceId, hoursBack);
             return false;
 
         } catch (Exception e) {

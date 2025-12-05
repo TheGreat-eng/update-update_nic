@@ -65,7 +65,7 @@ class PlantHealthTester:
     def test_rule_1_fungus(self):
         """Test Quy tắc 1: Nguy cơ nấm"""
         print("\n" + "="*60)
-        print("TEST QUY TẮC 1: NGUY CƠ NẤM 🍄")
+        print("TEST QUY TẮC 1: NGUY CƠ NẤM ")
         print("="*60)
         
         data = {
@@ -88,7 +88,7 @@ class PlantHealthTester:
     def test_rule_2_heat_stress(self):
         """Test Quy tắc 2: Stress nhiệt"""
         print("\n" + "="*60)
-        print("TEST QUY TẮC 2: STRESS NHIỆT 🔥")
+        print("TEST QUY TẮC 2: STRESS NHIỆT ")
         print("="*60)
         
         data = {
@@ -110,7 +110,7 @@ class PlantHealthTester:
     def test_rule_3_drought(self):
         """Test Quy tắc 3: Thiếu nước"""
         print("\n" + "="*60)
-        print("TEST QUY TẮC 3: THIẾU NƯỚC 💧")
+        print("TEST QUY TẮC 3: THIẾU NƯỚC ")
         print("="*60)
         
         data = {
@@ -143,7 +143,7 @@ class PlantHealthTester:
             "timestamp": datetime.now().isoformat()
         }
         
-        print("⚠️  LƯU Ý: Quy tắc này chỉ trigger vào ban đêm (22h-6h)")
+        print("  LƯU Ý: Quy tắc này chỉ trigger vào ban đêm (22h-6h)")
         self.send_sensor_data(data, "Gửi dữ liệu: Nhiệt độ 10°C")
         result = self.check_health()
         
@@ -162,7 +162,7 @@ class PlantHealthTester:
     def test_rule_5_unstable_moisture(self):
         """Test Quy tắc 5: Độ ẩm dao động"""
         print("\n" + "="*60)
-        print("TEST QUY TẮC 5: ĐỘ ẨM DAO ĐỘNG ⚡")
+        print("TEST QUY TẮC 5: ĐỘ ẨM DAO ĐỘNG ")
         print("="*60)
         
         # Gửi dữ liệu ban đầu
@@ -188,7 +188,7 @@ class PlantHealthTester:
         }
         self.send_sensor_data(data2, "Bước 2: Gửi dữ liệu mới - Độ ẩm 75% (thay đổi 35%)")
         
-        print("\n⚠️  LƯU Ý: Quy tắc này so sánh với dữ liệu 6 giờ trước")
+        print("\n  LƯU Ý: Quy tắc này so sánh với dữ liệu 6 giờ trước")
         print("   Trong test này, chúng ta chỉ chờ 3 giây nên có thể không trigger")
         
         result = self.check_health()
@@ -212,7 +212,7 @@ class PlantHealthTester:
             "timestamp": datetime.now().isoformat()
         }
         
-        print("⚠️  LƯU Ý: Quy tắc này chỉ trigger vào ban ngày (8h-18h)")
+        print("  LƯU Ý: Quy tắc này chỉ trigger vào ban ngày (8h-18h)")
         self.send_sensor_data(data, "Gửi dữ liệu: Ánh sáng 800 lux")
         result = self.check_health()
         
@@ -253,7 +253,7 @@ class PlantHealthTester:
     def test_combined_issues(self):
         """Test kết hợp nhiều vấn đề"""
         print("\n" + "="*60)
-        print("TEST KẾT HỢP: NHIỀU VẤN ĐỀ CÙNG LÚC 🚨")
+        print("TEST KẾT HỢP: NHIỀU VẤN ĐỀ CÙNG LÚC ")
         print("="*60)
         
         data = {
@@ -278,7 +278,7 @@ class PlantHealthTester:
             if alert_count >= 3 and result['healthScore'] < 50:
                 print("\n PASS: Phát hiện nhiều vấn đề, điểm sức khỏe thấp")
             else:
-                print("\n⚠️  Kết quả không như mong đợi")
+                print("\n  Kết quả không như mong đợi")
     
     def run_all_tests(self):
         """Chạy tất cả test cases"""

@@ -303,6 +303,6 @@ public class WeatherService {
     public void cleanupOldWeatherData() {
         LocalDateTime threshold = LocalDateTime.now().minusDays(7);
         weatherRepository.deleteOldWeatherData(threshold);
-        log.info("🧹 Đã xóa dữ liệu thời tiết cũ hơn 7 ngày");
+        log.info(" Đã xóa dữ liệu thời tiết cũ hơn 7 ngày");
     }
 }
