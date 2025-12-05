@@ -11,8 +11,8 @@ import SchedulesPage from './pages/SchedulesPage';
 
 
 
-// ✅ Lazy load các trang
-const LandingPage = lazy(() => import('./pages/LandingPage')); // ✅ THÊM LANDING PAGE
+//  Lazy load các trang
+const LandingPage = lazy(() => import('./pages/LandingPage')); //  THÊM LANDING PAGE
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/RegisterPage'));
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
@@ -63,12 +63,12 @@ function App() {
       <NetworkStatus />
       <Suspense fallback={<LoadingFallback />}>
         <Routes>
-          {/* ✅ Public routes: Landing, Login, Register */}
+          {/*  Public routes: Landing, Login, Register */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
 
-          {/* ✅ Protected routes (tất cả các trang bên trong ứng dụng) */}
+          {/*  Protected routes (tất cả các trang bên trong ứng dụng) */}
           {/* Khi người dùng truy cập /dashboard, PrivateRoute sẽ kiểm tra auth */}
           <Route
             path="/dashboard"
@@ -112,7 +112,7 @@ function App() {
           {/* <<<< THÊM ROUTE MỚI >>>> */}
           <Route path="/admin/plant-profiles" element={<PrivateRoute><AppLayout><PlantProfileManagementPage /></AppLayout></PrivateRoute>} />
           <Route path="/admin/settings" element={<PrivateRoute><AppLayout><SystemSettingsPage /></AppLayout></PrivateRoute>} />
-          {/* ✅ 404 Page */}
+          {/*  404 Page */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>

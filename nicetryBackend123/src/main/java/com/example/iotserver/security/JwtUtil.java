@@ -1,18 +1,20 @@
 package com.example.iotserver.security;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
-import javax.crypto.SecretKey;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+
+import javax.crypto.SecretKey;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 
 @Component
 public class JwtUtil {
@@ -23,7 +25,7 @@ public class JwtUtil {
     @Value("${jwt.expiration}")
     private Long expiration;
 
-    // ✅ THÊM TRƯỜNG MỚI
+    //  THÊM TRƯỜNG MỚI
     @Value("${jwt.refresh.expiration:604800000}") // 7 ngày mặc định
     private Long refreshExpiration;
 
@@ -35,7 +37,7 @@ public class JwtUtil {
         return createToken(claims, email, expiration);
     }
 
-    // ✅ THÊM: Tạo Refresh Token
+    //  THÊM: Tạo Refresh Token
     public String generateRefreshToken(String email) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("type", "refresh");
@@ -59,7 +61,7 @@ public class JwtUtil {
                 .compact();
     }
 
-    // ✅ THÊM: Kiểm tra refresh token expiry từ LocalDateTime
+    //  THÊM: Kiểm tra refresh token expiry từ LocalDateTime
     public Boolean isRefreshTokenExpired(LocalDateTime expiry) {
         if (expiry == null)
             return true;
@@ -70,7 +72,7 @@ public class JwtUtil {
      * Lấy signing key từ secret (Base64 decoded)
      */
     private SecretKey getSigningKey() {
-        // ✅ DECODE Base64 để đảm bảo đủ 256 bits
+        //  DECODE Base64 để đảm bảo đủ 256 bits
         byte[] keyBytes = Decoders.BASE64.decode(secret);
         return Keys.hmacShaKeyFor(keyBytes);
     }
@@ -101,11 +103,11 @@ public class JwtUtil {
      * Trích xuất tất cả claims từ token
      */
     private Claims extractAllClaims(String token) {
-        return Jwts.parser() // ✅ Dùng parser() thay vì parserBuilder()
-                .verifyWith(getSigningKey()) // ✅ Dùng verifyWith()
+        return Jwts.parser() //  Dùng parser() thay vì parserBuilder()
+                .verifyWith(getSigningKey()) //  Dùng verifyWith()
                 .build()
-                .parseSignedClaims(token) // ✅ Dùng parseSignedClaims()
-                .getPayload(); // ✅ Dùng getPayload()
+                .parseSignedClaims(token) //  Dùng parseSignedClaims()
+                .getPayload(); //  Dùng getPayload()
     }
 
     /**

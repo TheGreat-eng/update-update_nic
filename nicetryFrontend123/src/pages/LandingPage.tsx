@@ -37,7 +37,7 @@ const floatVariant = {
         transition: {
             duration: 6,
             repeat: Infinity,
-            ease: 'easeInOut' as Easing // ✅ SỬA LẠI DÒNG NÀY
+            ease: 'easeInOut' as Easing //  SỬA LẠI DÒNG NÀY
         },
     },
 };

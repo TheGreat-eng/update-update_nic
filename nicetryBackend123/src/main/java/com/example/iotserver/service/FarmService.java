@@ -1,11 +1,21 @@
 package com.example.iotserver.service;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors; // <<<< THÊM IMPORT NÀY
+
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.example.iotserver.dto.FarmDTO;
 import com.example.iotserver.entity.Farm;
-import com.example.iotserver.entity.FarmMember; // <<<< THÊM IMPORT NÀY
+import com.example.iotserver.entity.FarmMember;
 import com.example.iotserver.entity.Rule;
 import com.example.iotserver.entity.User;
 import com.example.iotserver.enums.DeviceStatus;
+import com.example.iotserver.enums.FarmRole;
 import com.example.iotserver.exception.ResourceNotFoundException;
 import com.example.iotserver.repository.DeviceRepository;
 import com.example.iotserver.repository.FarmMemberRepository;
@@ -16,16 +26,6 @@ import com.example.iotserver.repository.WeatherRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.CacheEvict;
-
-import com.example.iotserver.enums.FarmRole;
 
 @Service
 @Slf4j
@@ -248,15 +248,15 @@ public class FarmService {
 
         List<FarmDTO> result = new ArrayList<>();
 
-        // ✅ SET ROLE CHO OWNER
+        //  SET ROLE CHO OWNER
         for (Farm farm : ownedFarms) {
             FarmDTO dto = mapToDTO(farm, userId);
-            dto.setCurrentUserRole("OWNER"); // ✅ QUAN TRỌNG
+            dto.setCurrentUserRole("OWNER"); //  QUAN TRỌNG
             log.debug("Farm {} - Owner role set for user {}", farm.getId(), userId);
             result.add(dto);
         }
 
-        // ✅ SET ROLE CHO MEMBER
+        //  SET ROLE CHO MEMBER
         for (FarmMember member : memberships) {
             FarmDTO dto = mapToDTO(member.getFarm(), userId);
             dto.setCurrentUserRole(member.getRole().name()); // OPERATOR hoặc VIEWER

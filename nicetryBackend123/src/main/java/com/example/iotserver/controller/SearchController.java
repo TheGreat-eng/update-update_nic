@@ -3,7 +3,6 @@ package com.example.iotserver.controller;
 import java.util.Collections;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -40,7 +39,7 @@ public class SearchController {
         }
 
         GlobalSearchResultDTO results = searchService.search(query);
-        log.info("✅ Search completed. Found {} farms and {} devices",
+        log.info(" Search completed. Found {} farms and {} devices",
                 results.getFarms().size(), results.getDevices().size());
 
         return ResponseEntity.ok(

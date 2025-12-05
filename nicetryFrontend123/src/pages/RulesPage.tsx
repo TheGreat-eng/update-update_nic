@@ -4,7 +4,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { Switch, Button, Typography, Spin, message, Popconfirm, Alert, Card, Row, Col, Space, Tag, Empty } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { getRulesByFarm, deleteRule, toggleRuleStatus } from '../api/ruleService'; // ✅ Import đầy đủ
+import { getRulesByFarm, deleteRule, toggleRuleStatus } from '../api/ruleService'; //  Import đầy đủ
 import type { Rule } from '../types/rule';
 import { useFarm } from '../context/FarmContext';
 
@@ -16,7 +16,7 @@ import { getFarms } from '../api/farmService';
 const { Title, Text } = Typography;
 
 const RulesPage: React.FC = () => {
-    const { farmId, isLoadingFarm } = useFarm(); // ✅ THÊM isLoadingFarm
+    const { farmId, isLoadingFarm } = useFarm(); //  THÊM isLoadingFarm
     const [rules, setRules] = useState<Rule[]>([]);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
@@ -46,7 +46,7 @@ const RulesPage: React.FC = () => {
         try {
             console.log('🔍 Fetching rules for farmId:', farmId);
             const response = await getRulesByFarm(farmId);
-            console.log('✅ Rules loaded:', response.data.data.length);
+            console.log(' Rules loaded:', response.data.data.length);
             setRules(response.data.data);
         } catch (error) {
             console.error(' Failed to fetch rules:', error);
@@ -86,7 +86,7 @@ const RulesPage: React.FC = () => {
         }
     };
 
-    // ✅ THÊM: Early return khi đang load farm
+    //  THÊM: Early return khi đang load farm
     if (isLoadingFarm) {
         return (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
@@ -95,7 +95,7 @@ const RulesPage: React.FC = () => {
         );
     }
 
-    // ✅ THÊM: Early return khi chưa có farmId
+    //  THÊM: Early return khi chưa có farmId
     if (!farmId) {
         return (
             <div>

@@ -10,13 +10,13 @@ import { useFarm } from '../context/FarmContext';
 import type { FarmSummary, ChartDataPoint } from '../types/dashboard';
 import { getDevicesByFarm } from '../api/deviceService';
 import type { Device } from '../types/device';
-import { DashboardSkeleton } from '../components/LoadingSkeleton'; // ✅ THÊM
-import type { SensorDataMessage } from '../types/websocket'; // ✅ THÊM
+import { DashboardSkeleton } from '../components/LoadingSkeleton'; //  THÊM
+import type { SensorDataMessage } from '../types/websocket'; //  THÊM
 
 const { Title } = Typography;
 const { Option } = Select;
 
-// ✅ THÊM: Memoized Statistics Card Component
+//  THÊM: Memoized Statistics Card Component
 const StatsCard = React.memo<{ title: string; value: number; icon: React.ReactNode; suffix?: string; precision?: number }>(
     ({ title, value, icon, suffix, precision }) => (
         <Card hoverable style={{ height: '100%' }}>
@@ -46,7 +46,7 @@ const DashboardPage: React.FC = () => {
     const [selectedSoilDevice, setSelectedSoilDevice] = useState<string | null>(null);
     const [selectedPHDevice, setSelectedPHDevice] = useState<string | null>(null);
 
-    // ✅ THÊM: Memoize filtered devices
+    //  THÊM: Memoize filtered devices
     const envDevices = useMemo(() =>
         devices.filter(d => d.type === 'SENSOR_DHT22'),
         [devices]
@@ -62,7 +62,7 @@ const DashboardPage: React.FC = () => {
         [devices]
     );
 
-    // ✅ TẤT CẢ useEffect Ở ĐÂY
+    //  TẤT CẢ useEffect Ở ĐÂY
     useEffect(() => {
         let isMounted = true;
 
@@ -105,7 +105,7 @@ const DashboardPage: React.FC = () => {
         return () => { isMounted = false; };
     }, [farmId]);
 
-    // ✅ SỬA: Dùng useCallback cho fetchChartData
+    //  SỬA: Dùng useCallback cho fetchChartData
     const fetchChartData = useCallback(async (chartType: 'env' | 'soil') => {
         setChartLoading(true);
         try {
@@ -191,14 +191,14 @@ const DashboardPage: React.FC = () => {
         let isConnected = false;
 
         client.onConnect = () => {
-            console.log('✅ WebSocket/STOMP Connected!');
+            console.log(' WebSocket/STOMP Connected!');
             isConnected = true;
-            reconnectAttempts = 0; // ✅ Reset counter khi connect thành công
+            reconnectAttempts = 0; //  Reset counter khi connect thành công
 
             client.subscribe(`/topic/farm/${farmId}/sensor-data`, (msg) => {
                 if (!isConnected) return;
                 try {
-                    const newData: SensorDataMessage = JSON.parse(msg.body); // ✅ Type-safe
+                    const newData: SensorDataMessage = JSON.parse(msg.body); //  Type-safe
                     console.log('📬 Received real-time data:', newData);
 
                     setSummary((prevSummary) => {
@@ -256,7 +256,7 @@ const DashboardPage: React.FC = () => {
         fetchChartData(chartType);
     }, [fetchChartData]);
 
-    // ✅ THÊM: Memoize statistics cards
+    //  THÊM: Memoize statistics cards
     const statsCards = useMemo(() => (
         <Row gutter={[16, 16]}>
             <Col xs={12} sm={12} md={8} lg={12} xl={8}>
@@ -388,7 +388,7 @@ const DashboardPage: React.FC = () => {
         return null;
     }, [chartData, activeChart, selectedEnvDevice, selectedSoilDevice, selectedPHDevice, envDevices, soilDevices, phDevices]);
 
-    // ✅ EARLY RETURNS SAU TẤT CẢ HOOKS
+    //  EARLY RETURNS SAU TẤT CẢ HOOKS
     if (isLoadingFarm) {
         return (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
@@ -413,7 +413,7 @@ const DashboardPage: React.FC = () => {
     }
 
     if (loading && !summary) {
-        return <DashboardSkeleton />; // ✅ Thay Spin
+        return <DashboardSkeleton />; //  Thay Spin
     }
 
     if (error) {

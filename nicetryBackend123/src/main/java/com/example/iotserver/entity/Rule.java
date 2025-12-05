@@ -27,7 +27,7 @@ public class Rule {
     @Column(length = 1000)
     private String description; // Mô tả
 
-    // ✅ Child side - Không serialize khi trả về JSON
+    //  Child side - Không serialize khi trả về JSON
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "farm_id", nullable = false)
     @JsonBackReference("farm-rules")

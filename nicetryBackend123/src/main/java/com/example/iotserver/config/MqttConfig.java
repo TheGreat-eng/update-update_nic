@@ -73,13 +73,13 @@ public class MqttConfig {
         return adapter;
     }
 
-    // ✅ THÊM: Outbound Channel để gửi message
+    //  THÊM: Outbound Channel để gửi message
     @Bean
     public MessageChannel mqttOutboundChannel() {
         return new DirectChannel();
     }
 
-    // ✅ THÊM: Outbound Adapter để publish MQTT
+    //  THÊM: Outbound Adapter để publish MQTT
     @Bean
     @ServiceActivator(inputChannel = "mqttOutboundChannel")
     public MessageHandler mqttOutbound() {

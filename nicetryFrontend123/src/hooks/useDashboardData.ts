@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import api from '../api/axiosConfig';
 import type { FarmSummary } from '../types/dashboard';
 
-// ✅ SỬA LẠI HOOK NÀY
+//  SỬA LẠI HOOK NÀY
 export const useDashboardSummary = (farmId: number | null, zoneId?: number | null) => { // Thêm zoneId
     return useQuery({
         queryKey: ['dashboard-summary', farmId, zoneId], // Thêm zoneId vào key

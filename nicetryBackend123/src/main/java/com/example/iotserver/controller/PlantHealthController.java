@@ -49,7 +49,7 @@ public class PlantHealthController {
 
         try {
             PlantHealthDTO healthReport = plantHealthService.getHealthStatus(farmId);
-            log.info("✅ [API] Điểm sức khỏe: {}, Trạng thái: {}, Số cảnh báo: {}",
+            log.info(" [API] Điểm sức khỏe: {}, Trạng thái: {}, Số cảnh báo: {}",
                     healthReport.getHealthScore(),
                     healthReport.getStatus(),
                     healthReport.getActiveAlerts().size());
@@ -89,7 +89,7 @@ public class PlantHealthController {
             response.put("stats", stats);
             response.put("alerts", alerts);
 
-            log.info("✅ [API] Tìm thấy {} cảnh báo trong {} ngày", alerts.size(), days);
+            log.info(" [API] Tìm thấy {} cảnh báo trong {} ngày", alerts.size(), days);
 
             return ResponseEntity.ok(response);
 
@@ -125,7 +125,7 @@ public class PlantHealthController {
             response.put("trend", trend);
             response.put("recommendations", generateRecommendations(healthReport));
 
-            log.info("✅ [API] Hoàn thành phân tích chi tiết. Xu hướng: {}", trend);
+            log.info(" [API] Hoàn thành phân tích chi tiết. Xu hướng: {}", trend);
 
             return ResponseEntity.ok(response);
 
@@ -145,7 +145,7 @@ public class PlantHealthController {
             @Parameter(description = "ID cảnh báo", required = true) @PathVariable Long alertId,
 
             @Parameter(description = "Ghi chú xử lý") @RequestBody(required = false) Map<String, String> request) {
-        log.info("✅ [API] Đánh dấu cảnh báo {} đã xử lý", alertId);
+        log.info(" [API] Đánh dấu cảnh báo {} đã xử lý", alertId);
 
         try {
             String resolutionNote = request != null ? request.get("note") : null;
@@ -219,7 +219,7 @@ public class PlantHealthController {
         List<String> recommendations = new java.util.ArrayList<>();
 
         if (health.getHealthScore() >= 90) {
-            recommendations.add("✅ Sức khỏe cây tuyệt vời! Tiếp tục duy trì chế độ chăm sóc hiện tại.");
+            recommendations.add(" Sức khỏe cây tuyệt vời! Tiếp tục duy trì chế độ chăm sóc hiện tại.");
         } else if (health.getHealthScore() >= 70) {
             recommendations.add("👍 Sức khỏe cây tốt. Theo dõi và xử lý các vấn đề nhỏ kịp thời.");
         } else if (health.getHealthScore() >= 50) {

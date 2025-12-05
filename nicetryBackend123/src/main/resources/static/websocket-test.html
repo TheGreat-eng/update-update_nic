@@ -338,8 +338,8 @@
 
             stompClient.connect({},
                 function (frame) {
-                    console.log('✅ Connected:', frame);
-                    statusDiv.textContent = '✅ Connected';
+                    console.log(' Connected:', frame);
+                    statusDiv.textContent = ' Connected';
                     statusDiv.className = 'status connected';
 
                     addSystemMessage('Connected to WebSocket server');
@@ -666,7 +666,7 @@
             stompClient.connect(headers, function (frame) {
                 // --- KẾT NỐI THÀNH CÔNG ---
                 setConnected(true);
-                log("✅ KẾT NỐI THÀNH CÔNG!", 'success');
+                log(" KẾT NỐI THÀNH CÔNG!", 'success');
                 log("Server phản hồi: " + frame, 'info');
 
                 // Thử subscribe vào một topic bất kỳ để xem có nhận được tin không

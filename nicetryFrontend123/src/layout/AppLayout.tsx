@@ -38,7 +38,7 @@ function getItem(
     return { key, icon, children, label } as MenuItem;
 }
 
-// ✅ Cho phép nhận children, tương thích cả 2 cách dùng:
+//  Cho phép nhận children, tương thích cả 2 cách dùng:
 // 1) <AppLayout><SomePage/></AppLayout>
 // 2) element={<AppLayout/>} + <Outlet/>
 const AppLayout: React.FC<PropsWithChildren> = ({ children }) => {
@@ -179,7 +179,7 @@ const AppLayout: React.FC<PropsWithChildren> = ({ children }) => {
 
 
 
-                {/* ✅ GẮN CHAT WIDGET VÀO ĐÂY */}
+                {/*  GẮN CHAT WIDGET VÀO ĐÂY */}
                 <ChatWidget />
 
 

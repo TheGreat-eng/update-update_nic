@@ -14,7 +14,7 @@ FARM_ID = 1
 
 class SensorSimulator:
     def __init__(self, broker_host="localhost", broker_port=1883, username=None, password=None):
-        # ✅ SỬA 1: Khởi tạo client với API phiên bản 2
+        #  SỬA 1: Khởi tạo client với API phiên bản 2
         self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
         
         if username:
@@ -33,22 +33,22 @@ class SensorSimulator:
 
         self.start_time = time.time()
 
-        # ✅ SỬA 2: Gán các hàm callback
+        #  SỬA 2: Gán các hàm callback
         self.client.on_connect = self.on_connect
         self.client.on_disconnect = self.on_disconnect
 
     # ================= MQTT Callbacks (Cú pháp mới) =================
     
-    # ✅ SỬA 3: Cập nhật chữ ký (tham số) của hàm on_connect
+    #  SỬA 3: Cập nhật chữ ký (tham số) của hàm on_connect
     def on_connect(self, client, userdata, flags, reason_code, properties):
         if reason_code == 0:
-            print("✅ Connected to MQTT Broker!")
+            print(" Connected to MQTT Broker!")
             self.connected = True
         else:
             print(f" Failed to connect, reason code {reason_code}")
             self.connected = False
 
-    # ✅ SỬA 4: Cập nhật chữ ký của hàm on_disconnect
+    #  SỬA 4: Cập nhật chữ ký của hàm on_disconnect
     def on_disconnect(self, client, userdata, flags, reason_code, properties):
         print(f" Disconnected from MQTT Broker with reason code: {reason_code}")
         self.connected = False

@@ -24,7 +24,7 @@ public class EmailService {
             message.setSubject(subject);
             message.setText(text);
             emailSender.send(message);
-            log.info("✅ Đã gửi email thành công tới {}", to);
+            log.info(" Đã gửi email thành công tới {}", to);
         } catch (Exception e) {
             log.error(" Lỗi khi gửi email tới {}: {}", to, e.getMessage());
         }

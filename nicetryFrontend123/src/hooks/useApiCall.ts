@@ -6,7 +6,7 @@ interface UseApiCallOptions<T> {
     onError?: (error: Error) => void;
     successMessage?: string;
     errorMessage?: string;
-    showSuccessMessage?: boolean; // ✅ THÊM: Có hiển thị message thành công không
+    showSuccessMessage?: boolean; //  THÊM: Có hiển thị message thành công không
 }
 
 export const useApiCall = <T = any>(options?: UseApiCallOptions<T>) => {
@@ -20,22 +20,22 @@ export const useApiCall = <T = any>(options?: UseApiCallOptions<T>) => {
         try {
             const result = await apiCall();
             setData(result);
-            
-            // ✅ Chỉ hiển thị message thành công nếu được config
+
+            //  Chỉ hiển thị message thành công nếu được config
             if (options?.showSuccessMessage && options?.successMessage) {
                 message.success(options.successMessage);
             }
-            
+
             options?.onSuccess?.(result);
             return result;
         } catch (err) {
             const error = err as Error;
             setError(error);
-            
-            // ✅ Không hiển thị lỗi ở đây vì axios interceptor đã xử lý
+
+            //  Không hiển thị lỗi ở đây vì axios interceptor đã xử lý
             // Chỉ log để debug
             console.error('API call failed:', error);
-            
+
             options?.onError?.(error);
             throw error;
         } finally {

@@ -7,7 +7,7 @@ BROKER = "localhost"
 PORT = 1883
 DEVICE_ID = "PUMP-0001" 
 TOPIC_CONTROL = f"device/{DEVICE_ID}/control"
-TOPIC_STATUS = f"device/{DEVICE_ID}/status" # ✅ THÊM: Topic để gửi phản hồi trạng thái
+TOPIC_STATUS = f"device/{DEVICE_ID}/status" #  THÊM: Topic để gửi phản hồi trạng thái
 
 pump_state = "OFF" # Giả lập trạng thái ban đầu của máy bơm
 
@@ -16,7 +16,7 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe(TOPIC_CONTROL)
     print(f"Pump is listening on topic: {TOPIC_CONTROL}")
     
-    # ✅ THÊM: Gửi trạng thái "ONLINE" ngay khi kết nối
+    #  THÊM: Gửi trạng thái "ONLINE" ngay khi kết nối
     initial_status = {
         "deviceId": DEVICE_ID,
         "status": "ONLINE",
@@ -36,7 +36,7 @@ def on_message(client, userdata, msg):
     
     action = payload.get("action", "").lower()
     
-    # ✅ THÊM LOGIC GỬI PHẢN HỒI
+    #  THÊM LOGIC GỬI PHẢN HỒI
     feedback_payload = {
         "deviceId": DEVICE_ID,
         "status": "ONLINE", # Vì nó đang chạy nên nó online

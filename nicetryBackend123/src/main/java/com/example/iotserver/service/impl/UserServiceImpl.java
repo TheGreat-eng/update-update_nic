@@ -1,20 +1,21 @@
 package com.example.iotserver.service.impl;
 
+import java.util.Optional;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.example.iotserver.dto.request.SetPasswordRequest;
 import com.example.iotserver.dto.request.UpdateUserRequest;
 import com.example.iotserver.entity.User;
 import com.example.iotserver.exception.ResourceNotFoundException;
 import com.example.iotserver.repository.UserRepository;
 import com.example.iotserver.service.UserService;
+
 import lombok.RequiredArgsConstructor;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Service
 @RequiredArgsConstructor
@@ -72,7 +73,7 @@ public class UserServiceImpl implements UserService {
         return userRepository.save(user);
     }
 
-    // ✅ THÊM IMPLEMENTATION MỚI
+    //  THÊM IMPLEMENTATION MỚI
     @Override
     public Optional<User> findByRefreshToken(String refreshToken) {
         return userRepository.findByRefreshToken(refreshToken);

@@ -11,7 +11,7 @@ import WeatherWidget from '../components/dashboard/WeatherWidget';
 import { useFarm } from '../context/FarmContext';
 import type { ChartDataPoint } from '../types/dashboard';
 import { getDevicesByFarm } from '../api/deviceService';
-import { getZonesByFarm } from '../api/zoneService'; // ✅ IMPORT MỚI
+import { getZonesByFarm } from '../api/zoneService'; //  IMPORT MỚI
 import type { Device } from '../types/device';
 import { DashboardSkeleton } from '../components/LoadingSkeleton';
 import { getAuthToken } from '../utils/auth';

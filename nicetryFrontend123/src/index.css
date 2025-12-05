@@ -87,7 +87,7 @@ body[data-theme='dark'] {
     color: var(--foreground-dark);
 }
 
-/* ✅ THÊM: Hiệu ứng Gradient Text cho Logo */
+/*  THÊM: Hiệu ứng Gradient Text cho Logo */
 .gradient-text {
     background-image: linear-gradient(120deg, #818cf8, #c084fc);
     -webkit-background-clip: text;
@@ -133,7 +133,7 @@ body[data-theme='dark'] .login-container {
     content: '';
     position: absolute;
     inset: 0;
-    /* ✅ More dramatic gradient */
+    /*  More dramatic gradient */
     background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(99, 102, 241, 0.5) 100%);
 }
 
@@ -200,7 +200,7 @@ body[data-theme='dark'] .ant-table-thead>tr>th {
 .ant-table-tbody>tr>td {
     border-bottom: 1px solid var(--border-light) !important;
     vertical-align: middle;
-    /* ✅ Improved alignment */
+    /*  Improved alignment */
 }
 
 body[data-theme='dark'] .ant-table-tbody>tr>td {
@@ -223,7 +223,7 @@ body[data-theme='dark'] .ant-table-tbody>tr.ant-table-row:hover>td {
 .ant-card {
     border-radius: var(--radius) !important;
     border: 1px solid var(--border-light) !important;
-    /* ✅ More subtle, modern shadow */
+    /*  More subtle, modern shadow */
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
     background: var(--card-light) !important;
 }
@@ -458,7 +458,7 @@ body[data-theme='dark'] .landing-cta {
     /* Chỉ cuộn dọc phần Menu này thôi */
     overflow-x: hidden;
     padding-bottom: 60px;
-    /* ✅ QUAN TRỌNG: Khoảng trống lớn ở đáy để không bị cắt chữ */
+    /*  QUAN TRỌNG: Khoảng trống lớn ở đáy để không bị cắt chữ */
 }
 
 /* 4. Làm đẹp thanh cuộn (cho Chrome/Edge) để nó không thô */

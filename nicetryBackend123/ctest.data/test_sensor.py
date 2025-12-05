@@ -17,7 +17,7 @@ def connect_mqtt():
     print(f"Connected to MQTT Broker at {BROKER}:{PORT}")
 
 def publish_data():
-    # ✅ SỬA LẠI PAYLOAD CHO ĐÚNG CHUẨN camelCase
+    #  SỬA LẠI PAYLOAD CHO ĐÚNG CHUẨN camelCase
     payload = {
         "deviceId": DEVICE_ID,
         "sensorType": "SOIL_MOISTURE",

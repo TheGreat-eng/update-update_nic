@@ -39,7 +39,7 @@ def auto_turn_off_task(client):
 
 def on_connect(client, userdata, flags, reason_code, properties):
     if reason_code == 0:
-        print("✅ Kết nối thành công (API v2)")
+        print(" Kết nối thành công (API v2)")
         client.subscribe(f"device/{DEVICE_ID}/control")
         # Gửi trạng thái hiện tại khi vừa kết nối
         publish_status(client, pump_state, "ONLINE", "Device Connected")

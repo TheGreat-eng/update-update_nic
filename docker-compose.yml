@@ -136,7 +136,7 @@ services:
     ports:
       - "${MQTT_HOST_PORT:-1883}:1883"
       - "${MQTT_WS_HOST_PORT:-9001}:9001"
-  # ✅ SỬA LẠI VOLUMES: Chỉ mount file cấu hình, không mount cả thư mục
+  #  SỬA LẠI VOLUMES: Chỉ mount file cấu hình, không mount cả thư mục
     volumes:
       - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
       - mosquitto-data:/mosquitto/data

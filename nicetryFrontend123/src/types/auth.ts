@@ -10,11 +10,11 @@ export interface RegisterRequest {
     name?: string;
 }
 
-// ✅ SỬA: Thêm refreshToken
+//  SỬA: Thêm refreshToken
 export interface LoginResponse {
-    token?: string;          // ✅ Optional vì có thể dùng accessToken
-    accessToken?: string;    // ✅ THÊM
-    refreshToken?: string;   // ✅ THÊM
+    token?: string;          //  Optional vì có thể dùng accessToken
+    accessToken?: string;    //  THÊM
+    refreshToken?: string;   //  THÊM
     userId: number;
     email: string;
     fullName: string;
@@ -111,7 +111,7 @@ export const clearAuthData = (): void => {
     localStorage.removeItem('selectedFarmId');
     localStorage.removeItem('refreshToken');
 
-    // ✅ THÊM: Dispatch event để các component biết auth đã bị clear
+    //  THÊM: Dispatch event để các component biết auth đã bị clear
     window.dispatchEvent(new Event('storage'));
 
     sessionStorage.clear();

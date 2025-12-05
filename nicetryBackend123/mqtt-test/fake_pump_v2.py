@@ -23,7 +23,7 @@ pump_state = "OFF"
 # on_connect kiểu mới có 5 tham số
 def on_connect(client, userdata, flags, reason_code, properties):
     if reason_code == 0:
-        print("✅ Kết nối thành công (API v2)")
+        print(" Kết nối thành công (API v2)")
         client.subscribe(f"device/{DEVICE_ID}/control")
         print(f"📡 Đang lắng nghe topic: device/{DEVICE_ID}/control")
         
@@ -34,7 +34,7 @@ def on_connect(client, userdata, flags, reason_code, properties):
             "timestamp": datetime.now().isoformat()
         }
         client.publish(f"device/{DEVICE_ID}/status", json.dumps(feedback))
-        print(f"✅ Đã gửi status: ONLINE, state: {pump_state}\n")
+        print(f" Đã gửi status: ONLINE, state: {pump_state}\n")
     else:
         print(f" Kết nối thất bại, mã lỗi: {reason_code}")
 
@@ -74,7 +74,7 @@ def on_message(client, userdata, msg):
 
 
             client.publish(f"device/{DEVICE_ID}/status", json.dumps(feedback))
-            print(f"✅ Đã gửi trạng thái: MÁY BƠM ĐANG BẬT\n")
+            print(f" Đã gửi trạng thái: MÁY BƠM ĐANG BẬT\n")
             
         elif "TURN_OFF" in action or "OFF" in action:
             pump_state = "OFF"
@@ -90,7 +90,7 @@ def on_message(client, userdata, msg):
             print(f"📦 Đang gửi gói tin: {json.dumps(feedback)}") 
             # ------------------------------
             client.publish(f"device/{DEVICE_ID}/status", json.dumps(feedback))
-            print(f"✅ Đã gửi trạng thái: MÁY BƠM ĐÃ TẮT\n")
+            print(f" Đã gửi trạng thái: MÁY BƠM ĐÃ TẮT\n")
         else:
             print(f"⚠️  Lệnh không xác định: {action}\n")
             

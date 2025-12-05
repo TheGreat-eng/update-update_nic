@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Layout, Avatar, Dropdown, Space, Select, Modal, message as antdMessage, type MenuProps, Spin, Button, Tooltip } from 'antd';
-import { User, LogOut, Home, ChevronsUpDown, Sun, Moon, Leaf } from 'lucide-react'; // ✅ THÊM Leaf, SỬA icon
+import { User, LogOut, Home, ChevronsUpDown, Sun, Moon, Leaf } from 'lucide-react'; //  THÊM Leaf, SỬA icon
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useFarm } from '../context/FarmContext';
@@ -74,7 +74,7 @@ const AppHeader: React.FC = () => {
                 alignItems: 'center',
             }}
         >
-            {/* ✅ FIX: Logo container với icon thay thế và style chống vỡ chữ */}
+            {/*  FIX: Logo container với icon thay thế và style chống vỡ chữ */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }} onClick={() => navigate('/dashboard')}>
                 <div style={{
                     backgroundColor: 'var(--primary-light)',

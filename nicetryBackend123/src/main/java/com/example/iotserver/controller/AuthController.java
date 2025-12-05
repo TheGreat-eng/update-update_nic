@@ -1,5 +1,18 @@
 package com.example.iotserver.controller;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.example.iotserver.dto.request.LoginRequest;
 import com.example.iotserver.dto.request.RegisterRequest;
 import com.example.iotserver.dto.response.AuthResponse;
@@ -17,13 +30,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -57,7 +63,7 @@ public class AuthController {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setFullName(request.getFullName());
         user.setPhoneNumber(request.getPhone());
-        user.setRole(UserRole.FARMER); // ✅ FIX: Đổi thành UserRole.FARMER
+        user.setRole(UserRole.FARMER); //  FIX: Đổi thành UserRole.FARMER
 
         User savedUser = userService.save(user);
 
@@ -84,11 +90,11 @@ public class AuthController {
             throw new RuntimeException("Email hoặc mật khẩu không đúng");
         }
 
-        // ✅ Tạo access token và refresh token
+        //  Tạo access token và refresh token
         String accessToken = jwtUtil.generateToken(user.getEmail());
         String refreshToken = jwtUtil.generateRefreshToken(user.getEmail());
 
-        // ✅ Lưu refresh token vào database
+        //  Lưu refresh token vào database
         user.setRefreshToken(refreshToken);
         user.setRefreshTokenExpiry(LocalDateTime.now().plusDays(7));
         userService.save(user);
@@ -106,7 +112,7 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    // ✅ THÊM API MỚI: Làm mới access token
+    //  THÊM API MỚI: Làm mới access token
     @Operation(summary = "Làm mới access token")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Làm mới token thành công"),
@@ -150,7 +156,7 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    // ✅ THÊM API MỚI: Đăng xuất
+    //  THÊM API MỚI: Đăng xuất
     @Operation(summary = "Đăng xuất")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Đăng xuất thành công")

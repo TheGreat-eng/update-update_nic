@@ -18,7 +18,7 @@ export const DashboardSkeleton: React.FC = () => (
     </div>
 );
 
-// ✅ CẢI THIỆN TABLE SKELETON
+//  CẢI THIỆN TABLE SKELETON
 export const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 5 }) => (
     <Card>
         {/* Skeleton cho Header của bảng */}

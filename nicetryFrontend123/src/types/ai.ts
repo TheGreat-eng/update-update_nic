@@ -18,10 +18,10 @@ export interface AIPredictionResponse {
     predictions: AIPredictionPoint[];
     suggestion: AISuggestion;
     model_info: {
-        model_type: string;      // ✅ SỬA: Đổi từ model_name
-        version: string;         // ✅ THÊM
-        features_used: string;   // ✅ THÊM
-        r2_score: string;       // ✅ THÊM
-        trained_on: string;     // ✅ SỬA: Đổi từ training_date
+        model_type: string;      //  SỬA: Đổi từ model_name
+        version: string;         //  THÊM
+        features_used: string;   //  THÊM
+        r2_score: string;       //  THÊM
+        trained_on: string;     //  SỬA: Đổi từ training_date
     } | null;
 }

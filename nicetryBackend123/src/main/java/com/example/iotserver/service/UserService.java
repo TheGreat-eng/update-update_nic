@@ -1,12 +1,13 @@
 package com.example.iotserver.service;
 
-import com.example.iotserver.dto.request.SetPasswordRequest;
-import com.example.iotserver.dto.request.UpdateUserRequest;
-import com.example.iotserver.entity.User;
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import java.util.Optional;
+import com.example.iotserver.dto.request.SetPasswordRequest;
+import com.example.iotserver.dto.request.UpdateUserRequest;
+import com.example.iotserver.entity.User;
 
 public interface UserService {
 
@@ -18,7 +19,7 @@ public interface UserService {
 
     Optional<User> findById(Long id);
 
-    // ✅ THÊM PHƯƠNG THỨC MỚI
+    //  THÊM PHƯƠNG THỨC MỚI
     Optional<User> findByRefreshToken(String refreshToken);
 
     // --- CÁC PHƯƠNG THỨC MỚI CHO ADMIN ---

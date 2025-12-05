@@ -10,7 +10,7 @@ MQTT_PORT = 1883
 MQTT_USERNAME = "admin"
 MQTT_PASSWORD = "admin123"
 
-# ✅ THÊM PUMP-0001 VÀO DANH SÁCH DEVICES
+#  THÊM PUMP-0001 VÀO DANH SÁCH DEVICES
 DEVICES = {
     "TEMP-0001": {
         "type": "temperature",
@@ -32,7 +32,7 @@ DEVICES = {
         "topic": "device/LIGHT-0001/data",
         "farm_id": 1
     },
-    # ✅ THÊM MỚI: Máy bơm với soil_moisture thấp để test rule
+    #  THÊM MỚI: Máy bơm với soil_moisture thấp để test rule
     "PUMP-0001": {
         "type": "soil_moisture",  # ⬅️ Giả lập độ ẩm đất thấp
         "topic": "device/PUMP-0001/data",
@@ -42,7 +42,7 @@ DEVICES = {
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
-        print("✅ Connected to MQTT Broker!")
+        print(" Connected to MQTT Broker!")
     else:
         print(f" Failed to connect, return code {rc}")
 
@@ -50,7 +50,7 @@ def generate_sensor_data(device_id, device_info):
     """Tạo dữ liệu sensor ngẫu nhiên"""
     sensor_type = device_info["type"]
     
-    # ✅ THÊM: Giả lập PUMP-0001 có độ ẩm đất thấp (< 30%) để kích hoạt rule
+    #  THÊM: Giả lập PUMP-0001 có độ ẩm đất thấp (< 30%) để kích hoạt rule
     if device_id == "PUMP-0001":
         # Độ ẩm đất thấp để kích hoạt rule "Tưới nước tự động"
         soil_moisture = round(random.uniform(15.0, 28.0), 2)  # ⬅️ < 30%
@@ -62,7 +62,7 @@ def generate_sensor_data(device_id, device_info):
             "timestamp": int(datetime.now().timestamp() * 1000)
         }
     
-    # ✅ GIỮ NGUYÊN: Logic cũ cho các sensor khác
+    #  GIỮ NGUYÊN: Logic cũ cho các sensor khác
     if sensor_type == "temperature":
         value = round(random.uniform(20.0, 35.0), 2)
         return {
@@ -127,9 +127,9 @@ def main():
                 
                 # Log
                 if result.rc == 0:
-                    print(f"✅ [{datetime.now().strftime('%H:%M:%S')}] {device_id}: {data}")
+                    print(f" [{datetime.now().strftime('%H:%M:%S')}] {device_id}: {data}")
                     
-                    # ✅ THÊM: Highlight khi PUMP-0001 gửi dữ liệu độ ẩm thấp
+                    #  THÊM: Highlight khi PUMP-0001 gửi dữ liệu độ ẩm thấp
                     if device_id == "PUMP-0001" and data.get("soil_moisture", 100) < 30:
                         print(f"   ⚠️  Độ ẩm thấp! Rule 'Tưới nước tự động' sẽ được kích hoạt!")
                 else:
@@ -141,7 +141,7 @@ def main():
         print("\n⏹️  Stopping simulation...")
         client.loop_stop()
         client.disconnect()
-        print("✅ Disconnected from MQTT Broker")
+        print(" Disconnected from MQTT Broker")
 
 if __name__ == "__main__":
     main()

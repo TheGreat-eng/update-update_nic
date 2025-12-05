@@ -61,7 +61,7 @@ public class DeviceService {
     private final AuthenticationService authenticationService; // <<<< THÊM
     private final FarmService farmService; // <<<< THÊM
 
-    // ✅ THÊM: Inject MQTT Gateway
+    //  THÊM: Inject MQTT Gateway
     private final MqttGateway mqttGateway;
 
     // VVVV--- SỬA LẠI PHƯƠNG THỨC `createDevice` ---VVVV
@@ -184,7 +184,7 @@ public class DeviceService {
     // ^^^^------------------------------------------^^^^
 
     @Transactional
-    @CacheEvict(value = "devices", key = "#deviceId") // ✅ SỬA: Đổi thành #deviceId
+    @CacheEvict(value = "devices", key = "#deviceId") //  SỬA: Đổi thành #deviceId
     public void deleteDevice(Long deviceId) {
         Device device = deviceRepository.findById(deviceId)
                 .orElseThrow(() -> new RuntimeException("Device not found"));
@@ -225,7 +225,7 @@ public class DeviceService {
                 .collect(Collectors.toList());
     }
 
-    // ✅ SỬA: Method này để lấy devices với data dạng Map
+    //  SỬA: Method này để lấy devices với data dạng Map
     public List<DeviceDTO> getDevicesByFarmWithData(Long farmId) {
         List<Device> devices = deviceRepository.findByFarmId(farmId);
 
@@ -298,7 +298,7 @@ public class DeviceService {
         // throw new RuntimeException("Device is not controllable");
         // }
 
-        // // ✅ GỬI LỆNH QUA MQTT
+        // //  GỬI LỆNH QUA MQTT
         // String topic = String.format("device/%s/control", deviceId);
 
         // Map<String, Object> command = new HashMap<>();
@@ -310,7 +310,7 @@ public class DeviceService {
         // try {
         // mqttGateway.sendToMqtt(new ObjectMapper().writeValueAsString(command),
         // topic);
-        // log.info("✅ Đã gửi lệnh MQTT tới device {}: {} with params: {}", deviceId,
+        // log.info(" Đã gửi lệnh MQTT tới device {}: {} with params: {}", deviceId,
         // action, params);
         // } catch (Exception e) {
         // log.error(" Lỗi khi gửi lệnh MQTT: {}", e.getMessage());
@@ -340,7 +340,7 @@ public class DeviceService {
             // ObjectMapper có thể không được inject, cần chắc chắn nó có sẵn
             ObjectMapper objectMapper = new ObjectMapper();
             mqttGateway.sendToMqtt(objectMapper.writeValueAsString(command), topic);
-            log.info("✅ Đã gửi lệnh MQTT tới device {}: {} with params: {}", device.getDeviceId(), action, params);
+            log.info(" Đã gửi lệnh MQTT tới device {}: {} with params: {}", device.getDeviceId(), action, params);
         } catch (Exception e) {
             log.error(" Lỗi khi gửi lệnh MQTT: {}", e.getMessage());
             throw new RuntimeException("Failed to send control command", e);
@@ -403,7 +403,7 @@ public class DeviceService {
                 type == DeviceType.ACTUATOR_LIGHT;
     }
 
-    // ✅ THÊM: Helper method to convert SensorDataDTO to Map
+    //  THÊM: Helper method to convert SensorDataDTO to Map
     private Map<String, Object> convertSensorDataToMap(SensorDataDTO sensorData) {
         Map<String, Object> map = new HashMap<>();
 
@@ -445,7 +445,7 @@ public class DeviceService {
                 .type(device.getType().name())
                 .status(device.getStatus().name())
 
-                // ✅ QUAN TRỌNG: Thêm dòng này để trả về trạng thái ON/OFF
+                //  QUAN TRỌNG: Thêm dòng này để trả về trạng thái ON/OFF
                 .currentState(device.getCurrentState())
 
 
@@ -485,7 +485,7 @@ public class DeviceService {
         return dto;
     }
 
-    // ✅ THÊM: Helper method để map type linh hoạt
+    //  THÊM: Helper method để map type linh hoạt
     private DeviceType parseDeviceType(String typeStr) {
         // Map các tên ngắn gọn sang tên đầy đủ
         Map<String, DeviceType> typeMapping = Map.of(

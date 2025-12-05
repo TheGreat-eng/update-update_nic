@@ -2,27 +2,40 @@
 
 package com.example.iotserver.service;
 
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.example.iotserver.dto.PlantHealthDTO;
 import com.example.iotserver.dto.SensorDataDTO;
 import com.example.iotserver.dto.ZoneHealthDTO;
-import com.example.iotserver.entity.*;
+import com.example.iotserver.entity.Device;
+import com.example.iotserver.entity.Farm;
+import com.example.iotserver.entity.Notification;
+import com.example.iotserver.entity.PlantHealthAlert;
 import com.example.iotserver.entity.PlantHealthAlert.AlertType;
 import com.example.iotserver.entity.PlantHealthAlert.Severity;
+import com.example.iotserver.entity.User;
+import com.example.iotserver.entity.Zone;
 import com.example.iotserver.repository.DeviceRepository;
 import com.example.iotserver.repository.FarmRepository;
 import com.example.iotserver.repository.PlantHealthAlertRepository;
 import com.example.iotserver.repository.ZoneRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -61,7 +74,7 @@ public class PlantHealthService {
 
         if (!newAlerts.isEmpty()) {
             alertRepository.saveAll(newAlerts);
-            log.info("✅ Đã tạo {} cảnh báo mới cho Farm {}", newAlerts.size(), farmId);
+            log.info(" Đã tạo {} cảnh báo mới cho Farm {}", newAlerts.size(), farmId);
             sendNotificationsForNewHealthAlerts(device.getFarm(), newAlerts);
         }
     }
@@ -481,7 +494,7 @@ public class PlantHealthService {
         alert.setResolvedAt(LocalDateTime.now());
         alert.setResolutionNote(resolutionNote);
         alertRepository.save(alert);
-        log.info("✅ Đã đánh dấu cảnh báo {} là đã xử lý", alertId);
+        log.info(" Đã đánh dấu cảnh báo {} là đã xử lý", alertId);
     }
 
     @Transactional

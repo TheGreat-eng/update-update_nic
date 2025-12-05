@@ -20,7 +20,7 @@ class PlantHealthTester:
     def __init__(self):
         self.mqtt_client = mqtt.Client()
         self.mqtt_client.connect(MQTT_BROKER, MQTT_PORT, 60)
-        print("✅ Kết nối MQTT thành công")
+        print(" Kết nối MQTT thành công")
         
     def send_sensor_data(self, data, description):
         """Gửi dữ liệu cảm biến qua MQTT"""
@@ -81,7 +81,7 @@ class PlantHealthTester:
         
         # Kiểm tra kết quả
         if result and any(a['type'] == 'FUNGUS' for a in result['activeAlerts']):
-            print("\n✅ PASS: Phát hiện nguy cơ nấm")
+            print("\n PASS: Phát hiện nguy cơ nấm")
         else:
             print("\n FAIL: Không phát hiện nguy cơ nấm")
     
@@ -103,7 +103,7 @@ class PlantHealthTester:
         result = self.check_health()
         
         if result and any(a['type'] == 'HEAT_STRESS' for a in result['activeAlerts']):
-            print("\n✅ PASS: Phát hiện stress nhiệt")
+            print("\n PASS: Phát hiện stress nhiệt")
         else:
             print("\n FAIL: Không phát hiện stress nhiệt")
     
@@ -125,7 +125,7 @@ class PlantHealthTester:
         result = self.check_health()
         
         if result and any(a['type'] == 'DROUGHT' for a in result['activeAlerts']):
-            print("\n✅ PASS: Phát hiện thiếu nước")
+            print("\n PASS: Phát hiện thiếu nước")
         else:
             print("\n FAIL: Không phát hiện thiếu nước")
     
@@ -153,7 +153,7 @@ class PlantHealthTester:
         
         if is_night:
             if result and any(a['type'] == 'COLD' for a in result['activeAlerts']):
-                print("\n✅ PASS: Phát hiện nguy cơ lạnh (ban đêm)")
+                print("\n PASS: Phát hiện nguy cơ lạnh (ban đêm)")
             else:
                 print("\n FAIL: Không phát hiện nguy cơ lạnh")
         else:
@@ -194,7 +194,7 @@ class PlantHealthTester:
         result = self.check_health()
         
         if result and any(a['type'] == 'UNSTABLE_MOISTURE' for a in result['activeAlerts']):
-            print("\n✅ PASS: Phát hiện độ ẩm dao động")
+            print("\n PASS: Phát hiện độ ẩm dao động")
         else:
             print("\n⏭️  Có thể cần đợi lâu hơn hoặc có dữ liệu 6h trước trong DB")
     
@@ -221,7 +221,7 @@ class PlantHealthTester:
         
         if is_daytime:
             if result and any(a['type'] == 'LOW_LIGHT' for a in result['activeAlerts']):
-                print("\n✅ PASS: Phát hiện thiếu ánh sáng (ban ngày)")
+                print("\n PASS: Phát hiện thiếu ánh sáng (ban ngày)")
             else:
                 print("\n FAIL: Không phát hiện thiếu ánh sáng")
         else:
@@ -246,7 +246,7 @@ class PlantHealthTester:
         result = self.check_health()
         
         if result and any(a['type'] == 'PH_ABNORMAL' for a in result['activeAlerts']):
-            print("\n✅ PASS: Phát hiện pH bất thường")
+            print("\n PASS: Phát hiện pH bất thường")
         else:
             print("\n FAIL: Không phát hiện pH bất thường")
     
@@ -276,7 +276,7 @@ class PlantHealthTester:
             print(f"   - Trạng thái: {result['status']}")
             
             if alert_count >= 3 and result['healthScore'] < 50:
-                print("\n✅ PASS: Phát hiện nhiều vấn đề, điểm sức khỏe thấp")
+                print("\n PASS: Phát hiện nhiều vấn đề, điểm sức khỏe thấp")
             else:
                 print("\n⚠️  Kết quả không như mong đợi")
     
@@ -305,7 +305,7 @@ class PlantHealthTester:
                 print(f"\n Lỗi test {i}: {e}")
         
         print("\n" + "="*60)
-        print("✅ HOÀN THÀNH TẤT CẢ TEST CASES")
+        print(" HOÀN THÀNH TẤT CẢ TEST CASES")
         print("="*60)
         
         # Tổng kết

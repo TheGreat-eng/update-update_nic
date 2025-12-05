@@ -18,7 +18,7 @@ interface WeatherData {
 }
 
 const WeatherWidget: React.FC = () => {
-    const { farmId } = useFarm(); // ✅ Dùng Context
+    const { farmId } = useFarm(); //  Dùng Context
     const [weather, setWeather] = useState<WeatherData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);

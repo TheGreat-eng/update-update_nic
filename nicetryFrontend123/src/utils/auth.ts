@@ -3,7 +3,7 @@ import { jwtDecode } from 'jwt-decode';
 interface DecodedToken {
     exp: number;
     sub: string; // Email từ JWT
-    userId?: number; // ✅ THÊM: userId riêng biệt
+    userId?: number; //  THÊM: userId riêng biệt
     fullName?: string;
     name?: string;
     roles?: string[];
@@ -81,9 +81,9 @@ export const clearAuthData = (): void => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('selectedFarmId');
-    localStorage.removeItem('refreshToken'); // ✅ THÊM nếu dùng
+    localStorage.removeItem('refreshToken'); //  THÊM nếu dùng
 
-    // ✅ THÊM: Dispatch event để các component biết auth đã bị clear
+    //  THÊM: Dispatch event để các component biết auth đã bị clear
     window.dispatchEvent(new Event('storage'));
 
     sessionStorage.clear();
@@ -95,7 +95,7 @@ export const clearAuthData = (): void => {
 export const setAuthData = (token: string, user: any): void => {
     localStorage.setItem('token', token);
 
-    // ✅ CHỈ lưu nếu user không phải undefined/null
+    //  CHỈ lưu nếu user không phải undefined/null
     if (user && typeof user === 'object') {
         localStorage.setItem('user', JSON.stringify(user));
     } else {
@@ -120,7 +120,7 @@ export const getUserFromStorage = (): any | null => {
 
         const user = JSON.parse(userStr);
 
-        // ✅ THÊM: Validate user object
+        //  THÊM: Validate user object
         if (!user || typeof user !== 'object' || !user.email) {
             console.warn('⚠️ Invalid user data in localStorage');
             localStorage.removeItem('user');

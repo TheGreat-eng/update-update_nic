@@ -1,12 +1,18 @@
 package com.example.iotserver.controller;
 
-import com.example.iotserver.dto.SensorDataDTO;
-import com.example.iotserver.service.WebSocketService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.iotserver.dto.SensorDataDTO;
+import com.example.iotserver.service.WebSocketService;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/test")
@@ -44,7 +50,7 @@ public class WebSocketTestController {
         webSocketService.sendSensorData(farmId, sensorDataDTO);
 
         return Map.of(
-                "status", "✅ Message sent successfully",
+                "status", " Message sent successfully",
                 "topic", "/topic/farm/" + farmId + "/sensor-data",
                 "data", testData,
                 "instruction", "Open HTML test file or browser console to receive this message");
@@ -71,7 +77,7 @@ public class WebSocketTestController {
         webSocketService.sendAlert(farmId, alert);
 
         return Map.of(
-                "status", "✅ Alert sent successfully",
+                "status", " Alert sent successfully",
                 "topic", "/topic/farm/" + farmId + "/alerts",
                 "alert", alert);
     }
@@ -89,7 +95,7 @@ public class WebSocketTestController {
         webSocketService.sendDeviceStatus(farmId, deviceId, status);
 
         return Map.of(
-                "status", "✅ Device status sent successfully",
+                "status", " Device status sent successfully",
                 "topic", "/topic/farm/" + farmId + "/device-status",
                 "deviceId", deviceId,
                 "deviceStatus", status);
@@ -106,7 +112,7 @@ public class WebSocketTestController {
         webSocketService.broadcastNotification(message);
 
         return Map.of(
-                "status", "✅ Broadcast sent successfully",
+                "status", " Broadcast sent successfully",
                 "topic", "/topic/notifications",
                 "message", message,
                 "timestamp", LocalDateTime.now().toString());
@@ -145,7 +151,7 @@ public class WebSocketTestController {
         }
 
         return Map.of(
-                "status", "✅ Sent " + count + " messages",
+                "status", " Sent " + count + " messages",
                 "topic", "/topic/farm/" + farmId + "/sensor-data",
                 "count", count);
     }
@@ -157,7 +163,7 @@ public class WebSocketTestController {
     @GetMapping("/ws/health")
     public Map<String, Object> healthCheck() {
         return Map.of(
-                "status", "✅ WebSocket Test API is running",
+                "status", " WebSocket Test API is running",
                 "endpoints", Map.of(
                         "sensor", "/api/test/ws/sensor?farmId=1",
                         "alert", "/api/test/ws/alert?farmId=1",

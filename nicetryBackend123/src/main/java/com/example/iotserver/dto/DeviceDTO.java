@@ -1,17 +1,17 @@
 package com.example.iotserver.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
+import java.io.Serializable;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Map;
 
-import java.io.Serializable; // <-- THÊM IMPORT NÀY
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor; // <-- THÊM IMPORT NÀY
 
 @Data
 @Builder
@@ -46,7 +46,7 @@ public class DeviceDTO implements Serializable {
     // VVVV--- THÊM TRƯỜG MỚI NÀY ---VVVV
     private String currentState;
 
-    // ✅ GIỮ CẢ 2 - Cho linh hoạt
+    //  GIỮ CẢ 2 - Cho linh hoạt
     private SensorDataDTO latestSensorData; // Latest sensor data object
     private Map<String, Object> latestData; // Latest data as map (for backward compatibility)
 

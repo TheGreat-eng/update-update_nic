@@ -24,7 +24,7 @@ export const FarmProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         localStorage.removeItem('selectedFarmId');
     };
 
-    // ✅ THÊM: Listener để reset khi token bị xóa
+    //  THÊM: Listener để reset khi token bị xóa
     useEffect(() => {
         const checkAuth = () => {
             if (!isAuthenticated()) {
@@ -63,7 +63,7 @@ export const FarmProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
                     if (Array.isArray(farmList) && farmList.length > 0) {
                         setFarmId(farmList[0].id);
-                        console.log('✅ Auto-selected farm:', farmList[0].id);
+                        console.log(' Auto-selected farm:', farmList[0].id);
                     } else {
                         console.warn('⚠️ No farms available');
                     }
@@ -73,7 +73,7 @@ export const FarmProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     setIsLoadingFarm(false);
                 }
             } else {
-                console.log('✅ Using saved farmId:', farmId);
+                console.log(' Using saved farmId:', farmId);
                 setIsLoadingFarm(false);
             }
         };

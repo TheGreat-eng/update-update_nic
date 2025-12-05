@@ -134,7 +134,7 @@ public class AIService {
             AIPredictionResponse response = restTemplate.postForObject(
                     predictionUrl, requestBody, AIPredictionResponse.class);
 
-            log.info("✅ Nhận được phản hồi từ AI Service");
+            log.info(" Nhận được phản hồi từ AI Service");
             return response;
 
         } catch (Exception e) {
@@ -162,7 +162,7 @@ public class AIService {
 
             log.info("Đang gửi ảnh tới AI Service để chẩn đoán: {}", diagnoseUrl);
             Map<String, Object> response = restTemplate.postForObject(diagnoseUrl, requestEntity, Map.class);
-            log.info("✅ Nhận được kết quả chẩn đoán từ AI Service");
+            log.info(" Nhận được kết quả chẩn đoán từ AI Service");
             return response;
 
         } catch (IOException e) {

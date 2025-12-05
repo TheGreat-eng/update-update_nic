@@ -1,10 +1,12 @@
 package com.example.iotserver.scheduler;
 
-import com.example.iotserver.service.RuleEngineService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
+import com.example.iotserver.service.RuleEngineService;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
@@ -38,6 +40,6 @@ public class RuleScheduler {
 
         // TODO: Triển khai logic xóa log cũ hơn 30 ngày
 
-        log.info("✅ Hoàn thành dọn dẹp log");
+        log.info(" Hoàn thành dọn dẹp log");
     }
 }

@@ -1,7 +1,7 @@
 package com.example.iotserver.service;
 
 import java.util.HashMap;
-import java.util.List; // ✅ Import DTO sức khỏe
+import java.util.List; //  Import DTO sức khỏe
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,7 +28,7 @@ public class ChatService {
 
     private final DeviceService deviceService;
     private final SensorDataService sensorDataService;
-    private final PlantHealthService plantHealthService; // ✅ Inject thêm Service này
+    private final PlantHealthService plantHealthService; //  Inject thêm Service này
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper;
 
@@ -43,7 +43,7 @@ public class ChatService {
         List<DeviceDTO> devices = deviceService.getDevicesByFarm(farmId);
         SensorDataDTO latestData = sensorDataService.getLatestSensorDataForFarmDevices(farmId);
         
-        // ✅ LẤY DỮ LIỆU SỨC KHỎE CÂY TRỒNG
+        //  LẤY DỮ LIỆU SỨC KHỎE CÂY TRỒNG
         PlantHealthDTO healthData = null;
         try {
             healthData = plantHealthService.getHealthStatus(farmId);
@@ -137,13 +137,13 @@ public class ChatService {
                     int duration = json.has("duration") ? json.get("duration").asInt() : 0;
                     String reply = json.get("reply").asText();
 
-                    // ✅ XỬ LÝ LỖI (TRY-CATCH)
+                    //  XỬ LÝ LỖI (TRY-CATCH)
                     try {
                         Map<String, Object> params = new HashMap<>();
                         if (duration > 0) params.put("duration", duration);
                         
                         deviceService.internalControlDevice(deviceId, command, params);
-                        return reply + " ✅";
+                        return reply + " ";
                         
                     } catch (Exception e) {
                         log.error("Lỗi điều khiển thiết bị từ Chatbot: {}", e.getMessage());

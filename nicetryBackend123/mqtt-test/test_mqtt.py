@@ -81,7 +81,7 @@ def run_test(scenario):
     try:
         client = mqtt.Client(callback_api_version=mqtt.CallbackAPIVersion.VERSION1)
         client.connect(BROKER, PORT, 60)
-        print(f"✅ Đã kết nối tới MQTT Broker: {BROKER}:{PORT}")
+        print(f" Đã kết nối tới MQTT Broker: {BROKER}:{PORT}")
 
         client.loop_start()
         time.sleep(1)
@@ -93,7 +93,7 @@ def run_test(scenario):
         time.sleep(1)
         client.loop_stop()
         client.disconnect()
-        print("✅ Đã gửi tin nhắn và ngắt kết nối.")
+        print(" Đã gửi tin nhắn và ngắt kết nối.")
         print("--------------------------------------------------")
 
     except Exception as e:

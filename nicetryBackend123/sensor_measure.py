@@ -11,7 +11,7 @@ import paho.mqtt.client as mqtt
 
 class SensorSimulator:
     def __init__(self, broker_host="localhost", broker_port=1883, username=None, password=None):
-        # ✅ Initialize client with version 2 API
+        #  Initialize client with version 2 API
         self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
         
         if username:
@@ -140,7 +140,7 @@ class SensorSimulator:
                 time.sleep(0.1)
             self.client.loop_stop()
             self.client.disconnect()
-            print("✅ Stopped.")
+            print(" Stopped.")
 
     # =============== Simulation Functions ===============
     

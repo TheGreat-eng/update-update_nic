@@ -214,7 +214,7 @@ public class DeviceController {
             List<SensorDataDTO> data = sensorDataService.getAggregatedData(
                     deviceId, field, aggregation, window);
 
-            // ✅ THÊM: Kiểm tra dữ liệu rỗng
+            //  THÊM: Kiểm tra dữ liệu rỗng
             if (data.isEmpty()) {
                 return ResponseEntity.ok(ApiResponse.success(
                         "Không có dữ liệu trong 7 ngày qua",

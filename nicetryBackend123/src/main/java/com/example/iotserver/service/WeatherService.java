@@ -137,7 +137,7 @@ public class WeatherService {
             }
         }
 
-        log.info("✅ Hoàn thành cập nhật thời tiết: {} thành công, {} lỗi",
+        log.info(" Hoàn thành cập nhật thời tiết: {} thành công, {} lỗi",
                 successCount, failCount);
     }
 
@@ -169,7 +169,7 @@ public class WeatherService {
                     .build();
 
             Weather saved = weatherRepository.save(weather);
-            log.info("✅ Đã cập nhật thời tiết cho farm {}: {} - {}°C",
+            log.info(" Đã cập nhật thời tiết cho farm {}: {} - {}°C",
                     farm.getId(), weather.getDescription(), weather.getTemperature());
 
             return saved;

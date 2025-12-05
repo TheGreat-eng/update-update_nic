@@ -77,7 +77,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                                     SecurityContextHolder.getContext().setAuthentication(authentication);
                                     
                                     isAuthenticated = true;
-                                    log.info("✅ [WS Security] Xác thực thành công cho user: {}", email);
+                                    log.info(" [WS Security] Xác thực thành công cho user: {}", email);
                                 }
                             }
                         } catch (Exception e) {

@@ -96,7 +96,7 @@ const CreateRulePage: React.FC = () => {
             enabled: true,
         };
         try {
-            await createRule(farmId, newRule); // ✅ SỬA: Dùng farmId từ Context
+            await createRule(farmId, newRule); //  SỬA: Dùng farmId từ Context
             message.success('Tạo quy tắc thành công!');
             navigate('/rules');
         } catch (error) {

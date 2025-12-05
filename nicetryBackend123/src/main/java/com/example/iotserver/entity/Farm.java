@@ -1,14 +1,28 @@
 package com.example.iotserver.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "farms")
@@ -28,18 +42,18 @@ public class Farm {
     private String location;
     private Double area;
 
-    // ✅ Child side - Không serialize khi trả về JSON
+    //  Child side - Không serialize khi trả về JSON
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)
     @JsonBackReference
     private User owner;
 
-    // ✅ Parent side cho Zones
+    //  Parent side cho Zones
     @OneToMany(mappedBy = "farm", cascade = CascadeType.ALL)
     @JsonManagedReference("farm-zones")
     private List<Zone> zones = new ArrayList<>();
 
-    // ✅ Parent side cho Rules
+    //  Parent side cho Rules
     @OneToMany(mappedBy = "farm", cascade = CascadeType.ALL)
     @JsonManagedReference("farm-rules")
     private List<Rule> rules = new ArrayList<>();

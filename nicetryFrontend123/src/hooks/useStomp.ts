@@ -42,7 +42,7 @@ export const useStomp = (
         let cleanupFunction: (() => void) | StompSubscription | void;
 
         client.onConnect = () => {
-            console.log(`✅ STOMP: Connected for ${type} ${topicId}.`);
+            console.log(` STOMP: Connected for ${type} ${topicId}.`);
             if (callbacks?.onConnect) {
                 cleanupFunction = callbacks.onConnect(client);
             }

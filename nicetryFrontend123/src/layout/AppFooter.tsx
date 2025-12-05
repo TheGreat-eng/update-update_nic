@@ -2,19 +2,19 @@ import React from 'react';
 import { Layout, Row, Col, Typography, Space, Divider } from 'antd';
 import { GithubOutlined, MailOutlined, TwitterOutlined } from '@ant-design/icons';
 import { Leaf } from 'lucide-react';
-import { useTheme } from '../context/ThemeContext'; // ✅ BƯỚC 1: Import hook useTheme
+import { useTheme } from '../context/ThemeContext'; //  BƯỚC 1: Import hook useTheme
 
 const { Footer } = Layout;
 const { Title, Text, Link } = Typography;
 
 const AppFooter: React.FC = () => {
-    const { isDark } = useTheme(); // ✅ BƯỚC 2: Lấy trạng thái theme hiện tại
+    const { isDark } = useTheme(); //  BƯỚC 2: Lấy trạng thái theme hiện tại
     const currentYear = new Date().getFullYear();
 
     return (
         <Footer
             style={{
-                // ✅ BƯỚC 3: Sửa style để "động" theo theme
+                //  BƯỚC 3: Sửa style để "động" theo theme
                 background: isDark ? 'var(--card-dark)' : 'var(--card-light)',
                 padding: '48px 24px',
                 borderTop: `1px solid ${isDark ? 'var(--border-dark)' : 'var(--border-light)'}`,
@@ -27,7 +27,7 @@ const AppFooter: React.FC = () => {
                         <Space direction="vertical" size="middle">
                             <Space align="center" size="small">
                                 <div style={{
-                                    // ✅ FIX: Sửa màu nền logo theo theme
+                                    //  FIX: Sửa màu nền logo theo theme
                                     backgroundColor: isDark ? 'var(--primary-dark)' : 'var(--primary-light)',
                                     borderRadius: '8px',
                                     padding: '6px',
@@ -47,7 +47,7 @@ const AppFooter: React.FC = () => {
 
                     {/* Column 2: Quick Links */}
                     <Col xs={12} sm={12} md={5}>
-                        {/* ✅ FIX: Sửa màu chữ tiêu đề theo theme */}
+                        {/*  FIX: Sửa màu chữ tiêu đề theo theme */}
                         <Title level={5} style={{ color: isDark ? 'var(--muted-foreground-dark)' : 'var(--muted-foreground-light)' }}>LIÊN KẾT NHANH</Title>
                         <Space direction="vertical" size="small">
                             <Link href="/dashboard">Dashboard</Link>
@@ -59,7 +59,7 @@ const AppFooter: React.FC = () => {
 
                     {/* Column 3: Contact */}
                     <Col xs={12} sm={12} md={5}>
-                        {/* ✅ FIX: Sửa màu chữ tiêu đề theo theme */}
+                        {/*  FIX: Sửa màu chữ tiêu đề theo theme */}
                         <Title level={5} style={{ color: isDark ? 'var(--muted-foreground-dark)' : 'var(--muted-foreground-light)' }}>KẾT NỐI</Title>
                         <Space direction="vertical" size="small">
                             <Link href="mailto:support@smartfarm.com" target="_blank"><MailOutlined /> Email</Link>

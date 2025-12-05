@@ -31,7 +31,7 @@ public class PlantHealthScheduler {
             int daysToKeep = 30;
             plantHealthService.cleanupOldAlerts(daysToKeep);
 
-            log.info("✅ [Scheduler] Hoàn thành dọn dẹp cảnh báo cũ hơn {} ngày", daysToKeep);
+            log.info(" [Scheduler] Hoàn thành dọn dẹp cảnh báo cũ hơn {} ngày", daysToKeep);
 
         } catch (Exception e) {
             log.error(" [Scheduler] Lỗi khi dọn dẹp cảnh báo: {}", e.getMessage(), e);

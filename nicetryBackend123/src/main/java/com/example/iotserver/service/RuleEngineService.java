@@ -151,7 +151,7 @@ public class RuleEngineService {
             // Bước 2: Nếu điều kiện đúng → Thực hiện hành động
             if (allConditionsMet) {
                 
-                log.info("✅ Quy tắc '{}' - Điều kiện ĐÃ THỎA MÃN", rule.getName());
+                log.info(" Quy tắc '{}' - Điều kiện ĐÃ THỎA MÃN", rule.getName());
 
                 // [FIX 4 & 3]: Truyền danh sách device đã lock xuống để kiểm tra trước khi action
                 List<String> performedActions = performActions(rule, devicesControlledInThisCycle);
@@ -274,7 +274,7 @@ public class RuleEngineService {
                 return false;
             }
 
-            // ✅ THÊM: Kiểm tra dữ liệu có tồn tại không
+            //  THÊM: Kiểm tra dữ liệu có tồn tại không
             if (!sensorDataService.hasRecentData(deviceId, 24)) {
                 log.warn(" [Rule Check] Không có dữ liệu 24h gần nhất cho device: {}", deviceId);
                 return false;
@@ -448,7 +448,7 @@ public class RuleEngineService {
 
         String normalizedField = field.toLowerCase().replace("_", "");
 
-        // ✅ So sánh với các chuỗi đã chuẩn hóa
+        //  So sánh với các chuỗi đã chuẩn hóa
         switch (normalizedField) {
             case "temperature":
                 return data.getTemperature();

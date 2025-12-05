@@ -1,16 +1,29 @@
 package com.example.iotserver.entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.example.iotserver.enums.UserRole;
 import org.hibernate.annotations.SQLRestriction;
+
+import com.example.iotserver.enums.UserRole;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "users")
@@ -47,7 +60,7 @@ public class User {
     @Column(nullable = false)
     private Boolean deleted = false;
 
-    // ✅ THÊM CÁC TRƯỜNG MỚI CHO REFRESH TOKEN
+    //  THÊM CÁC TRƯỜNG MỚI CHO REFRESH TOKEN
     @Column(name = "refresh_token", unique = true, length = 500)
     private String refreshToken;
 
@@ -55,7 +68,7 @@ public class User {
     private LocalDateTime refreshTokenExpiry;
 
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL)
-    @JsonManagedReference // ✅ Parent side
+    @JsonManagedReference //  Parent side
     private List<Farm> farms = new ArrayList<>();
 
     @Column(name = "created_at", updatable = false)

@@ -3,12 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Spin, Typography, List, Empty, Avatar } from 'antd';
 import api from '../../api/axiosConfig';
-import { useFarm } from '../../context/FarmContext'; // ✅ THÊM
+import { useFarm } from '../../context/FarmContext'; //  THÊM
 
 const { Text } = Typography;
 
 const WeatherWidget: React.FC = () => {
-    const { farmId } = useFarm(); // ✅ SỬA: Lấy từ Context
+    const { farmId } = useFarm(); //  SỬA: Lấy từ Context
     const [weatherData, setWeatherData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
@@ -31,7 +31,7 @@ const WeatherWidget: React.FC = () => {
 
         return () => clearInterval(interval);
 
-    }, [farmId]); // ✅ THÊM dependency
+    }, [farmId]); //  THÊM dependency
 
     if (loading) {
         return (

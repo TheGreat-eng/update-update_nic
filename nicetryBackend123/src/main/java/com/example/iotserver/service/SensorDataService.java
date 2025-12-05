@@ -83,13 +83,13 @@ public class SensorDataService {
 
     /**
      * Get latest sensor data for a device by pivoting fields into a single record.
-     * ✅ SỬA: Tăng range lên 24h để đảm bảo có dữ liệu
+     *  SỬA: Tăng range lên 24h để đảm bảo có dữ liệu
      */
     public SensorDataDTO getLatestSensorData(String deviceId) {
         try {
             log.info("🔍 [InfluxDB] Getting latest data for device: {}", deviceId);
 
-            // ✅ SỬA ĐỔI QUERY: Thêm pivot() để gộp các fields lại thành một hàng duy nhất
+            //  SỬA ĐỔI QUERY: Thêm pivot() để gộp các fields lại thành một hàng duy nhất
             String query = String.format(
                     "from(bucket: \"%s\")\n" +
                             "  |> range(start: -30d)\n" +
@@ -126,7 +126,7 @@ public class SensorDataService {
                     .soilPH(getDoubleValue(values, "soilPH"))
                     .build();
 
-            log.info("✅ [InfluxDB] Successfully retrieved latest data for {}: {}", deviceId, sensorData);
+            log.info(" [InfluxDB] Successfully retrieved latest data for {}: {}", deviceId, sensorData);
             return sensorData;
 
         } catch (Exception e) {
@@ -135,7 +135,7 @@ public class SensorDataService {
         }
     }
 
-    // ✅ THÊM HELPER METHOD NÀY: Lấy giá trị Double từ map một cách an toàn
+    //  THÊM HELPER METHOD NÀY: Lấy giá trị Double từ map một cách an toàn
     private Double getDoubleValue(Map<String, Object> map, String key) {
         Object value = map.get(key);
         if (value instanceof Number) {
@@ -190,20 +190,20 @@ public class SensorDataService {
 
         List<Map<String, Object>> rawDataList = executeQueryList(flux);
 
-        // ✅ THÊM: Log debug
+        //  THÊM: Log debug
         log.info("🔍 [Aggregated Query] Device: {}, Field: {}, Window: {}, Results: {}",
                 deviceId, field, window, rawDataList.size());
 
         if (rawDataList.isEmpty()) {
             log.warn("⚠️ Không có dữ liệu aggregated cho device: {}, field: {}", deviceId, field);
-            return Collections.emptyList(); // ✅ Trả về list rỗng thay vì lỗi
+            return Collections.emptyList(); //  Trả về list rỗng thay vì lỗi
         }
 
         return rawDataList.stream()
                 .map(data -> {
                     SensorDataDTO dto = SensorDataDTO.fromInfluxRecord(data);
 
-                    // ✅ SỬA: Xử lý null
+                    //  SỬA: Xử lý null
                     Object valueObj = data.get("_value");
                     if (valueObj != null) {
                         if (valueObj instanceof Number) {
@@ -215,7 +215,7 @@ public class SensorDataService {
 
                     return dto;
                 })
-                .filter(dto -> dto.getAvgValue() != null) // ✅ Lọc bỏ các record null
+                .filter(dto -> dto.getAvgValue() != null) //  Lọc bỏ các record null
                 .collect(Collectors.toList());
     }
 
@@ -266,11 +266,11 @@ public class SensorDataService {
             QueryApi queryApi = influxDBClient.getQueryApi();
             List<FluxTable> tables = queryApi.query(flux, influxDBConfig.getOrg());
 
-            // ✅ THÊM: Log debug
+            //  THÊM: Log debug
             log.debug("🔍 [InfluxDB] Query executed, tables count: {}", tables.size());
 
             if (tables.isEmpty()) {
-                return Collections.emptyList(); // ✅ Trả về list rỗng
+                return Collections.emptyList(); //  Trả về list rỗng
             }
 
             List<Map<String, Object>> results = new ArrayList<>();
@@ -278,7 +278,7 @@ public class SensorDataService {
                 for (FluxRecord record : table.getRecords()) {
                     Map<String, Object> data = new HashMap<>();
 
-                    // ✅ SỬA: Xử lý null an toàn
+                    //  SỬA: Xử lý null an toàn
                     Object value = record.getValue();
                     if (value != null) {
                         data.put("_value", value);
@@ -299,7 +299,7 @@ public class SensorDataService {
 
         } catch (Exception e) {
             log.error(" [InfluxDB] Lỗi query: {}", e.getMessage(), e);
-            return Collections.emptyList(); // ✅ Trả về list rỗng thay vì throw exception
+            return Collections.emptyList(); //  Trả về list rỗng thay vì throw exception
         }
     }
 
@@ -366,7 +366,7 @@ public class SensorDataService {
                 }
             }
 
-            log.info("✅ [InfluxDB] Lấy dữ liệu thành công cho farmId: {}", farmId);
+            log.info(" [InfluxDB] Lấy dữ liệu thành công cho farmId: {}", farmId);
             return data;
 
         } catch (Exception e) {
@@ -432,7 +432,7 @@ public class SensorDataService {
                 }
             }
 
-            log.info("✅ [InfluxDB] Lấy dữ liệu thành công cho farmId: {}", farmId);
+            log.info(" [InfluxDB] Lấy dữ liệu thành công cho farmId: {}", farmId);
             return data;
 
         } catch (Exception e) {
@@ -578,7 +578,7 @@ public class SensorDataService {
             }
 
             SensorDataDTO finalDto = dtoBuilder.build();
-            log.info("✅ [InfluxDB] Đã xử lý thành công dữ liệu thô thành DTO: {}", finalDto);
+            log.info(" [InfluxDB] Đã xử lý thành công dữ liệu thô thành DTO: {}", finalDto);
             return finalDto;
 
         } catch (Exception e) {
@@ -836,7 +836,7 @@ public class SensorDataService {
                     resultMap.put(deviceId, dto);
                 }
             }
-            log.info("✅ [Batch Query] Đã lấy dữ liệu cho {} thiết bị trong 1 lần gọi.", resultMap.size());
+            log.info(" [Batch Query] Đã lấy dữ liệu cho {} thiết bị trong 1 lần gọi.", resultMap.size());
             return resultMap;
 
         } catch (Exception e) {

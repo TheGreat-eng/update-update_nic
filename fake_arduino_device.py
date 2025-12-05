@@ -102,7 +102,7 @@ def setup():
             "timestamp": str(int(time.time()*1000))
         })
         client.publish(TOPIC_STATUS, online_payload, retain=True)
-        print("✅ Đã kết nối & Báo trạng thái ONLINE")
+        print(" Đã kết nối & Báo trạng thái ONLINE")
         
     except Exception as e:
         print(f" Không thể kết nối MQTT: {e}")
@@ -158,4 +158,4 @@ if __name__ == "__main__":
         
         client.disconnect()
         client.loop_stop()
-        print("✅ Đã gửi trạng thái OFFLINE và ngắt kết nối.")
+        print(" Đã gửi trạng thái OFFLINE và ngắt kết nối.")

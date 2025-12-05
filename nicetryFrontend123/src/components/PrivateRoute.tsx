@@ -9,7 +9,7 @@ interface PrivateRouteProps {
 const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
     const location = useLocation();
 
-    // ✅ Log để debug
+    //  Log để debug
     useEffect(() => {
         console.log('🔍 PrivateRoute check:', {
             path: location.pathname,
@@ -23,7 +23,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
-    console.log('✅ Authenticated, rendering children');
+    console.log(' Authenticated, rendering children');
     return children;
 };
 
