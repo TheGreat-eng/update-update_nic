@@ -45,27 +45,48 @@ const DevicesPage: React.FC = () => {
     const [searchText, setSearchText] = useState('');
     const debouncedSearchText = useDebounce(searchText, 300);
 
-    const { data: farms } = useQuery({
+    // [FIX 1]: Đảm bảo farms luôn là mảng, kể cả khi API trả về null
+    const { data: farms = [] } = useQuery({
         queryKey: ['farms'],
-        queryFn: () => getFarms().then(res => res.data.data),
+        queryFn: async () => {
+            const res = await getFarms();
+            const data = res.data.data;
+            // Kiểm tra kỹ: nếu không phải mảng thì trả về mảng rỗng
+            return Array.isArray(data) ? data : [];
+        },
     });
+
+
+
     const canManage = useMemo(() => {
         if (!farmId || !farms) return false;
+        // Bây giờ farms luôn là mảng, hàm .find sẽ không bao giờ lỗi
         const currentFarm = farms.find(f => f.id === farmId);
         return currentFarm?.currentUserRole === 'OWNER' || currentFarm?.currentUserRole === 'OPERATOR';
     }, [farmId, farms]);
 
+    // [FIX 2]: Đảm bảo devices luôn là mảng
     const { data: devices = [], isLoading: isLoadingDevices, isFetching: isFetchingDevices } = useQuery({
         queryKey: ['devices', farmId],
-        queryFn: () => getDevicesByFarm(farmId!).then(res => res.data.data || []),
+        queryFn: async () => {
+            const res = await getDevicesByFarm(farmId!);
+            const data = res.data.data;
+            return Array.isArray(data) ? data : [];
+        },
         enabled: !!farmId,
+        // Thêm initialData để tránh undefined lúc mới mount
+        initialData: [],
     });
 
-    // VVVV--- XÓA BIẾN 'refetchUnclaimed' không dùng đến ---VVVV
+    // [FIX 3]: Đảm bảo unclaimedDevices luôn là mảng
     const { data: unclaimedDevices = [] } = useQuery({
         queryKey: ['unclaimedDevices'],
-        queryFn: getUnclaimedDevices,
+        queryFn: async () => {
+            const data = await getUnclaimedDevices(); // Hàm này bạn đã viết trả về res.data.data
+            return Array.isArray(data) ? data : [];
+        },
         enabled: canManage,
+        initialData: [],
     });
     // ^^^^------------------------------------------------^^^^
 
