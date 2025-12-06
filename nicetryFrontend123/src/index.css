@@ -595,3 +595,90 @@ body[data-theme='dark'] .landing-cta {
         /* Đảm bảo 2 cột stats không bị dính */
     }
 }
+
+
+/* src/index.css */
+
+/* ... (GIỮ NGUYÊN CODE CŨ Ở TRÊN) ... */
+
+/* ==========================================================================
+   MOBILE FIXES (SỬA LỖI VỠ GIAO DIỆN)
+   ========================================================================== */
+
+@media (max-width: 992px) {
+
+    /* 1. Sửa lỗi Sidebar đè nội dung (Lỗi chữ dọc ở Dashboard/Devices) */
+    .ant-layout-sider {
+        display: none !important;
+        /* Ẩn cứng Sidebar trên mobile */
+    }
+
+    .ant-layout {
+        margin-left: 0 !important;
+        /* Reset lề trái về 0 */
+        width: 100% !important;
+    }
+
+    .ant-layout-content {
+        padding: 12px !important;
+        margin: 0 !important;
+        /* Bỏ margin thừa */
+        width: 100%;
+        overflow-x: hidden;
+        /* Tránh thanh cuộn ngang trang */
+    }
+
+    /* 2. Sửa lỗi chữ bị ép dọc trong List (Trang Plant Health) */
+    .ant-list-item {
+        flex-direction: column !important;
+        /* Xếp dọc item */
+        align-items: flex-start !important;
+    }
+
+    .ant-list-item-meta {
+        width: 100% !important;
+        margin-bottom: 12px !important;
+    }
+
+    .ant-list-item-meta-content {
+        width: 100% !important;
+    }
+
+    .ant-list-item-meta-title,
+    .ant-list-item-meta-description {
+        white-space: normal !important;
+        /* Cho phép xuống dòng tự nhiên */
+        word-break: break-word !important;
+        /* Ngắt từ nếu quá dài */
+    }
+
+    /* Căn chỉnh lại cụm nút bấm bên dưới */
+    .ant-list-item-action {
+        margin-left: 0 !important;
+        width: 100%;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .ant-list-item-action>li {
+        padding: 0 !important;
+    }
+}
+
+/* 3. Sửa lỗi Header bị tràn */
+@media (max-width: 576px) {
+    .ant-layout-header {
+        padding: 0 12px !important;
+        height: auto !important;
+        min-height: 64px;
+        flex-wrap: wrap;
+        /* Cho phép header xuống dòng nếu cần */
+        gap: 8px;
+    }
+
+    /* Ẩn bớt các element thừa trong header nếu quá chật */
+    .ant-layout-header .ant-select {
+        max-width: 120px !important;
+    }
+}
