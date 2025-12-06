@@ -487,8 +487,43 @@ const DashboardPage: React.FC = () => {
                 .sf-page-header { display:flex; align-items:center; justify-content:space-between; }
                 .sf-header-cta { display:flex; gap: 8px; }
                 .sf-card { border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.05); }
-                .sf-chart-header { display:flex; align-items:center; justify-content:space-between; gap: 12px; margin-bottom: 8px; }
-                @media (max-width: 576px) { .sf-chart-header { flex-direction: column; align-items: flex-start; } }
+                
+                /* Responsive Chart Header */
+                .sf-chart-header { 
+                    display:flex; 
+                    align-items:center; 
+                    justify-content:space-between; 
+                    gap: 12px; 
+                    margin-bottom: 8px; 
+                    flex-wrap: wrap; /* Quan trọng: cho phép xuống dòng */
+                }
+
+                @media (max-width: 768px) {
+                    .sf-page-header {
+                        flex-direction: column;
+                        align-items: flex-start;
+                        gap: 12px;
+                    }
+                    .sf-page-header > div:last-child {
+                        width: 100%;
+                        display: flex;
+                        justify-content: space-between;
+                    }
+                }
+
+                @media (max-width: 576px) { 
+                    .sf-chart-header { 
+                        flex-direction: column; 
+                        align-items: stretch; /* Kéo dãn các phần tử con */
+                    } 
+                    .sf-chart-header .ant-select {
+                        width: 100% !important; /* Select full width */
+                    }
+                    .sf-chart-header button {
+                        width: 100%;
+                        margin-top: 8px;
+                    }
+                }
             `}</style>
         </div>
     );

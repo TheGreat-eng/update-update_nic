@@ -474,3 +474,124 @@ body[data-theme='dark'] .landing-cta {
 .ant-layout-sider-children .ant-menu::-webkit-scrollbar-track {
     background: transparent;
 }
+
+
+
+
+
+/* ==========================================================================
+   MOBILE & RESPONSIVE OPTIMIZATIONS
+   ========================================================================== */
+
+/* 1. Xử lý trang Login/Register trên Mobile */
+@media (max-width: 992px) {
+    .enhanced-auth {
+        grid-template-columns: 1fr !important;
+        /* Chuyển thành 1 cột */
+    }
+
+    .auth-showcase {
+        display: none !important;
+        /* Ẩn ảnh bên trái */
+    }
+
+    .auth-form-wrapper {
+        padding: 20px !important;
+        background: var(--background-light);
+        /* Đảm bảo nền không trong suốt */
+    }
+
+    body[data-theme='dark'] .auth-form-wrapper {
+        background: var(--background-dark);
+    }
+
+    .glass-card {
+        box-shadow: none !important;
+        /* Bỏ shadow trên mobile cho phẳng */
+        background: transparent !important;
+        border: none !important;
+        backdrop-filter: none !important;
+        padding: 0 !important;
+    }
+}
+
+/* 2. Xử lý chung cho Mobile (< 768px) */
+@media (max-width: 768px) {
+
+    /* Giảm padding của layout chính */
+    .ant-layout-content {
+        margin: 12px 8px !important;
+        padding: 0 !important;
+    }
+
+    /* Giảm padding của Card */
+    .ant-card-body {
+        padding: 12px !important;
+    }
+
+    /* Tiêu đề nhỏ lại */
+    h1.ant-typography,
+    .ant-typography h1 {
+        font-size: 22px !important;
+    }
+
+    h2.ant-typography,
+    .ant-typography h2 {
+        font-size: 18px !important;
+    }
+
+    h4.ant-typography,
+    .ant-typography h4 {
+        font-size: 16px !important;
+    }
+
+    /* Modal full width trên mobile */
+    .ant-modal {
+        max-width: 100% !important;
+        margin: 10px !important;
+        padding-bottom: 0 !important;
+    }
+
+    /* Bảng dữ liệu: Buộc font nhỏ hơn */
+    .ant-table {
+        font-size: 13px;
+    }
+
+    /* Global Search Modal */
+    .global-search-modal .ant-modal-content {
+        border-radius: 0;
+        min-height: 100vh;
+    }
+
+    /* Chat Widget */
+    .chat-widget-container {
+        bottom: 70px !important;
+        right: 16px !important;
+        width: calc(100% - 32px) !important;
+    }
+}
+
+/* 3. Utility class để sửa lỗi Select bị tràn trên mobile */
+@media (max-width: 576px) {
+    .sf-chart-header {
+        flex-direction: column;
+        align-items: stretch !important;
+        /* Kéo giãn full width */
+        gap: 12px;
+    }
+
+    .sf-chart-header .ant-select,
+    .sf-chart-header button {
+        width: 100% !important;
+    }
+
+    /* Ẩn các cột phụ của Table nếu không quan trọng (sử dụng class này trong code nếu cần) */
+    .hide-on-mobile {
+        display: none;
+    }
+
+    /* Stats Card trên Dashboard */
+    .ant-col-xs-12 {
+        /* Đảm bảo 2 cột stats không bị dính */
+    }
+}
