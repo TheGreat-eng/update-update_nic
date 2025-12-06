@@ -1,12 +1,15 @@
 // src/components/FarmZones.tsx
 import React, { useState } from 'react';
-import { List, Button, Popconfirm, message, Empty, Tag } from 'antd';
+import { List, Button, Popconfirm, message, Empty, Tag, Modal } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, AppstoreOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getZonesByFarm, createZone, updateZone, deleteZone } from '../api/zoneService';
 import ZoneFormModal from './ZoneFormModal';
 import type { Zone } from '../types/zone';
 import type { ZoneFormData } from '../api/zoneService';
+// Thêm import
+import { SettingOutlined } from '@ant-design/icons';
+import { ZoneSettings } from './ZoneSettings';
 
 interface FarmZonesProps {
     farmId: number;
@@ -17,6 +20,9 @@ export const FarmZones: React.FC<FarmZonesProps> = ({ farmId, canManage }) => {
     const queryClient = useQueryClient();
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [editingZone, setEditingZone] = useState<Zone | null>(null);
+    // State quản lý modal settings
+    const [isSettingsModalVisible, setIsSettingsModalVisible] = useState(false);
+    const [settingZoneId, setSettingZoneId] = useState<number | null>(null);
 
     const { data: zones, isLoading } = useQuery({
         queryKey: ['farmZones', farmId],
@@ -66,6 +72,12 @@ export const FarmZones: React.FC<FarmZonesProps> = ({ farmId, canManage }) => {
         setIsModalVisible(true);
     };
 
+    // Hàm mở modal
+    const openSettings = (zone: Zone) => {
+        setSettingZoneId(zone.id);
+        setIsSettingsModalVisible(true);
+    };
+
     return (
         <div>
             {canManage && (
@@ -91,6 +103,8 @@ export const FarmZones: React.FC<FarmZonesProps> = ({ farmId, canManage }) => {
                         <List.Item
                             actions={canManage ? [
                                 <Button type="text" icon={<EditOutlined />} onClick={() => openModal(item)}>Sửa</Button>,
+                                // --> THÊM NÚT NÀY <--
+                                <Button type="text" icon={<SettingOutlined />} onClick={() => openSettings(item)}>Cài đặt</Button>,
                                 <Popconfirm
                                     title="Xóa vùng này?"
                                     description="Các thiết bị trong vùng sẽ không bị xóa."
@@ -131,6 +145,25 @@ export const FarmZones: React.FC<FarmZonesProps> = ({ farmId, canManage }) => {
                 initialData={editingZone}
                 loading={createMutation.isPending || updateMutation.isPending}
             />
+
+
+            <Modal
+                title="Cài đặt nâng cao cho Vùng"
+                open={isSettingsModalVisible}
+                onCancel={() => setIsSettingsModalVisible(false)}
+                footer={null} // ZoneSettings tự có nút Save
+                destroyOnClose
+            >
+                {settingZoneId && (
+                    <ZoneSettings
+                        zoneId={settingZoneId}
+                        onClose={() => setIsSettingsModalVisible(false)}
+                    />
+                )}
+            </Modal>
+
+
+
         </div>
     );
 };

@@ -159,6 +159,9 @@ class SensorSimulator:
         elif device_id == "DHT22-1234": # Thiết bị ở Vùng Lạnh
             temperature = 25.0  # Mát mẻ
             humidity = 80.0
+        elif device_id == "DHT-001": # Thiết bị ở Vùng Lạnh
+            temperature = 31.5  # Mát mẻ
+            humidity = 80.0
         elif device_id == "DHT-REALTIME-TEST": # Thiết bị ở Vùng Ẩm ướt
             temperature = 28.0
             humidity = 95.0
@@ -244,14 +247,16 @@ def main():
     INTERVAL    = int(os.getenv("SIM_INTERVAL", "10"))
 
     devices = [
-        {"id": "DHT22-123", "type": "DHT22"},
-        {"id": "DHT22-1234", "type": "DHT22"},
-        {"id": "DHT-109", "type": "DHT22"},
-        {"id": "DHT-REALTIME-TEST", "type": "DHT22"},
-        {"id": "SOIL-123",  "type": "SOIL_MOISTURE"},
-        {"id": "SOIL-1234",  "type": "SOIL_MOISTURE"},
-        {"id": "LIGHT-123", "type": "LIGHT"},
-        {"id": "PH-123",    "type": "PH"},
+        # {"id": "DHT22-123", "type": "DHT22"},
+        # {"id": "DHT22-1234", "type": "DHT22"},
+        {"id": "DHT-001", "type": "DHT22"},
+
+        # {"id": "DHT-109", "type": "DHT22"},
+        # {"id": "DHT-REALTIME-TEST", "type": "DHT22"},
+        # {"id": "SOIL-123",  "type": "SOIL_MOISTURE"},
+        # {"id": "SOIL-1234",  "type": "SOIL_MOISTURE"},
+        # {"id": "LIGHT-123", "type": "LIGHT"},
+        # {"id": "PH-123",    "type": "PH"},
     ]
 
     sim = SensorSimulator(BROKER_HOST, BROKER_PORT, username=MQTT_USER, password=MQTT_PASS)

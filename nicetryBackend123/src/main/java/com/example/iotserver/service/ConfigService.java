@@ -1,15 +1,22 @@
-// TẠO FILE MỚI: src/main/java/com/example/iotserver/service/ConfigService.java
 package com.example.iotserver.service;
 
-import com.example.iotserver.entity.*;
+import java.util.Optional;
+
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+
+import com.example.iotserver.entity.Farm;
+import com.example.iotserver.entity.FarmSetting;
+import com.example.iotserver.entity.PlantProfileSetting;
+import com.example.iotserver.entity.Zone;
+import com.example.iotserver.entity.ZoneSetting;
 import com.example.iotserver.repository.FarmSettingRepository;
 import com.example.iotserver.repository.PlantProfileSettingRepository;
 import com.example.iotserver.repository.SystemSettingRepository;
+import com.example.iotserver.repository.ZoneSettingRepository;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.stereotype.Service;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -19,42 +26,38 @@ public class ConfigService {
     private final FarmSettingRepository farmSettingRepository;
     private final PlantProfileSettingRepository plantProfileSettingRepository;
     private final SystemSettingRepository systemSettingRepository;
+    private final ZoneSettingRepository zoneSettingRepository; // <--- INJECT MỚI
 
-    /**
-     * Lấy giá trị cài đặt kiểu Double theo hệ thống phân cấp ưu tiên:
-     * 1. Cài đặt riêng của Farm (FarmSetting)
-     * 2. Cài đặt theo Hồ sơ cây trồng của Zone (PlantProfileSetting)
-     * 3. Cài đặt mặc định của hệ thống (SystemSetting)
-     * 4. Giá trị mặc định cứng (fallback)
-     */
     @Cacheable(value = "resolvedSettings", key = "#farm.id + ':' + (#zone != null ? #zone.id : 'null') + ':' + #key")
     public Double getDouble(Farm farm, Zone zone, String key, Double defaultValue) {
-        // Ưu tiên 1: FarmSetting
-        Optional<FarmSetting> farmSettingOpt = farmSettingRepository.findByFarmIdAndKey(farm.getId(), key);
-        if (farmSettingOpt.isPresent()) {
-            log.debug("[Config] Using Farm-Specific setting for key '{}' in Farm '{}'", key, farm.getId());
-            return Double.parseDouble(farmSettingOpt.get().getValue());
+        
+        // === ƯU TIÊN 1: Cài đặt riêng của Zone (Zone Settings) ===
+        if (zone != null) {
+            Optional<ZoneSetting> zoneSettingOpt = zoneSettingRepository.findByZoneIdAndKey(zone.getId(), key);
+            if (zoneSettingOpt.isPresent()) {
+                log.debug("[Config] Dùng cài đặt riêng của Zone '{}': {} = {}", zone.getName(), key, zoneSettingOpt.get().getValue());
+                return Double.parseDouble(zoneSettingOpt.get().getValue());
+            }
         }
 
-        // Ưu tiên 2: PlantProfileSetting (từ Zone)
+        // === ƯU TIÊN 2: Hồ sơ cây trồng (Plant Profile) ===
         if (zone != null && zone.getPlantProfile() != null) {
             Optional<PlantProfileSetting> profileSettingOpt = plantProfileSettingRepository
                     .findByProfileIdAndKey(zone.getPlantProfile().getId(), key);
             if (profileSettingOpt.isPresent()) {
-                log.debug("[Config] Using Plant Profile '{}' setting for key '{}'", zone.getPlantProfile().getName(),
-                        key);
                 return Double.parseDouble(profileSettingOpt.get().getValue());
             }
         }
 
-        // Ưu tiên 3: SystemSetting
-        Optional<SystemSetting> systemSettingOpt = systemSettingRepository.findById(key);
-        if (systemSettingOpt.isPresent()) {
-            log.debug("[Config] Using System Default setting for key '{}'", key);
-            return Double.parseDouble(systemSettingOpt.get().getValue());
+        // === ƯU TIÊN 3: Cài đặt chung của Farm (Fallback) ===
+        Optional<FarmSetting> farmSettingOpt = farmSettingRepository.findByFarmIdAndKey(farm.getId(), key);
+        if (farmSettingOpt.isPresent()) {
+            return Double.parseDouble(farmSettingOpt.get().getValue());
         }
 
-        log.warn("[Config] No setting found for key '{}'. Using hardcoded default value.", key);
-        return defaultValue;
+        // === ƯU TIÊN 4: Mặc định Hệ thống ===
+        return systemSettingRepository.findById(key)
+                .map(s -> Double.parseDouble(s.getValue()))
+                .orElse(defaultValue);
     }
 }

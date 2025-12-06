@@ -4,16 +4,18 @@ import { useQuery } from '@tanstack/react-query';
 import {
     Card, Typography, Row, Col, Progress, Tag,
     List, Spin, Alert, Empty, Collapse,
-    Button, Tooltip
+    Button, Tooltip, message
 } from 'antd';
 import { useFarm } from '../context/FarmContext';
 import { getHealthByZone } from '../api/plantHealthService';
 import type { ZoneHealth } from '../types/plantHealth';
 import {
     WarningOutlined, CheckCircleOutlined
-    , LineChartOutlined
+    , LineChartOutlined, CheckOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom'; // Import
+import { useQueryClient } from '@tanstack/react-query';
+import { resolveAlert } from '../api/plantHealthService';
 
 const { Title, Text } = Typography;
 const { Panel } = Collapse;
@@ -21,6 +23,7 @@ const { Panel } = Collapse;
 const PlantHealthPage: React.FC = () => {
     const navigate = useNavigate(); // Hook điều hướng
     const { farmId } = useFarm();
+    const queryClient = useQueryClient();
 
     const { data: zoneHealths, isLoading } = useQuery({
         queryKey: ['plantHealthByZone', farmId],
@@ -95,8 +98,39 @@ const PlantHealthPage: React.FC = () => {
                                                                     Phân tích
                                                                 </Button>
                                                             </Tooltip>
-                                                        ) : null
+                                                        ) : null,
+
+
+
+                                                        // 2. Nút Đã xử lý (THÊM MỚI Ở ĐÂY)
+                                                        <Tooltip title="Xác nhận vấn đề đã được giải quyết">
+                                                            <Button
+                                                                type="text"
+                                                                icon={<CheckOutlined style={{ color: '#52c41a' }} />} // Màu xanh lá
+                                                                onClick={async () => {
+                                                                    try {
+                                                                        // Gọi API xử lý
+                                                                        await resolveAlert(alert.id);
+                                                                        message.success("Đã xử lý cảnh báo thành công!");
+
+                                                                        // Làm mới dữ liệu ngay lập tức để cập nhật điểm số
+                                                                        queryClient.invalidateQueries({ queryKey: ['plantHealthByZone'] });
+                                                                    } catch (error) {
+                                                                        message.error("Lỗi khi xử lý cảnh báo");
+                                                                    }
+                                                                }}
+                                                            >
+                                                                <span style={{ color: '#52c41a' }}>Đã xử lý</span>
+                                                            </Button>
+                                                        </Tooltip>
+
+
+
+
+
                                                     ]}
+
+
                                                 // ^^^^--------------------------^^^^
                                                 >
                                                     <List.Item.Meta
