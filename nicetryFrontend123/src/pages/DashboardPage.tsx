@@ -17,6 +17,8 @@ import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { useDashboardSummary } from '../hooks/useDashboardData';
 import type { SensorDataMessage } from '../types/websocket';
 import { useStomp } from '../hooks/useStomp';
+import { Grid } from 'antd'; // THÊM import Grid
+
 
 // --- Components con (Giữ nguyên) ---
 const StatChip = ({ children, bg }: { children: React.ReactNode; bg: string }) => (
@@ -44,6 +46,13 @@ const StatsCard = React.memo<{
         </Card>
     )
 );
+
+
+
+const { Title, Text } = Typography;
+const { Option } = Select;
+const { useBreakpoint } = Grid; // THÊM hook
+
 
 const PageHeader = ({ title, subtitle }: { title: string, subtitle: string }) => (
     <div className="sf-page-header">
@@ -79,8 +88,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     return null;
 };
 
-const { Title, Text } = Typography;
-const { Option } = Select;
+
 
 // --- Main Component ---
 const DashboardPage: React.FC = () => {
@@ -171,6 +179,12 @@ const DashboardPage: React.FC = () => {
             setSelectedPHDevice(undefined);
         }
     }, [envDevices, soilDevices, phDevices, selectedZoneId]); // Dependency quan trọng là selectedZoneId
+
+
+    // THÊM hook để check mobile cho phần render
+    const screens = useBreakpoint();
+    const isMobile = !screens.md;
+
 
     // 9. Hàm merge dữ liệu biểu đồ (Giữ nguyên)
     const mergeChartData = (data1: AggregatedDataPoint[], data2: AggregatedDataPoint[], key1: string, key2: string): ChartDataPoint[] => {
@@ -322,14 +336,21 @@ const DashboardPage: React.FC = () => {
 
     return (
         <div className="sf-wrapper">
-            {/* Header với bộ lọc Zone */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                <PageHeader title="Dashboard Tổng Quan" subtitle="Phân tích dữ liệu thời gian thực từ các cảm biến." />
+            {/* SỬA PHẦN HEADER CỦA DASHBOARD */}
+            <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: isMobile ? 'flex-start' : 'center', // Căn chỉnh lại
+                marginBottom: 24,
+                flexDirection: isMobile ? 'column' : 'row', // Xếp dọc trên mobile
+                gap: 16
+            }}>
+                <PageHeader title="Dashboard Tổng Quan" subtitle="Phân tích dữ liệu thời gian thực." />
 
-                <Space>
+                <Space style={{ width: isMobile ? '100%' : 'auto' }} direction={isMobile ? 'vertical' : 'horizontal'}>
                     {/* VVVV--- DROPDOWN CHỌN VÙNG ---VVVV */}
                     <Select
-                        style={{ width: 220 }}
+                        style={{ width: isMobile ? '100%' : 220 }} // Full width trên mobile
                         placeholder="Tất cả khu vực"
                         allowClear
                         onChange={(val) => setSelectedZoneId(val)}
@@ -343,7 +364,12 @@ const DashboardPage: React.FC = () => {
                     </Select>
                     {/* ^^^^-------------------------^^^^ */}
 
-                    <Button icon={<BarChart3 size={16} />} type="default" onClick={handleRefresh}>
+                    <Button
+                        icon={<BarChart3 size={16} />}
+                        type="default"
+                        onClick={handleRefresh}
+                        block={isMobile} // Button full width trên mobile
+                    >
                         Làm mới
                     </Button>
                 </Space>

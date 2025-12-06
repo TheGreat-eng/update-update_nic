@@ -13,15 +13,40 @@ import { TableSkeleton } from '../components/LoadingSkeleton';
 import type { Device } from '../types/device';
 import type { DeviceFormData } from '../api/deviceService';
 import { DEVICE_STATUS, DEVICE_STATE, getDeviceTypeLabel } from '../constants/device';
+import { Grid } from 'antd'; // THÊM import Grid
+
 
 const { Title, Text } = Typography;
+const { useBreakpoint } = Grid; // THÊM dòng này
 
-const PageHeader = ({ title, subtitle, actions }: { title: string, subtitle: string, actions: React.ReactNode }) => (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <div><Title level={2} style={{ margin: 0 }}>{title}</Title><Text type="secondary">{subtitle}</Text></div>
-        <Space>{actions}</Space>
-    </div>
-);
+
+// --- SỬA LẠI COMPONENT PageHeader NÀY ---
+const PageHeader = ({ title, subtitle, actions }: { title: string, subtitle: string, actions: React.ReactNode }) => {
+    const screens = useBreakpoint();
+    const isMobile = !screens.md; // Mobile nếu nhỏ hơn md
+
+    return (
+        <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: isMobile ? 'flex-start' : 'center', // Mobile căn trên, Desktop căn giữa
+            marginBottom: 24,
+            flexDirection: isMobile ? 'column' : 'row', // QUAN TRỌNG: Mobile xếp dọc, Desktop xếp ngang
+            gap: isMobile ? 16 : 0 // Khoảng cách giữa tiêu đề và nút bấm khi xếp dọc
+        }}>
+            <div>
+                <Title level={2} style={{ margin: 0 }}>{title}</Title>
+                <Text type="secondary">{subtitle}</Text>
+            </div>
+            <Space
+                style={{ width: isMobile ? '100%' : 'auto', justifyContent: isMobile ? 'space-between' : 'flex-end' }}
+                wrap // Cho phép các nút xuống dòng nếu quá chật
+            >
+                {actions}
+            </Space>
+        </div>
+    );
+};
 
 const DevicesPage: React.FC = () => {
     const queryClient = useQueryClient();
@@ -111,6 +136,10 @@ const DevicesPage: React.FC = () => {
 
     const deleteMutation = useMutation({ mutationFn: deleteDevice, ...mutationOptions });
 
+
+    const screens = useBreakpoint(); // THÊM hook check màn hình
+    const isMobile = !screens.md;
+
     const handleRefresh = useCallback(() => {
         queryClient.invalidateQueries({ queryKey: ['devices', farmId] });
         queryClient.invalidateQueries({ queryKey: ['unclaimedDevices'] });
@@ -176,7 +205,30 @@ const DevicesPage: React.FC = () => {
 
     return (
         <div>
-            <PageHeader title="Quản lý Thiết bị" subtitle={`${devices.length} thiết bị`} actions={<><Input.Search placeholder="Tìm kiếm..." value={searchText} onChange={e => setSearchText(e.target.value)} style={{ width: 250 }} /><Button icon={<SyncOutlined />} onClick={handleRefresh} loading={isFetchingDevices} />{canManage && <Button type="primary" icon={<PlusOutlined />} onClick={() => { setEditingDevice(null); setIsModalVisible(true); }}>Thêm mới</Button>}</>} />
+            <PageHeader
+                title="Quản lý Thiết bị"
+                subtitle={`${devices.length} thiết bị`}
+                actions={
+                    <>
+                        {/* SỬA: Input Search linh hoạt width */}
+                        <Input.Search
+                            placeholder="Tìm kiếm..."
+                            value={searchText}
+                            onChange={e => setSearchText(e.target.value)}
+                            style={{ width: isMobile ? '100%' : 250, minWidth: 150 }}
+                        />
+                        <Button icon={<SyncOutlined />} onClick={handleRefresh} loading={isFetchingDevices} />
+                        {canManage && (
+                            <Button type="primary" icon={<PlusOutlined />} onClick={() => { setEditingDevice(null); setIsModalVisible(true); }}>
+                                {isMobile ? 'Thêm' : 'Thêm mới'}
+                            </Button>
+                        )}
+                    </>
+                }
+            />
+
+
+
             {canManage && unclaimedDevices.length > 0 && <Alert message={`${unclaimedDevices.length} thiết bị mới`} type="info" showIcon icon={<BellOutlined />} style={{ marginBottom: 24 }} closable description={<ul>{unclaimedDevices.map(d => <li key={d.id}><span><Text strong>{d.name}</Text> ({d.deviceId})</span> <Button type="link" onClick={() => { setEditingDevice(d); setIsModalVisible(true); }}>Nhận</Button></li>)}</ul>} />}
             {isLoadingDevices && devices.length === 0 ? <TableSkeleton rows={5} /> : <Table columns={columns} dataSource={filteredDevices} rowKey="id" loading={isFetchingDevices} pagination={{ pageSize: 10 }} scroll={{ x: 1300 }} />}
             {isModalVisible && <DeviceFormModal visible={isModalVisible} onClose={() => { setIsModalVisible(false); setEditingDevice(null); }} onSubmit={saveMutation.mutate} initialData={editingDevice} loading={saveMutation.isPending} />}

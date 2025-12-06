@@ -1,10 +1,12 @@
 // src/layout/AppLayout.tsx
-import React, { useState, type PropsWithChildren } from 'react';
+import React, { useState, useMemo, type PropsWithChildren } from 'react';
 import {
-    LayoutDashboard, HardDrive, Settings, User, Trees, BrainCircuit, Bot, HeartPulse, Crown,
+    LayoutDashboard, HardDrive, Settings, User, Trees,
+    BrainCircuit, Bot, HeartPulse, Crown, CalendarClock,
+    History, Leaf
 } from 'lucide-react';
 import type { MenuProps } from 'antd';
-import { Layout, Menu, theme, notification, Drawer, Grid } from 'antd'; // THÊM: Drawer, Grid
+import { Layout, Menu, theme, notification, Drawer, Grid } from 'antd';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import AppHeader from './AppHeader';
@@ -15,11 +17,10 @@ import { BellOutlined } from '@ant-design/icons';
 import { useStomp } from '../hooks/useStomp';
 import { useQueryClient } from '@tanstack/react-query';
 import type { IMessage as StompMessage } from '@stomp/stompjs';
-import { CalendarClock, History, Leaf } from 'lucide-react';
 import ChatWidget from '../components/ChatWidget';
 
 const { Content, Sider } = Layout;
-const { useBreakpoint } = Grid; // THÊM
+const { useBreakpoint } = Grid;
 
 type MenuItem = Required<MenuProps>['items'][number];
 
@@ -33,26 +34,29 @@ function getItem(
 }
 
 const AppLayout: React.FC<PropsWithChildren> = ({ children }) => {
+    // --- State & Hooks ---
     const [collapsed, setCollapsed] = useState(false);
-    const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false); // THÊM: State cho mobile menu
+    const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+
     const navigate = useNavigate();
     const location = useLocation();
     const { isDark } = useTheme();
-    const {
-        token: { colorBgContainer }
-    } = theme.useToken();
-    const screens = useBreakpoint(); // THÊM: Hook kiểm tra kích thước màn hình
+    const { token: { colorBgContainer } } = theme.useToken();
+    const screens = useBreakpoint();
+    const queryClient = useQueryClient();
 
-    // Nếu màn hình lớn hơn 'lg' (992px) thì coi là Desktop, ngược lại là Mobile/Tablet
-    const isMobile = !screens.lg;
+    // --- Logic Mobile ---
+    // Mặc định coi là mobile nếu screens chưa init xong (tránh lỗi vỡ layout lúc mới load)
+    // Nếu screens.lg = undefined => Mobile. Nếu screens.lg = false => Mobile.
+    const isMobile = screens.lg === undefined ? true : !screens.lg;
 
     const user = getUserFromStorage();
     const isAdmin = user?.roles?.includes('ADMIN');
-    const queryClient = useQueryClient();
 
-    // ... (Giữ nguyên phần useStomp như cũ) ...
-    useStomp(user ? user.userId : null, 'user', {
+    // --- WebSocket / Notification Logic (Giữ nguyên) ---
+    useStomp(user ? user.userId : null, 'user', useMemo(() => ({
         onConnect: (client) => {
+            // console.log(`Subscribing to user notifications: /topic/user/${user.userId}/notifications`);
             return client.subscribe(
                 `/topic/user/${user.userId}/notifications`,
                 (message: StompMessage) => {
@@ -73,8 +77,9 @@ const AppLayout: React.FC<PropsWithChildren> = ({ children }) => {
                 }
             );
         }
-    });
+    }), [user, queryClient]));
 
+    // --- Menu Items ---
     const menuItems: MenuItem[] = [
         getItem('Dashboard', '/dashboard', <LayoutDashboard size={16} />),
         getItem('Dự đoán AI', '/ai', <BrainCircuit size={16} />),
@@ -101,7 +106,7 @@ const AppLayout: React.FC<PropsWithChildren> = ({ children }) => {
         getItem('Cài đặt', '/settings', <Settings size={16} />)
     ].filter(Boolean) as MenuItem[];
 
-    // Component Menu để tái sử dụng cho cả Sider và Drawer
+    // --- Component Menu dùng chung ---
     const renderMenu = () => (
         <Menu
             theme={isDark ? 'dark' : 'light'}
@@ -110,14 +115,19 @@ const AppLayout: React.FC<PropsWithChildren> = ({ children }) => {
             items={menuItems}
             onClick={({ key }) => {
                 navigate(String(key));
-                if (isMobile) setMobileDrawerOpen(false); // Đóng drawer khi click trên mobile
+                // QUAN TRỌNG: Tự đóng drawer khi click trên mobile
+                if (isMobile) setMobileDrawerOpen(false);
             }}
             style={{ borderRight: 0 }}
         />
     );
 
+    // --- Logo Component ---
     const logoContent = (
-        <div style={{ height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+        <div style={{
+            height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '16px', borderBottom: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #f0f0f0'
+        }}>
             <div className="gradient-text" style={{
                 fontWeight: 'bold', fontSize: collapsed ? '24px' : '22px',
                 transition: 'all 0.3s', whiteSpace: 'nowrap'
@@ -129,7 +139,7 @@ const AppLayout: React.FC<PropsWithChildren> = ({ children }) => {
 
     return (
         <Layout style={{ minHeight: '100vh' }}>
-            {/* 1. DESKTOP SIDER (Ẩn khi là Mobile) */}
+            {/* 1. DESKTOP SIDEBAR (Ẩn hoàn toàn khi là Mobile) */}
             {!isMobile && (
                 <Sider
                     collapsible
@@ -143,13 +153,13 @@ const AppLayout: React.FC<PropsWithChildren> = ({ children }) => {
                     }}
                 >
                     {logoContent}
-                    <div style={{ maxHeight: 'calc(100vh - 64px)', overflowY: 'auto' }} className="custom-sider">
+                    <div className="custom-sider" style={{ maxHeight: 'calc(100vh - 64px)', overflowY: 'auto', overflowX: 'hidden' }}>
                         {renderMenu()}
                     </div>
                 </Sider>
             )}
 
-            {/* 2. MOBILE DRAWER (Chỉ hiện khi là Mobile) */}
+            {/* 2. MOBILE DRAWER (Menu trượt) */}
             {isMobile && (
                 <Drawer
                     placement="left"
@@ -157,31 +167,45 @@ const AppLayout: React.FC<PropsWithChildren> = ({ children }) => {
                     open={mobileDrawerOpen}
                     width={260}
                     bodyStyle={{ padding: 0, background: isDark ? '#001529' : '#fff' }}
-                    headerStyle={{ display: 'none' }}
+                    headerStyle={{ display: 'none' }} // Tự custom header
                 >
-                    <div style={{ height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                        <span className="gradient-text" style={{ fontSize: '22px', fontWeight: 'bold' }}>SmartFarm</span>
-                    </div>
+                    {logoContent}
                     {renderMenu()}
                 </Drawer>
             )}
 
+            {/* 3. MAIN CONTENT LAYOUT */}
             <Layout style={{
+                // LOGIC QUAN TRỌNG: 
+                // - Mobile: Margin = 0 (để nội dung tràn màn hình, không bị Sidebar ảo đẩy)
+                // - Desktop: Margin = 80px (thu nhỏ) hoặc 220px (mở rộng)
                 marginLeft: isMobile ? 0 : (collapsed ? 80 : 220),
-                transition: 'margin-left 0.2s'
+                transition: 'margin-left 0.2s ease',
+                width: '100%',
+                overflowX: 'hidden' // Ngăn thanh cuộn ngang trang
             }}>
-                {/* Truyền callback toggle menu xuống Header */}
                 <AppHeader
                     onToggleMenu={() => setMobileDrawerOpen(true)}
                     isMobile={isMobile}
                 />
 
-                <Content style={{ margin: isMobile ? '12px' : '24px 16px', overflow: 'initial', background: colorBgContainer }}>
-                    <PageBreadcrumb />
-                    <div className="app-content" key={location.pathname}>
+                <Content style={{
+                    margin: isMobile ? '16px' : '24px 16px',
+                    overflow: 'initial',
+                    background: colorBgContainer,
+                    minHeight: '80vh',
+                    borderRadius: isMobile ? 0 : 8 // Bo góc trên desktop cho đẹp
+                }}>
+                    {/* Bọc Breadcrumb để có padding nếu cần */}
+                    <div style={{ padding: isMobile ? '0' : '0' }}>
+                        <PageBreadcrumb />
+                    </div>
+
+                    <div className="app-content" key={location.pathname} style={{ paddingBottom: 20 }}>
                         {children ?? <Outlet />}
                     </div>
                 </Content>
+
                 <AppFooter />
                 <ChatWidget />
             </Layout>
