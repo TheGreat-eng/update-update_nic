@@ -10,7 +10,8 @@ import {
     message,
     Typography,
     Input,
-    Tooltip
+    Tooltip,
+    Grid // 1. THÊM IMPORT GRID
 } from 'antd';
 import type { TableProps, PaginationProps } from 'antd';
 import {
@@ -25,10 +26,10 @@ import { getAllUsers, lockUser, unlockUser, softDeleteUser } from '../../api/adm
 import type { AdminUser } from '../../types/admin';
 import { useDebounce } from '../../hooks/useDebounce';
 import { TableSkeleton } from '../../components/LoadingSkeleton';
-import { UserEditModal } from '../../components/admin/UserEditModal'; // <<<< 1. IMPORT MODAL MỚI
-
+import { UserEditModal } from '../../components/admin/UserEditModal';
 
 const { Title, Text } = Typography;
+const { useBreakpoint } = Grid; // 2. KHAI BÁO HOOK
 
 const UserManagementPage: React.FC = () => {
     const queryClient = useQueryClient();
@@ -39,13 +40,12 @@ const UserManagementPage: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
-
-
-    // <<<< 2. THÊM STATE ĐỂ QUẢN LÝ MODAL >>>>
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
 
-
+    // 3. CHECK MÀN HÌNH MOBILE
+    const screens = useBreakpoint();
+    const isMobile = !screens.md; // Nhỏ hơn md (768px) là mobile
 
     // Fetch users data
     const { data, isLoading, isFetching } = useQuery({
@@ -66,18 +66,9 @@ const UserManagementPage: React.FC = () => {
         },
     };
 
-    const lockMutation = useMutation({
-        mutationFn: lockUser,
-        ...mutationOptions
-    });
-    const unlockMutation = useMutation({
-        mutationFn: unlockUser,
-        ...mutationOptions
-    });
-    const deleteMutation = useMutation({
-        mutationFn: softDeleteUser,
-        ...mutationOptions
-    });
+    const lockMutation = useMutation({ mutationFn: lockUser, ...mutationOptions });
+    const unlockMutation = useMutation({ mutationFn: unlockUser, ...mutationOptions });
+    const deleteMutation = useMutation({ mutationFn: softDeleteUser, ...mutationOptions });
 
     const handleTableChange = (newPagination: PaginationProps) => {
         setPagination({
@@ -86,7 +77,6 @@ const UserManagementPage: React.FC = () => {
         });
     };
 
-
     const showEditModal = (user: AdminUser) => {
         setSelectedUser(user);
         setIsModalVisible(true);
@@ -94,12 +84,7 @@ const UserManagementPage: React.FC = () => {
 
     // Table columns configuration
     const columns: TableProps<AdminUser>['columns'] = [
-        {
-            title: 'ID',
-            dataIndex: 'id',
-            key: 'id',
-            width: 80
-        },
+        { title: 'ID', dataIndex: 'id', key: 'id', width: 60 }, // Giảm width ID chút cho gọn
         {
             title: 'Thông tin Người dùng',
             dataIndex: 'email',
@@ -108,7 +93,7 @@ const UserManagementPage: React.FC = () => {
                 <div>
                     <Text strong>{record.fullName}</Text>
                     <br />
-                    <Text type="secondary">{record.email}</Text>
+                    <Text type="secondary" style={{ fontSize: '12px' }}>{record.email}</Text>
                 </div>
             ),
         },
@@ -127,54 +112,26 @@ const UserManagementPage: React.FC = () => {
             key: 'status',
             render: (_, record) => (
                 <Space>
-                    {record.deleted ? (
-                        <Tag color="error">Đã xóa</Tag>
-                    ) : record.enabled ? (
-                        <Tag color="success">Hoạt động</Tag>
-                    ) : (
-                        <Tag color="default">Bị khóa</Tag>
-                    )}
+                    {record.deleted ? <Tag color="error">Đã xóa</Tag> : record.enabled ? <Tag color="success">Hoạt động</Tag> : <Tag color="default">Bị khóa</Tag>}
                 </Space>
             ),
         },
         {
             title: 'Hành động',
             key: 'action',
-            width: 250,
+            width: 180, // Giảm width hành động
             render: (_, record) => (
-                <Space>
+                <Space size="small">
                     {!record.deleted && (
                         <>
                             {record.enabled ? (
-                                <Tooltip title="Khóa tài khoản">
-                                    <Button
-                                        icon={<LockOutlined />}
-                                        onClick={() => lockMutation.mutate(record.id)}
-                                        danger
-                                    />
-                                </Tooltip>
+                                <Tooltip title="Khóa"><Button size="small" icon={<LockOutlined />} onClick={() => lockMutation.mutate(record.id)} danger /></Tooltip>
                             ) : (
-                                <Tooltip title="Mở khóa tài khoản">
-                                    <Button
-                                        icon={<UnlockOutlined />}
-                                        onClick={() => unlockMutation.mutate(record.id)}
-                                    />
-                                </Tooltip>
+                                <Tooltip title="Mở khóa"><Button size="small" icon={<UnlockOutlined />} onClick={() => unlockMutation.mutate(record.id)} /></Tooltip>
                             )}
-
-                            {/* <<<< 4. KÍCH HOẠT NÚT CHỈNH SỬA >>>> */}
-                            <Tooltip title="Chỉnh sửa">
-                                <Button icon={<EditOutlined />} onClick={() => showEditModal(record)} />
-                            </Tooltip>
-
-                            <Popconfirm
-                                title="Xóa người dùng?"
-                                description="Hành động này sẽ ẩn người dùng khỏi hệ thống."
-                                onConfirm={() => deleteMutation.mutate(record.id)}
-                            >
-                                <Tooltip title="Xóa mềm">
-                                    <Button icon={<DeleteOutlined />} danger type="dashed" />
-                                </Tooltip>
+                            <Tooltip title="Sửa"><Button size="small" icon={<EditOutlined />} onClick={() => showEditModal(record)} /></Tooltip>
+                            <Popconfirm title="Xóa?" onConfirm={() => deleteMutation.mutate(record.id)}>
+                                <Tooltip title="Xóa mềm"><Button size="small" icon={<DeleteOutlined />} danger type="dashed" /></Tooltip>
                             </Popconfirm>
                         </>
                     )}
@@ -183,50 +140,38 @@ const UserManagementPage: React.FC = () => {
         },
     ];
 
-    // Hiển thị skeleton khi load lần đầu
-    if (isLoading) {
-        return (
-            <div style={{ padding: 24 }}>
-                <Title level={2} style={{ marginBottom: 24 }}>
-                    Quản lý Người dùng
-                </Title>
-                <TableSkeleton rows={5} />
-            </div>
-        );
-    }
+    if (isLoading) return <div style={{ padding: 24 }}><Title level={2} style={{ marginBottom: 24 }}>Quản lý Người dùng</Title><TableSkeleton rows={5} /></div>;
 
     return (
         <div style={{ padding: 24 }}>
             <Space direction="vertical" style={{ width: '100%' }} size="large">
-                {/* Header với tiêu đề và thanh tìm kiếm */}
+                {/* 4. SỬA HEADER RESPONSIVE */}
                 <div style={{
                     display: 'flex',
                     justifyContent: 'space-between',
-                    alignItems: 'center'
+                    alignItems: isMobile ? 'flex-start' : 'center', // Mobile căn trái, Desktop căn giữa
+                    flexDirection: isMobile ? 'column' : 'row',     // Mobile xếp dọc, Desktop xếp ngang
+                    gap: isMobile ? 16 : 0                          // Thêm khoảng cách khi xếp dọc
                 }}>
-                    <Title level={2} style={{ margin: 0 }}>
-                        Quản lý Người dùng
-                    </Title>
+                    <Title level={2} style={{ margin: 0 }}>Quản lý Người dùng</Title>
 
-                    <Space>
+                    <Space style={{ width: isMobile ? '100%' : 'auto' }}>
                         <Input.Search
-                            placeholder="Tìm kiếm theo email hoặc tên..."
+                            placeholder="Tìm kiếm..."
                             onSearch={value => setSearchTerm(value)}
                             onChange={e => setSearchTerm(e.target.value)}
-                            style={{ width: 300 }}
+                            // Mobile: full width, Desktop: 300px
+                            style={{ width: isMobile ? '100%' : 300 }}
                             allowClear
                         />
                         <Button
                             icon={<SyncOutlined />}
-                            onClick={() => queryClient.invalidateQueries({
-                                queryKey: ['admin-users']
-                            })}
+                            onClick={() => queryClient.invalidateQueries({ queryKey: ['admin-users'] })}
                             loading={isFetching}
                         />
                     </Space>
                 </div>
 
-                {/* Bảng dữ liệu người dùng */}
                 <Table
                     columns={columns}
                     dataSource={data?.content}
@@ -237,12 +182,13 @@ const UserManagementPage: React.FC = () => {
                         pageSize: pagination.pageSize,
                         total: data?.totalElements,
                         showSizeChanger: true,
+                        simple: isMobile // Mobile dùng pagination đơn giản cho gọn
                     }}
                     onChange={handleTableChange}
-                    scroll={{ x: 800 }}
+                    scroll={{ x: 800 }} // Đảm bảo scroll ngang
+                    size={isMobile ? "small" : "middle"} // Table nhỏ gọn hơn trên mobile
                 />
 
-                {/* <<<< 5. THÊM MODAL VÀO CUỐI COMPONENT >>>> */}
                 <UserEditModal
                     user={selectedUser}
                     visible={isModalVisible}
