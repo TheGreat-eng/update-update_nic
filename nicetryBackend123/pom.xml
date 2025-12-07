@@ -171,6 +171,13 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http:/
 		<artifactId>spring-boot-starter-quartz</artifactId>
 	</dependency>
 
+
+	<dependency>
+    <groupId>io.micrometer</groupId>
+    <artifactId>micrometer-registry-prometheus</artifactId>
+    <scope>runtime</scope>
+</dependency>
+
 </dependencies>
 
 <build>

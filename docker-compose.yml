@@ -186,6 +186,72 @@ services:
 
 
 
+
+
+    
+    # ... các service cũ (mysql, influxdb...) giữ nguyên ...
+
+  # ==================== Monitoring ====================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: smartfarm-prometheus1
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml # Mount file cấu hình
+    ports:
+      - "9090:9090"
+    networks:
+      - smartfarm-net
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: smartfarm-grafana1
+    ports:
+      - "3001:3000" # Map cổng 3001 ở ngoài vào 3000 của Grafana (tránh trùng port 3000 frontend)
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin # Mật khẩu mặc định, đổi sau khi login
+    volumes:
+      - grafana-data:/var/lib/grafana # Lưu dữ liệu dashboard bền vững
+    networks:
+      - smartfarm-net
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+
+  # 1. Mosquitto Exporter (Giám sát MQTT)
+  mosquitto-exporter:
+    image: sapcc/mosquitto-exporter
+    container_name: smartfarm-mosquitto-exporter
+    ports:
+      - "9234:9234"
+    environment:
+      - MOSQUITTO_ENDPOINT=tcp://mosquitto:1883
+    networks:
+      - smartfarm-net
+    depends_on:
+      - mosquitto
+    restart: unless-stopped
+
+  # 2. cAdvisor (Giám sát tài nguyên Docker: CPU/RAM của AI, MySQL...)
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: smartfarm-cadvisor
+    ports:
+      - "8081:8080" # Map ra cổng 8081 để tránh trùng
+    volumes:
+      # cAdvisor cần quyền đọc các thư mục hệ thống để lấy thông số
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - smartfarm-net
+    restart: unless-stopped
+
+
+
 # ==================== Networks & Volumes ====================
 networks:
   smartfarm-net:
@@ -197,3 +263,4 @@ volumes:
   redis-data:
   mosquitto-data:
   mosquitto-log:
+  grafana-data:

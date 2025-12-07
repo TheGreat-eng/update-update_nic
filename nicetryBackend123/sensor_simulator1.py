@@ -252,7 +252,7 @@ def main():
         {"id": "DHT-001", "type": "DHT22"},
 
         # {"id": "DHT-109", "type": "DHT22"},
-        # {"id": "DHT-REALTIME-TEST", "type": "DHT22"},
+        {"id": "DHT-REALTIME-TEST", "type": "DHT22"},
         # {"id": "SOIL-123",  "type": "SOIL_MOISTURE"},
         # {"id": "SOIL-1234",  "type": "SOIL_MOISTURE"},
         # {"id": "LIGHT-123", "type": "LIGHT"},
